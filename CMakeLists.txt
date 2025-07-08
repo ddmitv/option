@@ -12,6 +12,8 @@ option(option_BUILD_TEST "Adds 'option-test' target" ${PROJECT_IS_TOP_LEVEL})
 add_library(option INTERFACE
     "include/opt/option.hpp"
     "include/opt/option_fwd.hpp"
+
+    "include/opt/details/preprocessor.hpp"
 )
 target_include_directories(option INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

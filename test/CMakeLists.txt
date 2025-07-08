@@ -9,6 +9,26 @@ add_executable(option-test
 )
 target_link_libraries(option-test PRIVATE option)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(option-test PRIVATE
+        /Wall /WX /permissive-
+    )
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(option-test PRIVATE
+        -Wall # Enables most warnings
+        -Wextra # Enables some extra warning flags that are not enabled by -Wall
+        -Wpedantic # Issue all the warnings demanded by strict ISO C and ISO C++
+        -Wconversion # Warn for implicit conversions that may alter a value
+        -Werror # Make all warnings into errors.
+        -Wcast-align # Warn whenever a pointer is cast such that the required alignment of the target is increased
+        -Wunused # -Wunused options combined
+        -Wsign-conversion # Warn for implicit conversions that may change the sign of an integer value
+        -Wdouble-promotion # Give a warning when a value of type float is implicitly promoted to double
+        -Wold-style-cast # Warn for C style casting
+        -Wshadow # Warn whenever a local variable or type declaration shadows another variable
+    )
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
     doctest
