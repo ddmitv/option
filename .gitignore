@@ -4,3 +4,7 @@
 !.editorconfig
 !.gitattributes
 !LICENSE_1_0.txt
+!CMakeLists.txt
+
+!include/
+!test/
