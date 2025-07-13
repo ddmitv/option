@@ -10,4 +10,13 @@ namespace opt {
 template<class T, class Traits>
 class option;
 
+namespace impl {
+    struct none_tag {};
+}
+struct none_t {
+    constexpr none_t() = delete;
+    constexpr explicit none_t(impl::none_tag) {}
+};
+inline constexpr none_t none{impl::none_tag{}};
+
 }
