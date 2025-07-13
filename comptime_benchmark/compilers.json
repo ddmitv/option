@@ -1,0 +1,22 @@
+[
+    {
+        "name": "MSVC (Debug)",
+        "cmake_gen_args": ["-G", "Visual Studio 17 2022", "-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_CXX_FLAGS=/bigobj" ],
+        "cmake_build_args": [ "--config", "Debug" ]
+    },
+    {
+        "name": "MSVC (Release)",
+        "cmake_gen_args": [ "-G", "Visual Studio 17 2022", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_CXX_FLAGS=/bigobj" ],
+        "cmake_build_args": [ "--config", "Debug" ]
+    },
+    {
+        "name": "Clang (Debug)",
+        "cmake_gen_args": [ "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_CXX_COMPILER=clang++", "-DCMAKE_C_COMPILER=clang" ],
+        "cmake_build_args": [ "--config", "Debug" ]
+    },
+    {
+        "name": "Clang (Release)",
+        "cmake_gen_args": [ "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_CXX_COMPILER=clang++", "-DCMAKE_C_COMPILER=clang" ],
+        "cmake_build_args": [ "--config", "Release" ]
+    }
+]
