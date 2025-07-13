@@ -8,6 +8,7 @@ add_executable(option-test
     "option_test.cpp"
 )
 target_link_libraries(option-test PRIVATE option)
+set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(option-test PRIVATE
