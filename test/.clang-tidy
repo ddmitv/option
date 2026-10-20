@@ -1,0 +1,11 @@
+InheritParentConfig: true
+
+Checks: >
+  -readability-identifier-length,
+  -readability-function-cognitive-complexity,
+  -misc-const-correctness,
+  -bugprone-easily-swappable-parameters,
+  -llvm-prefer-static-over-anonymous-namespace,
+
+CheckOptions:
+  misc-include-cleaner.IgnoreHeaders: 'opt[\\/].+'
