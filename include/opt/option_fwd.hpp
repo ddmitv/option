@@ -11,13 +11,17 @@ template<class T, class Traits>
 class option;
 
 namespace impl {
-    struct none_tag {};
+    struct none_secret_tag {
+        explicit none_secret_tag() = default;
+    };
 }
+
+// https://eel.is/c++draft/optional#nullopt
 struct none_t {
     constexpr none_t() = delete;
-    constexpr explicit none_t(impl::none_tag) {}
+    constexpr explicit none_t(impl::none_secret_tag) {}
 };
-inline constexpr none_t none{impl::none_tag{}};
+inline constexpr none_t none{impl::none_secret_tag{}};
 
 template<class>
 struct is_option { static constexpr bool value = false; };
