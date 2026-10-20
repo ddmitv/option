@@ -8,6 +8,7 @@ cmake_minimum_required(VERSION 3.25)
 project(option VERSION 2.0.0 LANGUAGES CXX)
 
 option(option_BUILD_TEST "Adds 'option-test' target" ${PROJECT_IS_TOP_LEVEL})
+option(option_CODEGEN_TEST "" ${PROJECT_IS_TOP_LEVEL})
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -26,4 +27,7 @@ target_compile_features(option INTERFACE cxx_std_20)
 
 if (option_BUILD_TEST)
     add_subdirectory(test)
+endif()
+if (option_CODEGEN_TEST)
+    add_subdirectory(test/codegen-test)
 endif()
