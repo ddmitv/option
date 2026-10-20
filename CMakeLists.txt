@@ -9,6 +9,9 @@ project(option VERSION 2.0.0 LANGUAGES CXX)
 
 option(option_BUILD_TEST "Adds 'option-test' target" ${PROJECT_IS_TOP_LEVEL})
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_library(option INTERFACE
     "include/opt/option.hpp"
     "include/opt/option_fwd.hpp"
@@ -19,7 +22,7 @@ target_include_directories(option INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>"
 )
-target_compile_features(option INTERFACE cxx_std_17)
+target_compile_features(option INTERFACE cxx_std_20)
 
 if (option_BUILD_TEST)
     add_subdirectory(test)
