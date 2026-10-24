@@ -20,6 +20,7 @@ add_executable(option-test
     comp_ops/relops.cpp
     ctors/default_ctor.cpp
     ctors/test_types.hpp
+    ctors/deduction_guides.cpp
     option_iterator.cpp
 )
 target_link_libraries(option-test PRIVATE option)
