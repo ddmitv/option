@@ -16,6 +16,7 @@ void on_check_failed(const char* expr, const char* filename, unsigned int line, 
 }
 
 #define run_test_suite(suite) \
+    void suite(); \
     std::puts("> " #suite); \
     std::fflush(stdout); \
     suite()

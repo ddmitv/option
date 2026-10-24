@@ -55,10 +55,3 @@ void on_check_failed(const char* expr, const char* filename, unsigned int line, 
     static_assert(::std::is_same_v<decltype(expr), expected_type>, "unexpected type for: " #expr); \
     static_assert(noexcept_op(expr), "noexcept(" #expr ") expected " #noexcept_op); \
     static_assert((expr) == (expected_value), "unexpected value for: " #expr)
-
-void main_test_suite();
-void lifetime_test_suite();
-void none_test_suite();
-void comp_with_none_test_suite();
-void comp_with_t_test_suite();
-void relops_test_suite();
