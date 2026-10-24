@@ -38,7 +38,7 @@ namespace impl {
     void swap();
 #endif // ^^^ workaround ^^^
 
-    template<class T>
+    template<typename T>
     inline constexpr bool is_trivially_swappable_v =
         OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)
         && OPTION_IS_TRIVIALLY_COPYABLE(T)
@@ -46,7 +46,7 @@ namespace impl {
         && OPTION_IS_TRIVIALLY_ASSIGNABLE(T&, T)
         && !requires(T& x) { swap(x, x); };
 
-    template <>
+    template<>
     inline constexpr bool is_trivially_swappable_v<std::byte> = true;
 
     template<class T>
@@ -88,7 +88,7 @@ namespace impl {
             requires(OPTION_IS_CONSTRUCTIBLE(T, const T&) && !OPTION_IS_TRIVIALLY_CONSTRUCTIBLE(T, const T&))
         {
             if (other.has_value()) {
-                construct(other.value);
+                this->construct(other.value);
             } else {
                 set_unengaged();
             }
@@ -100,7 +100,7 @@ namespace impl {
             requires(OPTION_IS_CONSTRUCTIBLE(T, T&&) && !OPTION_IS_TRIVIALLY_CONSTRUCTIBLE(T, T&&))
         {
             if (other.has_value()) {
-                construct(static_cast<option_storage&&>(other).value);
+                this->construct(static_cast<option_storage&&>(other).value);
             } else {
                 set_unengaged();
             }
@@ -119,7 +119,7 @@ namespace impl {
                 if (this->engaged) {
                     this->reset();
                 } else {
-                    construct(other.value);
+                    this->construct(other.value);
                 }
             }
             return *this;
@@ -140,7 +140,7 @@ namespace impl {
                 if (this->engaged) {
                     this->reset();
                 } else {
-                    construct(static_cast<T&&>(other.value));
+                    this->construct(static_cast<T&&>(other.value));
                 }
             }
             return *this;
@@ -410,13 +410,13 @@ public:
     // https://eel.is/c++draft/optional.optional#lib:has_value,optional
     OPTION_TEST_TYPESTATE(unconsumed) OPTION_PURE
     [[nodiscard]] constexpr bool has_value() const noexcept {
-        return storage.has_value();
+        return this->storage.has_value();
     }
 
     // https://eel.is/c++draft/optional.optional#lib:reset,optional
     OPTION_SET_TYPESTATE(consumed)
     constexpr void reset() noexcept {
-        storage.reset();
+        this->storage.reset();
     }
 
     // https://eel.is/c++draft/optional.assign#lib:emplace,optional
