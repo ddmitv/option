@@ -39,6 +39,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         /wd5026 # 'type': move constructor was implicitly defined as deleted
         /wd4514 # 'function': unreferenced inline function has been removed
         /wd4583 # 'type': destructor is not implicitly called
+        /wd4702 # unreachable code
     )
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     target_compile_options(option-test PRIVATE
@@ -51,6 +52,8 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
         -Wno-float-equal
         -Wno-unsafe-buffer-usage
         -Wno-self-assign-overloaded
+        -Wno-double-promotion
+        -Wno-missing-prototypes
     )
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(option-test PRIVATE
