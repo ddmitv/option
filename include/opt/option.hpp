@@ -824,6 +824,12 @@ constexpr std::compare_three_way_result_t<T1, T2> operator<=>(const option<T1>& 
     return x.has_value() ? x.get() <=> y : std::strong_ordering::less;
 }
 
+// https://eel.is/c++draft/optional#specalg
+template<typename T> requires OPTION_IS_CONSTRUCTIBLE(T, T) && std::is_swappable_v<T>
+constexpr void swap(option<T>& x, option<T>& y) noexcept(noexcept(x.swap(y))) {
+    x.swap(y);
+}
+
 }
 
 OPTION_SUPPRESS_COMMON_WARNINGS_POP
