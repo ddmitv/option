@@ -263,5 +263,46 @@
     #define OPTION_TEST_TYPESTATE(...)
 #endif
 
+#ifndef OPTION_VERIFY
+    #ifndef NDEBUG
+        #ifndef OPTION_DEBUG_BREAK
+            #if OPTION_HAS_BUILTIN(__builtin_debugtrap) || OPTION_CLANG
+                #define OPTION_DEBUG_BREAK __builtin_debugtrap()
+            #elif OPTION_MSVC
+                #define OPTION_DEBUG_BREAK __debugbreak()
+            #elif OPTION_HAS_BUILTIN(__builtin_trap) || OPTION_GCC
+                #define OPTION_DEBUG_BREAK __builtin_trap()
+            #else
+                #include <csignal>
+                #ifdef SIGTRAP
+                    #define OPTION_DEBUG_BREAK ::std::raise(SIGTRAP)
+                #else
+                    #define OPTION_DEBUG_BREAK ::std::raise(SIGABRT)
+                #endif
+            #endif
+        #endif
+
+        #include <cstdio>
+        #define OPTION_VERIFY(expr, msg) \
+            (expr ? void() : (\
+                void(::std::fprintf(stderr, "%s:%d: assertion '%s' failed: %s\n", __FILE__, __LINE__, #expr, msg)), \
+                void(::std::fflush(stderr)), \
+                void(OPTION_DEBUG_BREAK) \
+            ))
+    #else
+        // clang <=18 reported that [[assume]] attribute existed but not emitted the @llvm.assume IR, so we firstly check for clang and use __builtin_assume
+        #if OPTION_CLANG
+            #define OPTION_VERIFY(expr, msg) __builtin_assume(expr)
+        #elif OPTION_HAS_CPP_ATTRIBUTE(assume)
+            #define OPTION_VERIFY(expr, msg) [[assume(expr)]]
+        #elif OPTION_MSVC
+            #define OPTION_VERIFY(expr, msg) __assume(expr)
+        #elif OPTION_GCC
+            #define OPTION_VERIFY(expr, msg) (expr ? void() : void(__builtin_unreachable()))
+        #else
+            #define OPTION_VERIFY(expr, msg) // noop
+        #endif
+    #endif
+#endif
 // see https://github.com/microsoft/STL/issues/5315, https://github.com/microsoft/STL/pull/5318
 #define OPTION_DESTRUCTOR_TOMBSTONES 1

@@ -200,6 +200,7 @@ namespace impl {
             if (other.has_value()) {
                 if (this->has_value()) {
                     this->value = static_cast<That&&>(other).value;
+                    OPTION_VERIFY(this->has_value(), "after assignment, the value is in an empty state");
                 } else {
                     this->construct(static_cast<That&&>(other).value);
                 }
@@ -359,13 +360,14 @@ public:
             // trivial construct == trivial assign, so there's no reason to branch.
             // improves codegen
             this->storage.construct(static_cast<U&&>(value));
-                  } else {
-                      if (this->has_value()) {
-                          this->storage.value = static_cast<U&&>(value);
-                      } else {
-                          this->storage.construct(static_cast<U&&>(value));
-                      }
-                  }
+        } else {
+            if (this->has_value()) {
+                this->storage.value = static_cast<U&&>(value);
+                OPTION_VERIFY(this->has_value(), "after assignment, the value is in an empty state");
+            } else {
+                this->storage.construct(static_cast<U&&>(value));
+            }
+        }
         return *this;
     }
 
@@ -471,18 +473,22 @@ public:
     // which's state is unknown
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr T& get() & OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return this->storage.value;
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr const T& get() const& OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return this->storage.value;
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr T&& get() && OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return std::move(this->storage.value);
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr const T&& get() const&& OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return std::move(this->storage.value);
     }
 
@@ -502,26 +508,32 @@ public:
 
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr const T* operator->() const noexcept OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return OPTION_ADDRESSOF(this->storage.value);
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr T* operator->() noexcept OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return OPTION_ADDRESSOF(this->storage.value);
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr T& operator*() & noexcept OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return this->storage.value;
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr const T& operator*() const& noexcept OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return this->storage.value;
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr T&& operator*() && noexcept OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return static_cast<T&&>(this->storage.value);
     }
     OPTION_CALLABLE_WHEN("unconsumed", "unknown")
     [[nodiscard]] constexpr const T&& operator*() const&& noexcept OPTION_LIFETIMEBOUND {
+        OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return static_cast<const T&&>(this->storage.value);
     }
 };
