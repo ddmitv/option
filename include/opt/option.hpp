@@ -248,6 +248,114 @@ namespace impl {
             return engaged;
         }
     };
+
+    // https://eel.is/c++draft/optional#iterators
+    template<typename T>
+    class option_iterator {
+        T* ptr{};
+
+        template<typename>
+        friend class option_iterator;
+
+        template<typename, typename>
+        friend class opt::option;
+    public:
+        using iterator_category = std::random_access_iterator_tag;
+        using iterator_concept = std::contiguous_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
+        using value_type = OPTION_REMOVE_CV(T);
+
+        option_iterator() = default;
+
+        template<typename U> requires OPTION_IS_CONVERTIBLE(U*, T*)
+        constexpr option_iterator(const option_iterator<U>& other) noexcept : ptr{other.ptr} {}
+    private:
+        // only opt::option can construct option_iterator from a raw pointer from outside
+        constexpr explicit option_iterator(T* const ptr_) noexcept : ptr{ptr_} {}
+    public:
+        [[nodiscard]] constexpr reference operator*() const noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot dereference value-initialized option_iterator");
+            return *ptr;
+        }
+        [[nodiscard]] constexpr pointer operator->() const noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot dereference value-initialized option_iterator");
+            return ptr;
+        }
+        constexpr option_iterator& operator++() noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot increment value-initialized option_iterator");
+            ++ptr;
+            return *this;
+        }
+        constexpr option_iterator operator++(int) noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot increment value-initialized option_iterator");
+            option_iterator tmp{*this};
+            ++ptr;
+            return tmp;
+        }
+        constexpr option_iterator& operator--() noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot decrement value-initialized option_iterator");
+            --ptr;
+            return *this;
+        }
+        constexpr option_iterator operator--(int) noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot decrement value-initialized option_iterator");
+            option_iterator tmp{*this};
+            --ptr;
+            return tmp;
+        }
+        constexpr option_iterator& operator+=(const difference_type offset) noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot seek value-initialized option_iterator");
+            OPTION_VERIFY(offset >= -1 && offset <= 1, "cannot seek option_iterator beyond bounds [-1, 1]");
+            ptr += offset;
+            return *this;
+        }
+        constexpr option_iterator& operator-=(const difference_type offset) noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot seek value-initialized option_iterator");
+            OPTION_VERIFY(offset >= -1 && offset <= 1, "cannot seek option_iterator beyond bounds [-1, 1]");
+            ptr -= offset;
+            return *this;
+        }
+        [[nodiscard]] constexpr reference operator[](const difference_type offset) const noexcept {
+            OPTION_VERIFY(ptr != nullptr, "cannot dereference value-initialized option_iterator");
+            OPTION_VERIFY(offset == -1 || offset == 0, "cannot dereference option_iterator with offset other than -1 or 0");
+            return ptr[offset];
+        }
+
+        // https://eel.is/c++draft/forward.iterators#2
+        // comparing value-initialized iterator with non-value-initialized is UB
+        [[nodiscard]] friend constexpr bool operator==(const option_iterator& left, const option_iterator& right) noexcept {
+            OPTION_VERIFY((left.ptr == nullptr) == (right.ptr == nullptr), "cannot compare value-initialized option_iterator with non-value-initialized option_iterator");
+            OPTION_VERIFY((left.ptr - right.ptr) >= -1 && (left.ptr - right.ptr) <= 1, "cannot compare option iterators from different option containers");
+            return left.ptr == right.ptr;
+        }
+        [[nodiscard]] friend constexpr std::strong_ordering operator<=>(const option_iterator& left, const option_iterator& right) noexcept {
+            OPTION_VERIFY((left.ptr == nullptr) == (right.ptr == nullptr), "cannot compare value-initialized option_iterator with non-value-initialized option_iterator");
+            OPTION_VERIFY((left.ptr - right.ptr) >= -1 && (left.ptr - right.ptr) <= 1, "cannot compare option iterators from different option containers");
+            return left.ptr <=> right.ptr;
+        }
+        [[nodiscard]] friend constexpr option_iterator operator+(const option_iterator& it, const difference_type offset) noexcept {
+            OPTION_VERIFY(it.ptr != nullptr, "cannot seek value-initialized option_iterator");
+            OPTION_VERIFY(offset >= -1 && offset <= 1, "cannot seek option_iterator beyond bounds [-1, 1]");
+            return option_iterator{it.ptr + offset};
+        }
+        [[nodiscard]] friend constexpr option_iterator operator+(const difference_type offset, const option_iterator& it) noexcept {
+            OPTION_VERIFY(it.ptr != nullptr, "cannot seek value-initialized option_iterator");
+            OPTION_VERIFY(offset >= -1 && offset <= 1, "cannot seek option_iterator beyond bounds [-1, 1]");
+            return option_iterator{it.ptr + offset};
+        }
+        [[nodiscard]] friend constexpr option_iterator operator-(const option_iterator& it, const difference_type offset) noexcept {
+            OPTION_VERIFY(it.ptr != nullptr, "cannot seek value-initialized option_iterator");
+            OPTION_VERIFY(offset >= -1 && offset <= 1, "cannot seek option_iterator beyond bounds [-1, 1]");
+            return option_iterator{it.ptr - offset};
+        }
+        [[nodiscard]] friend constexpr difference_type operator-(const option_iterator& left, const option_iterator& right) noexcept {
+            OPTION_VERIFY((left.ptr == nullptr) == (right.ptr == nullptr), "cannot compare value-initialized option_iterator with non-value-initialized option_iterator");
+            OPTION_VERIFY((left.ptr - right.ptr) >= -1 && (left.ptr - right.ptr) <= 1, "cannot compare option iterators from different option containers");
+            return left.ptr - right.ptr;
+        }
+    };
 }
 
 struct standard {};
@@ -268,6 +376,9 @@ class OPTION_CONSUMABLE(unknown) option final {
     friend class option;
 public:
     using value_type = T;
+    // https://eel.is/c++draft/optional#iterators
+    using iterator = impl::option_iterator<T>;
+    using const_iterator = impl::option_iterator<const T>;
 
     // https://eel.is/c++draft/optional.optional#general-2
 
@@ -474,6 +585,24 @@ public:
                 other.storage.reset();
             }
         }
+    }
+
+    // https://eel.is/c++draft/optional#iterators
+    [[nodiscard]] constexpr iterator begin() noexcept OPTION_LIFETIMEBOUND {
+        return iterator{OPTION_ADDRESSOF(this->storage.value)};
+    }
+    [[nodiscard]] constexpr const_iterator begin() const noexcept OPTION_LIFETIMEBOUND {
+        return const_iterator{OPTION_ADDRESSOF(this->storage.value)};
+    }
+    [[nodiscard]] constexpr iterator end() noexcept OPTION_LIFETIMEBOUND {
+        // NOTE: written as begin() + has_value() (the standard's literal wording, see https://eel.is/c++draft/optional#iterators)
+        // instead of iterator{OPTION_ADDRESSOF(storage.value) + has_value()}. Both are semantically equivalent, but the latter performs pointer
+        // arithmetic on the unqualified T* and only then converts to const T*, which GCC >= 8.1 fails to constant-evaluate for const-qualified
+        // option_iterator (see GCC PR c++/XXXXXX). Doing the arithmetic on the already-converted const T* stored in the iterator avoids that.
+        return begin() + (this->storage.has_value() ? 1 : 0);
+    }
+    [[nodiscard]] constexpr const_iterator end() const noexcept OPTION_LIFETIMEBOUND {
+        return begin() + (this->storage.has_value() ? 1 : 0); // same as above
     }
 
     // not sure if i should remove "unknown" state available since it may be useful to detect bugs on accessing option from function argument
@@ -831,5 +960,8 @@ constexpr void swap(option<T>& x, option<T>& y) noexcept(noexcept(x.swap(y))) {
 }
 
 }
+
+template<typename T>
+constexpr bool std::ranges::enable_view<opt::option<T>> = true;
 
 OPTION_SUPPRESS_COMMON_WARNINGS_POP

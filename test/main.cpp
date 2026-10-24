@@ -28,6 +28,7 @@ int main() {
     run_test_suite(comp_with_none_test_suite);
     run_test_suite(comp_with_t_test_suite);
     run_test_suite(relops_test_suite);
+    run_test_suite(option_iterator_test_suite);
 
     std::puts("Tests successfully completed");
 }

@@ -20,6 +20,7 @@ add_executable(option-test
     comp_ops/relops.cpp
     ctors/default_ctor.cpp
     ctors/test_types.hpp
+    option_iterator.cpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
