@@ -52,11 +52,14 @@ namespace impl {
     template<class T>
     struct option_storage {
         union {
-            // we explicitly do not define another union field here
-            // "struct {} dummy" and "char dummy" fields produces poor codegen
             OPTION_REMOVE_CV(T) value;
+            // a dummy union member is needed so the union has an active member during constant evaluation
+            // (see GCC PR 110245 rejects the empty-union constexpr default ctor)
+            // the dummy member is activated only in the constant evaluation branch of the set_unengaged(),
+            // so it is not initialized at runtime and does not affect codegen.
+            char dummy;
         };
-        bool engaged;
+        bool engaged; // uninit
 
         constexpr ~option_storage() requires (!OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)) {
             if (engaged) {
@@ -210,6 +213,10 @@ namespace impl {
         }
 
         constexpr void set_unengaged() noexcept {
+            if (std::is_constant_evaluated()) {
+                // this is only evaluated for constexpr contexts because it produces poor codegen otherwise
+                dummy = 0;
+            }
             this->engaged = false;
 #if OPTION_INSERT_ANNONATION
             if constexpr (!OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)) {
