@@ -237,7 +237,7 @@ namespace impl {
             this->engaged = true;
         }
 
-        [[nodiscard]] constexpr bool has_value() const noexcept {
+        [[nodiscard]] OPTION_PURE constexpr bool has_value() const noexcept {
             return engaged;
         }
     };
@@ -408,7 +408,7 @@ public:
     }
 
     // https://eel.is/c++draft/optional.optional#lib:has_value,optional
-    OPTION_TEST_TYPESTATE(unconsumed)
+    OPTION_TEST_TYPESTATE(unconsumed) OPTION_PURE
     [[nodiscard]] constexpr bool has_value() const noexcept {
         return storage.has_value();
     }
@@ -471,67 +471,67 @@ public:
 
     // not sure if i should remove "unknown" state available since it may be useful to detect bugs on accessing option from function argument
     // which's state is unknown
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr T& get() & OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return this->storage.value;
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr const T& get() const& OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return this->storage.value;
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr T&& get() && OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return std::move(this->storage.value);
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr const T&& get() const&& OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot access value of empty opt::option");
         return std::move(this->storage.value);
     }
 
     // on purpose no clang's consumed annotation attributes
-    [[nodiscard]] constexpr T& get_unchecked() & OPTION_LIFETIMEBOUND {
+    [[nodiscard]] OPTION_PURE constexpr T& get_unchecked() & OPTION_LIFETIMEBOUND {
         return this->storage.value;
     }
-    [[nodiscard]] constexpr const T& get_unchecked() const& OPTION_LIFETIMEBOUND {
+    [[nodiscard]] OPTION_PURE constexpr const T& get_unchecked() const& OPTION_LIFETIMEBOUND {
         return this->storage.value;
     }
-    [[nodiscard]] constexpr T&& get_unchecked() && OPTION_LIFETIMEBOUND {
+    [[nodiscard]] OPTION_PURE constexpr T&& get_unchecked() && OPTION_LIFETIMEBOUND {
         return std::move(this->storage.value);
     }
-    [[nodiscard]] constexpr const T&& get_unchecked() const&& OPTION_LIFETIMEBOUND {
+    [[nodiscard]] OPTION_PURE constexpr const T&& get_unchecked() const&& OPTION_LIFETIMEBOUND {
         return std::move(this->storage.value);
     }
 
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr const T* operator->() const noexcept OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return OPTION_ADDRESSOF(this->storage.value);
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr T* operator->() noexcept OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return OPTION_ADDRESSOF(this->storage.value);
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr T& operator*() & noexcept OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return this->storage.value;
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr const T& operator*() const& noexcept OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return this->storage.value;
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr T&& operator*() && noexcept OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return static_cast<T&&>(this->storage.value);
     }
-    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown") OPTION_PURE
     [[nodiscard]] constexpr const T&& operator*() const&& noexcept OPTION_LIFETIMEBOUND {
         OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return static_cast<const T&&>(this->storage.value);

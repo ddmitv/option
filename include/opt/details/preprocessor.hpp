@@ -304,5 +304,12 @@
         #endif
     #endif
 #endif
+
+#if OPTION_HAS_CPP_ATTRIBUTE(gnu::pure)
+    #define OPTION_PURE [[gnu::pure]]
+#else
+    #define OPTION_PURE
+#endif
+
 // see https://github.com/microsoft/STL/issues/5315, https://github.com/microsoft/STL/pull/5318
 #define OPTION_DESTRUCTOR_TOMBSTONES 1
