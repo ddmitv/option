@@ -30,6 +30,13 @@ set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
 target_compile_definitions(option-test PRIVATE OPTION_CONSUMED_ANNOTATION_CHECKING=1)
 target_include_directories(option-test PRIVATE "${PROJECT_SOURCE_DIR}/test")
 
+add_library(option-header-test OBJECT
+    header_self_contained.cpp
+)
+target_link_libraries(option-header-test PRIVATE option)
+set_target_properties(option-header-test PROPERTIES CXX_EXTENSIONS FALSE)
+target_compile_definitions(option-header-test PRIVATE OPTION_CONSUMED_ANNOTATION_CHECKING=1)
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(option-test PRIVATE
         /Wall /WX /permissive-
@@ -43,6 +50,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         /wd4583 # 'type': destructor is not implicitly called
         /wd4702 # unreachable code
     )
+    target_compile_options(option-header-test PRIVATE /Wall /WX /permissive-)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     target_compile_options(option-test PRIVATE
         -Wconsumed
@@ -62,6 +70,8 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 20)
         target_compile_options(option-test PRIVATE -Wno-unsafe-buffer-usage-in-libc-call)
     endif()
+
+    target_compile_options(option-header-test PRIVATE -Weverything -Werror)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(option-test PRIVATE
         -Wall # Enables most warnings
@@ -76,6 +86,19 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wold-style-cast # Warn for C style casting
         -Wshadow # Warn whenever a local variable or type declaration shadows another variable
         -Wno-self-move
+    )
+    target_compile_options(option-header-test PRIVATE
+        -Wall -Wextra -Wpedantic -Werror -Wattributes -Waddress-of-packed-member
+        -Wcast-align=strict -Wcast-qual -Wstrict-aliasing=3 -Wclass-memaccess
+        -Wconversion -Warith-conversion -Wfloat-conversion -Wfloat-equal -Wenum-conversion -Wsign-promo
+        -Wconditionally-supported -Wdeprecated-copy-dtor -Wdeprecated-enum-enum-conversion -Wdeprecated-enum-float-conversion
+        -Winit-list-lifetime -Wnoexcept -Wnoexcept-type -Wtemplate-body -Wmissing-template-keyword -Wmissing-requires
+        -Wchanges-meaning -Wstrict-overflow=5 -Wstringop-overflow=4 -Wstringop-overread -Wundef -Wpragmas -Wunknown-pragmas
+        -Wint-in-bool-context -Wlogical-op -Wtautological-compare -Wtype-limits -Wduplicated-branches -Wduplicated-cond
+        -Wnull-dereference -Wdangling-pointer=2 -Wuse-after-free=3 -Warray-bounds=2 -Wmaybe-uninitialized -Wuninitialized
+        -Wmismatched-tags -Wredundant-tags -Wignored-attributes -Wignored-qualifiers
+        -Wodr -Wlto-type-mismatch -Winvalid-constexpr -Wmultistatement-macros -Wunused -Wunused-const-variable=2
+        -fanalyzer
     )
 endif()
 

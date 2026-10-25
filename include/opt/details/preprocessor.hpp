@@ -36,6 +36,75 @@
     #define OPTION_ICC 0
 #endif
 
+#if OPTION_CLANG && !OPTION_ICC
+    #define OPTION_PRAGMA_TO_STR(x) _Pragma(#x)
+    #define OPTION_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
+    #define OPTION_CLANG_SUPPRESS_WARNING(w) OPTION_PRAGMA_TO_STR(clang diagnostic ignored w)
+    #define OPTION_CLANG_SUPPRESS_WARNING_POP _Pragma("clang diagnostic pop")
+#else
+    #define OPTION_CLANG_SUPPRESS_WARNING_PUSH
+    #define OPTION_CLANG_SUPPRESS_WARNING(w)
+    #define OPTION_CLANG_SUPPRESS_WARNING_POP
+#endif
+
+#if OPTION_GCC
+    #define OPTION_PRAGMA_TO_STR(x) _Pragma(#x)
+    #define OPTION_GCC_SUPPRESS_WARNING_PUSH _Pragma("GCC diagnostic push")
+    #define OPTION_GCC_SUPPRESS_WARNING(w) OPTION_PRAGMA_TO_STR(GCC diagnostic ignored w)
+    #define OPTION_GCC_SUPPRESS_WARNING_POP _Pragma("GCC diagnostic pop")
+#else
+    #define OPTION_GCC_SUPPRESS_WARNING_PUSH
+    #define OPTION_GCC_SUPPRESS_WARNING(w)
+    #define OPTION_GCC_SUPPRESS_WARNING_POP
+#endif
+
+#if OPTION_MSVC
+    #define OPTION_MSVC_SUPPRESS_WARNING_PUSH __pragma(warning(push))
+    #define OPTION_MSVC_SUPPRESS_WARNING(w) __pragma(warning(disable : w)) // NOLINT(bugprone-macro-parentheses)
+    #define OPTION_MSVC_SUPPRESS_WARNING_POP __pragma(warning(pop))
+#else
+    #define OPTION_MSVC_SUPPRESS_WARNING_PUSH
+    #define OPTION_MSVC_SUPPRESS_WARNING(w)
+    #define OPTION_MSVC_SUPPRESS_WARNING_POP
+    #define OPTION_MSVC_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif
+
+#define OPTION_SUPPRESS_COMMON_WARNINGS_PUSH \
+    OPTION_MSVC_SUPPRESS_WARNING_PUSH \
+    OPTION_MSVC_SUPPRESS_WARNING(4514 /* 'function' : unreferenced inline function has been removed */) \
+    OPTION_MSVC_SUPPRESS_WARNING(4582 /* 'type' : constructor is not implicitly called */) \
+    OPTION_MSVC_SUPPRESS_WARNING(4583 /* 'type' : destructor is not implicitly called */) \
+    OPTION_MSVC_SUPPRESS_WARNING(4625 /* 'derived class' : copy constructor was implicitly defined as deleted because a base class copy constructor is inaccessible or deleted */) \
+    OPTION_MSVC_SUPPRESS_WARNING(4626 /* 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted */) \
+    OPTION_MSVC_SUPPRESS_WARNING(4702 /* unreachable code */) \
+    OPTION_MSVC_SUPPRESS_WARNING(4820 /* 'bytes' bytes padding added after construct 'member_name' */) \
+    OPTION_MSVC_SUPPRESS_WARNING(5026 /* 'type' : move constructor was implicitly defined as deleted */) \
+    OPTION_MSVC_SUPPRESS_WARNING(5027 /* 'type' : move assignment operator was implicitly defined as deleted */) \
+    OPTION_CLANG_SUPPRESS_WARNING_PUSH \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wunknown-warning-option") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat-pedantic") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wpre-c++17-compat") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wpre-c++20-compat") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wpadded") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat-bind-to-temporary-copy") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wshadow-field-in-constructor") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wbitwise-instead-of-logical") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wweak-vtables") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wlifetime-safety-suggestions") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wlifetime-safety-lifetimebound-violation") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wunsafe-buffer-usage-in-libc-call") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wunsafe-buffer-usage") \
+    OPTION_GCC_SUPPRESS_WARNING_PUSH \
+    OPTION_GCC_SUPPRESS_WARNING("-Wshadow")
+
+#define OPTION_SUPPRESS_COMMON_WARNINGS_POP \
+    OPTION_MSVC_SUPPRESS_WARNING_POP \
+    OPTION_CLANG_SUPPRESS_WARNING_POP \
+    OPTION_GCC_SUPPRESS_WARNING_POP
+
+OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
+
 #ifdef _MSVC_LANG
     #if _MSVC_LANG > __cplusplus
         #define OPTION_CXX_VER _MSVC_LANG
@@ -88,60 +157,6 @@
 #else
     #define OPTION_LIFETIMEBOUND
 #endif
-
-#if OPTION_CLANG && !OPTION_ICC
-    #define OPTION_PRAGMA_TO_STR(x) _Pragma(#x)
-    #define OPTION_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
-    #define OPTION_CLANG_SUPPRESS_WARNING(w) OPTION_PRAGMA_TO_STR(clang diagnostic ignored w)
-    #define OPTION_CLANG_SUPPRESS_WARNING_POP _Pragma("clang diagnostic pop")
-#else
-    #define OPTION_CLANG_SUPPRESS_WARNING_PUSH
-    #define OPTION_CLANG_SUPPRESS_WARNING(w)
-    #define OPTION_CLANG_SUPPRESS_WARNING_POP
-#endif
-
-#if OPTION_GCC
-    #define OPTION_PRAGMA_TO_STR(x) _Pragma(#x)
-    #define OPTION_GCC_SUPPRESS_WARNING_PUSH _Pragma("GCC diagnostic push")
-    #define OPTION_GCC_SUPPRESS_WARNING(w) OPTION_PRAGMA_TO_STR(GCC diagnostic ignored w)
-    #define OPTION_GCC_SUPPRESS_WARNING_POP _Pragma("GCC diagnostic pop")
-#else
-    #define OPTION_GCC_SUPPRESS_WARNING_PUSH
-    #define OPTION_GCC_SUPPRESS_WARNING(w)
-    #define OPTION_GCC_SUPPRESS_WARNING_POP
-#endif
-
-#if OPTION_MSVC
-    #define OPTION_MSVC_SUPPRESS_WARNING_PUSH __pragma(warning(push))
-    #define OPTION_MSVC_SUPPRESS_WARNING(w) __pragma(warning(disable : w)) // NOLINT(bugprone-macro-parentheses)
-    #define OPTION_MSVC_SUPPRESS_WARNING_POP __pragma(warning(pop))
-#else
-    #define OPTION_MSVC_SUPPRESS_WARNING_PUSH
-    #define OPTION_MSVC_SUPPRESS_WARNING(w)
-    #define OPTION_MSVC_SUPPRESS_WARNING_POP
-    #define OPTION_MSVC_SUPPRESS_WARNING_WITH_PUSH(w)
-#endif
-
-#define OPTION_SUPPRESS_COMMON_WARNINGS_PUSH \
-    OPTION_MSVC_SUPPRESS_WARNING_PUSH \
-    OPTION_MSVC_SUPPRESS_WARNING(4820 /* warning C4820 : 'bytes' bytes padding added after construct 'member_name' */) \
-    OPTION_MSVC_SUPPRESS_WARNING(4582 /* warning C4582 : 'type' : constructor is not implicitly called */) \
-    OPTION_CLANG_SUPPRESS_WARNING_PUSH \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat") \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wpre-c++17-compat") \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wpadded") \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat-bind-to-temporary-copy") \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wshadow-field-in-constructor") \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wbitwise-instead-of-logical") \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wweak-vtables") \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wlifetime-safety-suggestions") \
-    OPTION_GCC_SUPPRESS_WARNING_PUSH \
-    OPTION_GCC_SUPPRESS_WARNING("-Wshadow")
-
-#define OPTION_SUPPRESS_COMMON_WARNINGS_POP \
-    OPTION_MSVC_SUPPRESS_WARNING_POP \
-    OPTION_CLANG_SUPPRESS_WARNING_POP \
-    OPTION_GCC_SUPPRESS_WARNING_POP
 
 #if (OPTION_HAS_BUILTIN(__is_trivially_destructible) && !OPTION_GCC) || OPTION_MSVC
     #define OPTION_IS_TRIVIALLY_DESTRUCTIBLE(x) __is_trivially_destructible(x)
@@ -350,3 +365,5 @@
 #else
     #define OPTION_GSL_POINTER
 #endif
+
+OPTION_SUPPRESS_COMMON_WARNINGS_POP
