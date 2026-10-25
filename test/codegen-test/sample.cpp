@@ -1465,3 +1465,38 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
     }
     return std::nullopt;
 }
+
+//'[opt_option_int32_value]
+//'@if $clang
+//' sub rsp, 40
+//' cmp byte ptr [rcx + 4], 0
+//' je .L0
+//' mov eax, [rcx]
+//' add rsp, 40
+//' ret
+//' .L0:
+//' call _ZN3opt4impl16throw_bad_optionEv
+//' int3
+//'@if $gcc
+//' sub rsp, 40
+//' cmp byte ptr [rcx + 4], 0
+//' je .L0
+//' mov eax, [rcx]
+//' add rsp, 40
+//' ret
+//' .L0:
+//' call _ZN3opt4impl16throw_bad_optionEv
+//' nop
+//'@if $msvc | $clang-cl
+//' sub rsp, 40
+//' cmp byte ptr [rcx + 4], 0
+//' je .L0
+//' mov eax, [rcx]
+//' add rsp, 40
+//' ret
+//' .L0:
+//' call ?throw_bad_option@impl@opt@@YAXXZ
+//' int3
+int32_t opt_option_int32_value(opt::option<int32_t>& o) {
+    return o.value();
+}
