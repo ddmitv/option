@@ -37,6 +37,8 @@ target_link_libraries(option-header-test PRIVATE option)
 set_target_properties(option-header-test PROPERTIES CXX_EXTENSIONS FALSE)
 target_compile_definitions(option-header-test PRIVATE OPTION_CONSUMED_ANNOTATION_CHECKING=1)
 
+add_dependencies(option-test option-header-test)
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(option-test PRIVATE
         /Wall /WX /permissive-

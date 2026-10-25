@@ -59,23 +59,15 @@ jobs:
           "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.x64_options}}"
           ${{matrix.cmake_options}}
 
-      - name: Build (Debug)
-        run: cmake --build build --config Debug --parallel `nproc`
-
       - name: Run tests (Debug)
-        run: cmake --build build --config Debug --target run-option-test
-
-      - name: Build (Release)
-        run: cmake --build build --config Release --parallel `nproc`
+        run: cmake --build build --config Debug --target run-option-test --parallel
 
       - name: Run tests (Release)
-        run: cmake --build build --config Release --target run-option-test
+        run: cmake --build build --config Release --target run-option-test --parallel
 
       - name: Run codegen tests
         if: matrix.disable_codegen_test != 'true'
-        run: |
-          dpkg -l libstdc++6 | grep libstd
-          cmake --build build --config Release --target run-option-codegen-test
+        run: cmake --build build --config Release --target run-option-codegen-test --parallel
 
       - name: Configure CMake (x32)
         env:
@@ -88,14 +80,8 @@ jobs:
           "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.x32_options}}"
           ${{matrix.cmake_options}}
 
-      - name: Build (Debug x32)
-        run: cmake --build build-x32 --config Debug --parallel `nproc`
-
       - name: Run tests (Debug x32)
-        run: cmake --build build-x32 --config Debug --target run-option-test
-
-      - name: Build (Release x32)
-        run: cmake --build build-x32 --config Release --parallel `nproc`
+        run: cmake --build build-x32 --config Debug --target run-option-test --parallel
 
       - name: Run tests (Release x32)
-        run: cmake --build build-x32 --config Release --target run-option-test
+        run: cmake --build build-x32 --config Release --target run-option-test --parallel
