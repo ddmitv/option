@@ -57,14 +57,10 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
         -Wno-zero-as-null-pointer-constant # false positives on <=>
     )
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
-        target_compile_options(option-test PRIVATE
-            -Wno-unsafe-buffer-usage
-        )
+        target_compile_options(option-test PRIVATE -Wno-unsafe-buffer-usage)
     endif()
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 20)
-        target_compile_options(option-test PRIVATE
-            -Wno-unsafe-buffer-usage-in-libc-call
-        )
+        target_compile_options(option-test PRIVATE -Wno-unsafe-buffer-usage-in-libc-call)
     endif()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(option-test PRIVATE
