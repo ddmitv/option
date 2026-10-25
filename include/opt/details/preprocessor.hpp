@@ -335,3 +335,11 @@
         #define OPTION_HAS_EXCEPTIONS 0
     #endif
 #endif
+
+#if OPTION_HAS_CPP_ATTRIBUTE(gnu::cold) && OPTION_HAS_CPP_ATTRIBUTE(gnu::noinline)
+    #define OPTION_COLD [[gnu::cold, gnu::noinline]]
+#elif OPTION_MSVC
+    #define OPTION_COLD __declspec(noinline)
+#else
+    #define OPTION_COLD
+#endif

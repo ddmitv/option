@@ -43,7 +43,8 @@ public:
 };
 
 namespace impl {
-    [[noreturn]] inline void throw_bad_option() {
+    // marked OPTION_COLD to improve codegen
+    [[noreturn]] OPTION_COLD inline void throw_bad_option() {
 #if OPTION_HAS_EXCEPTIONS
         throw bad_access{};
 #else
