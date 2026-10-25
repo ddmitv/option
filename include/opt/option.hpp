@@ -578,6 +578,7 @@ public:
     }
 
     // https://eel.is/c++draft/optional.swap
+    OPTION_SET_TYPESTATE(unknown)
     constexpr void swap(option& other) noexcept(OPTION_IS_NOTHROW_CONSTRUCTIBLE(T) && std::is_nothrow_swappable_v<T>) {
         // https://github.com/microsoft/STL/blob/da52dc0fcadbd83690cfd1ed32408d2847439493/stl/inc/optional#L422-L447
 
