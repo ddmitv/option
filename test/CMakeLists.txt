@@ -50,13 +50,21 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
         -Weverything -Werror
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
-        -Wno-unsafe-buffer-usage-in-libc-call
         -Wno-float-equal
-        -Wno-unsafe-buffer-usage
         -Wno-self-assign-overloaded
         -Wno-double-promotion
         -Wno-missing-prototypes
     )
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
+        target_compile_options(option-test PRIVATE
+            -Wno-unsafe-buffer-usage
+        )
+    endif()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 20)
+        target_compile_options(option-test PRIVATE
+            -Wno-unsafe-buffer-usage-in-libc-call
+        )
+    endif()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(option-test PRIVATE
         -Wall # Enables most warnings
