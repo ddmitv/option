@@ -133,6 +133,7 @@
     OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat-bind-to-temporary-copy") \
     OPTION_CLANG_SUPPRESS_WARNING("-Wshadow-field-in-constructor") \
     OPTION_CLANG_SUPPRESS_WARNING("-Wbitwise-instead-of-logical") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wweak-vtables") \
     OPTION_GCC_SUPPRESS_WARNING_PUSH \
     OPTION_GCC_SUPPRESS_WARNING("-Wshadow")
 
