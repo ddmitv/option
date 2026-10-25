@@ -694,6 +694,37 @@ public:
         OPTION_VERIFY(this->storage.has_value(), "cannot dereference empty opt::option");
         return static_cast<const T&&>(this->storage.value);
     }
+
+    // https://eel.is/c++draft/optional.optional#optional.observe
+    // no OPTION_PURE since clang treats it as nounwind in IR which means throwing is UB
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    [[nodiscard]] constexpr T& value() & OPTION_LIFETIMEBOUND {
+        if (!this->storage.has_value()) {
+            impl::throw_bad_option();
+        }
+        return this->storage.value;
+    }
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    [[nodiscard]] constexpr const T& value() const& OPTION_LIFETIMEBOUND {
+        if (!this->storage.has_value()) {
+            impl::throw_bad_option();
+        }
+        return this->storage.value;
+    }
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    [[nodiscard]] constexpr T&& value() && OPTION_LIFETIMEBOUND {
+        if (!this->storage.has_value()) {
+            impl::throw_bad_option();
+        }
+        return static_cast<T&&>(this->storage.value);
+    }
+    OPTION_CALLABLE_WHEN("unconsumed", "unknown")
+    [[nodiscard]] constexpr const T&& value() const&& OPTION_LIFETIMEBOUND {
+        if (!this->storage.has_value()) {
+            impl::throw_bad_option();
+        }
+        return static_cast<const T&&>(this->storage.value);
+    }
 };
 
 template<class T>
