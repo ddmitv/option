@@ -210,7 +210,7 @@
     #define OPTION_REMOVE_CVREF(x) ::std::remove_cvref_t<x>
 #endif
 
-#if OPTION_HAS_BUILTIN(__is_scalar)
+#if OPTION_HAS_BUILTIN(__is_scalar) && 0 // OPTION_HAS_BUILTIN(__is_scalar) for some reason returns 1 where __is_scalar is not supported
     #define OPTION_IS_SCALAR(x) __is_scalar(x)
 #else
     #define OPTION_IS_SCALAR(x) ::std::is_scalar_v<x>
