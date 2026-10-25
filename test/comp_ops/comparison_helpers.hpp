@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <limits>
 
 // https://github.com/llvm/llvm-project/blob/b9253b904b7f42d6ecdfdb551dfd67b5e10f476c/libcxx/test/support/test_comparisons.h#L36-L96
 template <class T, class U = T>
