@@ -482,18 +482,17 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 //' ret
 //'@if $gcc
 //' mov eax, edx
-//' mov r8d, ecx
-//' mov ecx, edx
+//' mov [rsp + 8], ecx
 //' shr eax, 16
-//' mov edx, eax
+//' mov [rsp + 16], edx
 //' test al, al
 //' je .L0
-//' test r8d, 16711680
+//' cmp byte ptr [rsp + 10], 0
 //' je .L0
-//' cmp r8w, cx
-//' setl dl
+//' movzx eax, [rsp + 16]
+//' cmp [rsp + 8], ax
+//' setl al
 //' .L0:
-//' mov eax, edx
 //' ret
 //'@if $clang-cl
 //' test edx, 65536
@@ -606,20 +605,17 @@ bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b)
 //' ret
 //'@if $gcc
 //' mov rax, rdx
-//' mov r8, rcx
-//' mov rcx, rdx
+//' mov [rsp + 8], rcx
 //' shr rax, 32
-//' mov edx, eax
+//' mov [rsp + 16], rdx
 //' test al, al
 //' je .L0
-//' mov rax, r8
-//' shr rax, 32
-//' test al, al
+//' cmp byte ptr [rsp + 12], 0
 //' je .L0
-//' cmp r8d, ecx
-//' setl dl
+//' mov eax, [rsp + 16]
+//' cmp [rsp + 8], eax
+//' setl al
 //' .L0:
-//' mov eax, edx
 //' ret
 //'@if $clang-cl
 //' bt rdx, 32
