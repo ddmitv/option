@@ -1,0 +1,595 @@
+name: CI
+
+on: [push]
+
+jobs:
+  linux:
+    name: 'Linux ${{matrix.name}}'
+    runs-on: ${{matrix.os}}
+
+    env:
+      CMAKE_GENERATOR: 'Ninja Multi-Config'
+      VERBOSE: 1
+      CXX: ${{matrix.cxx}}
+      CC: ${{matrix.cc}}
+      ASAN_OPTIONS: 'detect_invalid_pointer_pairs=2:strict_string_checks=true:detect_odr_violation=2:detect_stack_use_after_return=true:check_initialization_order=true:strict_init_order=true:${{matrix.asan_options}}'
+      UBSAN_OPTIONS: 'print_stacktrace=1:silence_unsigned_overflow=1'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'clang 18'
+            cxx: 'clang++-18'
+            cc: 'clang-18'
+            packages: 'llvm-18 g++-multilib'
+            os: 'ubuntu-24.04'
+            x64_options: >-
+              -fsanitize=undefined,object-size
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+            # install-llvm: { version: '18.1.8', url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz' }
+
+          - name: 'clang 17'
+            cxx: 'clang++-17'
+            cc: 'clang-17'
+            packages: 'llvm-17 g++-multilib'
+            os: 'ubuntu-24.04'
+            options: '--stdlib=libstdc++'
+            x64_options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+            # install-llvm: { version: '17.0.6', url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz' }
+
+          - name: 'clang 16'
+            cxx: 'clang++-16'
+            cc: 'clang-16'
+            packages: 'llvm-16 g++-multilib'
+            os: 'ubuntu-24.04'
+            x64_options: >-
+              -fsanitize=undefined,object-size
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+            # install-llvm: { version: '16.0.4', url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/clang+llvm-16.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz' }
+
+          - name: 'clang 15'
+            cxx: 'clang++-15'
+            cc: 'clang-15'
+            packages: 'llvm-15 libclang-15-dev llvm-15-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+
+          - name: 'clang 14'
+            cxx: 'clang++-14'
+            cc: 'clang-14'
+            packages: 'llvm-14 libclang-14-dev llvm-14-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+
+          - name: 'clang 13'
+            cxx: 'clang++-13'
+            cc: 'clang-13'
+            packages: 'llvm-13 libclang-13-dev llvm-13-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+            x64_options: '-fsanitize=undefined'
+            
+          - name: 'clang 12'
+            cxx: 'clang++-12'
+            cc: 'clang-12'
+            packages: 'llvm-12 clang-12 libclang-12-dev llvm-12-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              -Wno-unknown-warning-option
+              --stdlib=libstdc++
+            x64_options: '-fsanitize=undefined'
+
+          - name: 'clang 11'
+            cxx: 'clang++-11'
+            cc: 'clang-11'
+            packages: 'llvm-11 clang-11 libclang-11-dev llvm-11-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -Wno-unknown-warning-option
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+            x64_options: '-fsanitize=undefined'
+            asan_options: 'use_sigaltstack=false'
+
+          - name: 'clang 10'
+            cxx: 'clang++-10'
+            cc: 'clang-10'
+            packages: 'llvm-10 clang-10 libclang-10-dev llvm-10-dev g++-multilib'
+            os: 'ubuntu-20.04'
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -Wno-unknown-warning-option
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+            x64_options: '-fsanitize=undefined'
+
+          - name: 'clang 9'
+            cxx: 'clang++-9'
+            cc: 'clang-9'
+            packages: 'llvm-9 clang-9 libclang-9-dev llvm-9-dev g++-multilib'
+            os: 'ubuntu-20.04'
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -Wno-unknown-warning-option
+              --stdlib=libstdc++
+            x64_options: '-fsanitize=undefined'
+
+          - name: 'gcc 14'
+            cxx: 'g++-14'
+            cc: 'gcc-14'
+            os: 'ubuntu-24.04'
+            packages: 'llvm-18 g++-14-multilib'
+            x64_options: >-
+              -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+              -fno-sanitize-recover=all
+              -fno-sanitize=vptr
+
+          - name: 'gcc 13'
+            cxx: 'g++-13'
+            cc: 'gcc-13'
+            os: 'ubuntu-24.04'
+            packages: 'llvm-18 g++-13-multilib'
+            options: >-
+              -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+              -fno-sanitize-recover=all
+              -fno-sanitize=vptr
+            disable_codegen_test: 'true' # broken version?
+
+          - name: 'gcc 12'
+            cxx: 'g++-12'
+            cc: 'gcc-12'
+            os: 'ubuntu-22.04'
+            packages: 'llvm-15 g++-12-multilib'
+            options: >-
+              -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+              -fno-sanitize-recover=all
+              -fno-sanitize=vptr
+
+          - name: 'gcc 11'
+            cxx: 'g++-11'
+            cc: 'gcc-11'
+            os: 'ubuntu-22.04'
+            packages: 'llvm-15 g++-11-multilib'
+            options: >-
+              -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+              -fno-sanitize-recover=all
+              -fno-sanitize=vptr
+
+          - name: 'gcc 10'
+            cxx: 'g++-10'
+            cc: 'gcc-10'
+            os: 'ubuntu-22.04'
+            packages: 'llvm-15 g++-10-multilib'
+            options: >-
+              -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+              -fno-sanitize-recover=all
+              -fno-sanitize=vptr
+
+          - name: 'gcc 9'
+            cxx: 'g++-9'
+            cc: 'gcc-9'
+            os: 'ubuntu-22.04'
+            packages: 'llvm-15 g++-9-multilib'
+            options: >-
+              -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+              -fno-sanitize-recover=all
+              -fno-sanitize=vptr
+              -Wno-unused-value
+
+          # - name: 'gcc 10'
+          #   cxx: 'g++-10'
+          #   cc: 'gcc-10'
+          #   packages: 'g++-10'
+          #   os: 'ubuntu-22.04'
+          #   options: >-
+          #     -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+          #     -fno-sanitize-recover=all
+          #     -fno-sanitize=vptr
+          # 
+          # - name: 'gcc 9'
+          #   cxx: 'g++-9'
+          #   cc: 'gcc-9'
+          #   packages: 'g++-9'
+          #   os: 'ubuntu-22.04'
+          #   options: >-
+          #     -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+          #     -fno-sanitize-recover=all
+          #     -fno-sanitize=vptr
+          #     -Wno-error=extra
+
+          # - cxx: 'g++-8', cc: 'gcc-8', packages: 'g++-8', os: 'ubuntu-20.04',
+          #   options: '
+          #   -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum,pointer-overflow,builtin
+          #   -fno-sanitize-recover=all
+          #   -fno-sanitize=vptr'
+          #   }
+          # - { cxx: 'g++-7', cc: 'gcc-7', packages: 'g++-7', os: 'ubuntu-20.04',
+          #   options: '
+          #   -fsanitize=address,undefined,alignment,bool,shift,shift-exponent,shift-base,integer-divide-by-zero,unreachable,null,return,bounds,bounds-strict,object-size,float-divide-by-zero,float-cast-overflow,enum
+          #   -fno-sanitize-recover=all
+          #   -fno-sanitize=vptr',
+          #   cmake_options: '-DUSE_LIBASSERT=FALSE'
+          #   }
+
+    steps:
+      - &checkout_step
+        name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install ninja-build ${{matrix.packages}}
+
+      # - name: Install LLVM
+      #   if: ${{matrix.install-llvm}}
+      #   uses: KyleMayes/install-llvm-action@v2.0.3
+      #   with:
+      #     version: ${{matrix.install-llvm.version}}
+      #     force-url: ${{matrix.install-llvm.url}}
+
+      - name: Configure CMake
+        run: >-
+          cmake -B build
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.x64_options}}"
+          ${{matrix.cmake_options}}
+
+      - name: Build (Debug)
+        run: cmake --build build --config Debug --parallel `nproc`
+
+      - name: Run tests (Debug)
+        run: cmake --build build --config Debug --target run-option-test
+
+      - name: Build (Release)
+        run: cmake --build build --config Release --parallel `nproc`
+
+      - name: Run tests (Release)
+        run: cmake --build build --config Release --target run-option-test
+
+      - name: Run codegen tests
+        if: matrix.disable_codegen_test != 'true'
+        run: |
+          dpkg -l libstdc++6 | grep libstd
+          cmake --build build --config Release --target run-option-codegen-test
+
+      - name: Configure CMake (x32)
+        env:
+          CXXFLAGS: -m32
+          CFLAGS: -m32
+        run: >-
+          cmake -B build-x32
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.x32_options}}"
+          ${{matrix.cmake_options}}
+
+      - name: Build (Debug x32)
+        run: cmake --build build-x32 --config Debug --parallel `nproc`
+
+      - name: Run tests (Debug x32)
+        run: cmake --build build-x32 --config Debug --target run-option-test
+
+      - name: Build (Release x32)
+        run: cmake --build build-x32 --config Release --parallel `nproc`
+
+      - name: Run tests (Release x32)
+        run: cmake --build build-x32 --config Release --target run-option-test
+
+  linux-libcpp:
+    name: 'Linux ${{matrix.name}} libc++'
+    runs-on: ${{matrix.os}}
+
+    env:
+      CMAKE_GENERATOR: 'Ninja Multi-Config'
+      VERBOSE: 1
+      CXX: ${{matrix.cxx}}
+      CC: ${{matrix.cc}}
+      CXXFLAGS: '--stdlib=libc++'
+      ASAN_OPTIONS: 'detect_invalid_pointer_pairs=2:strict_string_checks=true:detect_odr_violation=2:detect_stack_use_after_return=true:check_initialization_order=true:strict_init_order=true:${{matrix.asan_options}}'
+      UBSAN_OPTIONS: 'print_stacktrace=1:silence_unsigned_overflow=1'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'clang 18'
+            cxx: 'clang++-18'
+            cc: 'clang-18'
+            packages: 'libc++-18-dev libc++abi-18-dev g++-multilib'
+            os: 'ubuntu-24.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+
+          - name: 'clang 17'
+            cxx: 'clang++-17'
+            cc: 'clang-17'
+            packages: 'libc++-17-dev libc++abi-17-dev g++-multilib'
+            os: 'ubuntu-24.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+
+          - name: 'clang 16'
+            cxx: 'clang++-16'
+            cc: 'clang-16'
+            packages: 'libc++-16-dev libc++abi-16-dev g++-multilib'
+            os: 'ubuntu-24.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+
+          - name: 'clang 15'
+            cxx: 'clang++-15'
+            cc: 'clang-15'
+            packages: 'libc++-15-dev libc++abi-15-dev libclang-15-dev llvm-15-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+
+          - name: 'clang 14'
+            cxx: 'clang++-14'
+            cc: 'clang-14'
+            packages: 'libc++-14-dev libc++abi-14-dev libclang-14-dev llvm-14-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+
+          - name: 'clang 13'
+            cxx: 'clang++-13'
+            cc: 'clang-13'
+            packages: 'libc++-13-dev libc++abi-13-dev libclang-13-dev llvm-13-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+            
+          - name: 'clang 12'
+            cxx: 'clang++-12'
+            cc: 'clang-12'
+            packages: 'clang-12 libunwind-dev libc++-12-dev libc++abi-12-dev libclang-12-dev llvm-12-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              -Wno-unknown-warning-option
+
+          - name: 'clang 11'
+            cxx: 'clang++-11'
+            cc: 'clang-11'
+            packages: 'clang-11 libc++-11-dev libc++abi-11-dev libclang-11-dev llvm-11-dev g++-multilib'
+            os: 'ubuntu-22.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -Wno-unknown-warning-option
+              -ffp-exception-behavior=maytrap
+            asan_options: 'use_sigaltstack=false'
+
+          - name: 'clang 10'
+            cxx: 'clang++-10'
+            cc: 'clang-10'
+            packages: 'clang-10 libc++-10-dev libc++abi-10-dev libclang-10-dev llvm-10-dev g++-multilib'
+            os: 'ubuntu-20.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -Wno-unknown-warning-option
+              -ffp-exception-behavior=maytrap
+
+          - name: 'clang 9'
+            cxx: 'clang++-9'
+            cc: 'clang-9'
+            packages: 'clang-9 libc++-9-dev libc++abi-9-dev libclang-9-dev llvm-9-dev g++-multilib'
+            os: 'ubuntu-20.04'
+            options: >-
+              -fsanitize=address,undefined,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -Wno-unknown-warning-option
+
+    steps:
+      - *checkout_step
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build ${{matrix.packages}}
+
+      - name: Configure CMake
+        run: >-
+          cmake -B build
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DOPTION_EXTRA_FLAGS=${{matrix.options}}"
+          ${{matrix.cmake_options}}
+
+      - name: Build (Debug)
+        run: cmake --build build --config Debug --parallel `nproc`
+
+      - name: Run tests (Debug)
+        run: cmake --build build --config Debug --target run-option-test
+
+      - name: Build (Release)
+        run: cmake --build build --config Release --parallel `nproc`
+
+      - name: Run tests (Release)
+        run: cmake --build build --config Release --target run-option-test
+
+      - name: Run codegen tests
+        run: cmake --build build --config Release --target run-option-codegen-test
+
+  windows:
+    name: 'Windows VS ${{matrix.name}}'
+    runs-on: ${{matrix.os}}
+
+    env:
+      VERBOSE: 1
+      ASAN_OPTIONS: 'detect_invalid_pointer_pairs=2:strict_string_checks=true:detect_odr_violation=0:detect_stack_use_after_return=true:check_initialization_order=true:strict_init_order=true'
+      UBSAN_OPTIONS: 'print_stacktrace=1'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'v143'
+            toolset: 'v143'
+            os: windows-2022
+            options: '/fsanitize=address /Zi /DEBUG /INCREMENTAL:NO'
+
+          - name: 'v142'
+            toolset: 'v142'
+            os: windows-2019
+            options: '/Zi /DEBUG /INCREMENTAL:NO'
+            cmake_options: -DUSE_LIBASSERT=FALSE
+
+          - name: 'ClangCL'
+            toolset: 'ClangCL'
+            os: windows-2022
+            options_x64: '-fsanitize=undefined,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable -fno-sanitize-recover=all'
+            cmake_options_x64: >-
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              "-DCMAKE_EXE_LINKER_FLAGS_INIT=`"$env:ProgramFiles/LLVM/lib/clang/18/lib/windows/clang_rt.asan-x86_64.lib`" `"$env:ProgramFiles/LLVM/lib/clang/18/lib/windows/clang_rt.asan_cxx-x86_64.lib`" clang_rt.ubsan_standalone_cxx-x86_64.lib clang_rt.ubsan_standalone-x86_64.lib"
+    steps:
+      - *checkout_step
+
+      - name: Install LLVM
+        uses: KyleMayes/install-llvm-action@v2.0.3
+        with:
+          version: '18.1.8'
+          force-url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-pc-windows-msvc.tar.xz'
+
+      - name: Configure CMake (x64)
+        run: cmake -B build -A x64 -T "${{matrix.toolset}}" "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.options_x64}}" ${{matrix.cmake_options_x64}} ${{matrix.cmake_options}}
+
+      - name: Build (Debug x64)
+        run: cmake --build build --config Debug --parallel $env:NUMBER_OF_PROCESSORS
+
+      - name: Run tests (Debug x64)
+        run: cmake --build build --config Debug --target run-option-test
+
+      - name: Build (Release x64)
+        run: cmake --build build --config Release --parallel $env:NUMBER_OF_PROCESSORS
+
+      - name: Run tests (Release x64)
+        run: cmake --build build --config Release --target run-option-test
+
+      - name: Run codegen tests
+        run: cmake --build build --config Release --target run-option-codegen-test
+
+      - name: Configure CMake (x32)
+        run: cmake -B build-x32 -A Win32 -T "${{matrix.toolset}}" "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.options_x32}}" ${{matrix.cmake_options_x32}} ${{matrix.cmake_options}}
+
+      - name: Build (Debug x32)
+        run: cmake --build build-x32 --config Debug --parallel $env:NUMBER_OF_PROCESSORS
+
+      - name: Run tests (Debug x32)
+        run: cmake --build build-x32 --config Debug --target run-option-test
+
+      - name: Build (Release x32)
+        run: cmake --build build-x32 --config Release --parallel $env:NUMBER_OF_PROCESSORS
+
+      - name: Run tests (Release x32)
+        run: cmake --build build-x32 --config Release --target run-option-test
+
+  intel-compiler:
+    name: 'Intel LLVM-based compiler'
+    runs-on: ubuntu-latest
+
+    env:
+      VERBOSE: 1
+      CMAKE_GENERATOR: 'Ninja Multi-Config'
+      CXX: 'icpx'
+      CC: 'icx'
+
+    steps:
+      - *checkout_step
+
+      - name: Cache Install Intel Compiler
+        id: cache-icx
+        uses: actions/cache@v4.0.2
+        with:
+          path: /opt/intel/oneapi
+          key: icx-2023
+
+      - name: Install Intel Compiler
+        if: steps.cache-icx.outputs.cache-hit != 'true'
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install intel-oneapi-compiler-dpcpp-cpp
+      
+      - name: Install Ninja
+        run: sudo apt-get install ninja-build 
+
+      - name: Setup Intel oneAPI environment
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          printenv >> $GITHUB_ENV
+
+      - name: Configure CMake
+        run: >-
+          cmake -B build
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+        
+      - name: Build (Debug)
+        run: cmake --build build --config Debug --parallel `nproc`
+
+      - name: Run tests (Debug)
+        run: cmake --build build --config Debug --target run-option-test
+
+      - name: Build (Release)
+        run: cmake --build build --config Release --parallel `nproc`
+
+      - name: Run tests (Release)
+        run: cmake --build build --config Release --target run-option-test
+
+      - name: Run codegen tests
+        run: cmake --build build --config Release --target run-option-codegen-test
