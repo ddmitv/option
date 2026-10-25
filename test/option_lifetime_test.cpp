@@ -75,7 +75,7 @@ struct check_counted_guard {
     int exp_move_assign;
     int exp_dtor;
 
-    check_counted_guard(const char* f, unsigned int l, const char* fn, int ec, int edc, int ecc, int emc, int eca, int ema, int ed) noexcept
+    check_counted_guard(const char* f OPTION_LIFETIMEBOUND, unsigned int l, const char* fn OPTION_LIFETIMEBOUND, int ec, int edc, int ecc, int emc, int eca, int ema, int ed) noexcept
         : file{f}, line{l}, function{fn}
         , exp_ctor{ec}, exp_default_ctor{edc}, exp_copy_ctor{ecc}, exp_move_ctor{emc}
         , exp_copy_assign{eca}, exp_move_assign{ema}, exp_dtor{ed}

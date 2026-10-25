@@ -563,7 +563,7 @@ public:
     // https://eel.is/c++draft/optional.assign#lib:emplace,optional
     template<typename... Args> requires(OPTION_IS_CONSTRUCTIBLE(T, Args...))
     OPTION_SET_TYPESTATE(unconsumed)
-    constexpr T& emplace(Args&&... args) {
+    constexpr T& emplace(Args&&... args) OPTION_LIFETIMEBOUND {
         // if exception is thrown during the call to T's ctor, option must not contain a value and the previous value must be dtored.
         this->storage.reset();
         this->storage.construct(static_cast<Args&&>(args)...);
@@ -572,7 +572,7 @@ public:
     // https://eel.is/c++draft/optional.assign#lib:emplace,optional_
     template<typename U, typename... Args> requires(OPTION_IS_CONSTRUCTIBLE(T, std::initializer_list<U>&, Args...))
     OPTION_SET_TYPESTATE(unconsumed)
-    constexpr T& emplace(std::initializer_list<U> ilist, Args&&... args) {
+    constexpr T& emplace(std::initializer_list<U> ilist, Args&&... args) OPTION_LIFETIMEBOUND {
         this->storage.reset();
         this->storage.construct(ilist, static_cast<Args&&>(args)...);
         return this->storage.value;
