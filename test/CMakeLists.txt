@@ -54,6 +54,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
         -Wno-self-assign-overloaded
         -Wno-double-promotion
         -Wno-missing-prototypes
+        -Wno-zero-as-null-pointer-constant # false positives on <=>
     )
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
         target_compile_options(option-test PRIVATE
