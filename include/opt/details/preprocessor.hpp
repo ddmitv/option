@@ -263,28 +263,29 @@
     #define OPTION_TEST_TYPESTATE(...)
 #endif
 
+#ifndef OPTION_DEBUG_BREAK
+    #if OPTION_HAS_BUILTIN(__builtin_debugtrap) || OPTION_CLANG
+        #define OPTION_DEBUG_BREAK __builtin_debugtrap()
+    #elif OPTION_MSVC
+        #define OPTION_DEBUG_BREAK __debugbreak()
+    #elif OPTION_HAS_BUILTIN(__builtin_trap) || OPTION_GCC
+        #define OPTION_DEBUG_BREAK __builtin_trap()
+    #else
+        #include <csignal>
+        #include <cstdlib>
+        #ifdef SIGTRAP
+            #define OPTION_DEBUG_BREAK (::std::raise(SIGTRAP), ::std::abort())
+        #else
+            #define OPTION_DEBUG_BREAK (::std::raise(SIGABRT), ::std::abort())
+        #endif
+    #endif
+#endif
+
 #ifndef OPTION_VERIFY
     #ifndef NDEBUG
-        #ifndef OPTION_DEBUG_BREAK
-            #if OPTION_HAS_BUILTIN(__builtin_debugtrap) || OPTION_CLANG
-                #define OPTION_DEBUG_BREAK __builtin_debugtrap()
-            #elif OPTION_MSVC
-                #define OPTION_DEBUG_BREAK __debugbreak()
-            #elif OPTION_HAS_BUILTIN(__builtin_trap) || OPTION_GCC
-                #define OPTION_DEBUG_BREAK __builtin_trap()
-            #else
-                #include <csignal>
-                #ifdef SIGTRAP
-                    #define OPTION_DEBUG_BREAK ::std::raise(SIGTRAP)
-                #else
-                    #define OPTION_DEBUG_BREAK ::std::raise(SIGABRT)
-                #endif
-            #endif
-        #endif
-
         #include <cstdio>
         #define OPTION_VERIFY(expr, msg) \
-            (expr ? void() : (\
+            ((expr) ? void() : (\
                 void(::std::fprintf(stderr, "%s:%d: assertion '%s' failed: %s\n", __FILE__, __LINE__, #expr, msg)), \
                 void(::std::fflush(stderr)), \
                 void(OPTION_DEBUG_BREAK) \
