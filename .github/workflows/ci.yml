@@ -22,7 +22,7 @@ jobs:
           - name: 'clang 23'
             cxx: 'clang++-23'
             cc: 'clang-23'
-            packages: 'llvm-23 g++-multilib'
+            packages: 'g++-multilib'
             os: 'ubuntu-latest'
             x64_options: >-
               -fsanitize=undefined,object-size
@@ -39,18 +39,17 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install LLVM 23
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x ./llvm.sh
+          sudo ./llvm.sh 23
+
       - name: Install dependencies
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install ninja-build ${{matrix.packages}}
-
-      # - name: Install LLVM
-      #   if: ${{matrix.install-llvm}}
-      #   uses: KyleMayes/install-llvm-action@v2.0.3
-      #   with:
-      #     version: ${{matrix.install-llvm.version}}
-      #     force-url: ${{matrix.install-llvm.url}}
 
       - name: Configure CMake
         run: >-
