@@ -56,6 +56,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
         -Wconsumed
 
         -Weverything -Werror
+        -Wno-unknown-warning-option
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
         -Wno-float-equal
@@ -63,13 +64,10 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
         -Wno-double-promotion
         -Wno-missing-prototypes
         -Wno-zero-as-null-pointer-constant # false positives on <=>
+        -Wno-lifetime-safety-invalidation
+        -Wno-unsafe-buffer-usage
+        -Wno-unsafe-buffer-usage-in-libc-call
     )
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
-        target_compile_options(option-test PRIVATE -Wno-unsafe-buffer-usage)
-    endif()
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 20)
-        target_compile_options(option-test PRIVATE -Wno-unsafe-buffer-usage-in-libc-call)
-    endif()
 
     target_compile_options(option-header-test PRIVATE -Weverything -Werror)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
