@@ -8,8 +8,8 @@
 
 #include "tests.hpp"
 
-void on_check_failed(const char* expr, const char* filename, unsigned int line, const char* function) {
-    std::fprintf(stderr, "check failed: (%s)\n", expr);
+void on_check_failed(const char* message, const char* filename, unsigned int line, const char* function) {
+    std::fprintf(stderr, "check failed: (%s)\n", message);
     std::fprintf(stderr, "  in function: %s\n", function);
     std::fprintf(stderr, "  at %s:%u\n", filename, line);
     std::fflush(stderr);
