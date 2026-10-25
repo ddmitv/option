@@ -233,11 +233,13 @@ def normalize_asm(insts: list[str]) -> list[str]:
 
         new_insts.append(new_inst)
 
-    # remove leading useless label: GCC's `.LFB<N>`:, MSVC's unused `$LN EH` marker at entry
-    if cxx_compiler_id in (CxxCompilerId.GCC, CxxCompilerId.MSVC) and len(new_insts) > 0 and new_insts[0].endswith(":"):
+    label_pattern = r'\$L[LN][\w@]+' if cxx_compiler_id == CxxCompilerId.MSVC else r'\.L\w+'
+
+    # remove leading label
+    if len(new_insts) > 0 and re.fullmatch(f'{label_pattern}:', new_insts[0]):
         del new_insts[0]
-    # remove trailing useless label: MSVC's unused `$LN EH` marker at exit
-    if cxx_compiler_id == CxxCompilerId.MSVC and len(new_insts) > 0 and new_insts[-1].endswith(":"):
+    # remove trailing label
+    if len(new_insts) > 0 and re.fullmatch(f'{label_pattern}:', new_insts[-1]):
         del new_insts[-1]
 
     label_map: dict[str, str] = {}
@@ -250,8 +252,6 @@ def normalize_asm(insts: list[str]) -> list[str]:
             label_map[old_label] = f'.L{label_idx}'
             label_idx += 1
         return label_map[old_label]
-    
-    label_pattern = r'\$L[LN][\w@]+' if cxx_compiler_id == CxxCompilerId.MSVC else r'\.L\w+'
 
     new_insts = [re.sub(label_pattern, label_repl, inst) for inst in new_insts]
     return new_insts
