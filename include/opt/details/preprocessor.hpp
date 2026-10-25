@@ -312,6 +312,12 @@
     #define OPTION_PURE
 #endif
 
+#if OPTION_HAS_CPP_ATTRIBUTE(gnu::no_sanitize)
+    #define OPTION_NO_SANITIZE(...) [[gnu::no_sanitize(__VA_ARGS__)]]
+#else
+    #define OPTION_NO_SANITIZE(...)
+#endif
+
 // see https://github.com/microsoft/STL/issues/5315, https://github.com/microsoft/STL/pull/5318
 #define OPTION_DESTRUCTOR_TOMBSTONES 1
 

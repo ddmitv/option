@@ -739,13 +739,13 @@ namespace impl {
 }
 
 // https://eel.is/c++draft/optional#lib:operator==,optional
-template<typename T1, typename T2>
+template<typename T1, typename T2> OPTION_NO_SANITIZE("bool")
 constexpr bool operator==(const option<T1>& x, const option<T2>& y) requires requires {
     { x.get() == y.get() } -> impl::core_convertible_to<bool>;
 } {
     if constexpr (OPTION_IS_INTEGRAL(T1) && OPTION_IS_INTEGRAL(T2)) {
         if (!std::is_constant_evaluated()) {
-            // improves codegen
+            // improves codegen (requires no_sanitize("bool") attribute)
             return ((x.has_value() ^ y.has_value()) ^ 1) & (!x.has_value() | (x.get_unchecked() == y.get_unchecked()));
         }
     }
@@ -849,13 +849,13 @@ constexpr std::strong_ordering operator<=>(const option<T>& x, const none_t) noe
 
 // should use impl::is_derived_from_option instead of is_option_v for comparison operators with T?
 
-template<typename T1, typename T2>
+template<typename T1, typename T2> OPTION_NO_SANITIZE("bool")
 constexpr bool operator==(const option<T1>& x, const T2& y) requires (!is_option_v<T2>) && requires {
     { x.get() == y } -> impl::core_convertible_to<bool>;
 } {
     if constexpr (OPTION_IS_INTEGRAL(T1) && OPTION_IS_INTEGRAL(T2)) {
         if (!std::is_constant_evaluated()) {
-            // improves codegen
+            // improves codegen (requires no_sanitize("bool") attribute)
             return x.has_value() & (x.get_unchecked() == y);
         }
     }
@@ -865,13 +865,13 @@ constexpr bool operator==(const option<T1>& x, const T2& y) requires (!is_option
     return false;
 }
 
-template<typename T1, typename T2>
+template<typename T1, typename T2> OPTION_NO_SANITIZE("bool")
 constexpr bool operator==(const T1& x, const option<T2>& y) requires (!is_option_v<T1>) && requires {
     { x == y.get() } -> impl::core_convertible_to<bool>;
 } {
     if constexpr (OPTION_IS_INTEGRAL(T1) && OPTION_IS_INTEGRAL(T2)) {
         if (!std::is_constant_evaluated()) {
-            // improves codegen
+            // improves codegen (requires no_sanitize("bool") attribute)
             return y.has_value() & (x == y.get_unchecked());
         }
     }
