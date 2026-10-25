@@ -18,7 +18,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: []
+        include:
+          - name: 'clang 23'
+            cxx: 'clang++-23'
+            cc: 'clang-23'
+            packages: 'llvm-23 g++-multilib'
+            os: 'ubuntu-latest'
+            x64_options: >-
+              -fsanitize=undefined,object-size
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
 
     steps:
       - &checkout_step
