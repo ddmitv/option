@@ -343,3 +343,9 @@
 #else
     #define OPTION_COLD
 #endif
+
+#if OPTION_HAS_CPP_ATTRIBUTE(gsl::Pointer)
+    #define OPTION_GSL_POINTER [[gsl::Pointer]]
+#else
+    #define OPTION_GSL_POINTER
+#endif

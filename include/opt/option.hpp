@@ -274,7 +274,7 @@ namespace impl {
 
     // https://eel.is/c++draft/optional#iterators
     template<typename T>
-    class option_iterator {
+    class OPTION_GSL_POINTER option_iterator {
         T* ptr{};
 
         template<typename>
