@@ -18,8 +18,9 @@ add_executable(option-test
     "tests.hpp"
     comp_ops/comparison_helpers.hpp
     comp_ops/relops.cpp
-    ctors/default_ctor.cpp
+    ctors/default_none_ctor.cpp
     ctors/test_types.hpp
+    ctors/from_u_ctor.cpp
     ctors/deduction_guides.cpp
     option_iterator.cpp
     option_observe.cpp

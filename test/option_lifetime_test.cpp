@@ -97,7 +97,7 @@ struct check_counted_guard {
             std::fprintf(stderr, "  dtor         expected %d, got %d\n", exp_dtor, counted::dtor);
             std::fflush(stderr);
             ::on_check_failed("check_counted", file, line, function);
-            DEBUG_BREAK;
+            OPTION_DEBUG_BREAK;
         }
         counted::reset();
     }

@@ -28,6 +28,8 @@ int main() {
     run_test_suite(comp_with_none_test_suite);
     run_test_suite(comp_with_t_test_suite);
     run_test_suite(relops_test_suite);
+    run_test_suite(default_none_ctor_test_suite);
+    run_test_suite(from_u_ctor_test_suite);
     run_test_suite(deduction_guides_test_suite);
     run_test_suite(option_iterator_test_suite);
     run_test_suite(observe_methods_test_suite);
