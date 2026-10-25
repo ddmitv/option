@@ -313,3 +313,17 @@
 
 // see https://github.com/microsoft/STL/issues/5315, https://github.com/microsoft/STL/pull/5318
 #define OPTION_DESTRUCTOR_TOMBSTONES 1
+
+#if OPTION_MSVC
+    #ifdef _CPPUNWIND
+        #define OPTION_HAS_EXCEPTIONS 1
+    #else
+        #define OPTION_HAS_EXCEPTIONS 0
+    #endif
+#else
+    #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || OPTION_HAS_FEATURE(cxx_exceptions)
+        #define OPTION_HAS_EXCEPTIONS 1
+    #else
+        #define OPTION_HAS_EXCEPTIONS 0
+    #endif
+#endif

@@ -9,6 +9,7 @@
 #include <utility>
 #include <memory>
 #include <cstring>
+#include <exception>
 
 #include "details/preprocessor.hpp"
 #include "details/asan.hpp"
@@ -29,6 +30,27 @@ namespace opt {
 [[nodiscard]] constexpr bool operator>=(const none_t, const none_t) noexcept { return true; }
 [[nodiscard]] constexpr bool operator<=(const none_t, const none_t) noexcept { return true; }
 
+class bad_access final : public std::exception {
+public:
+    bad_access() = default;
+    bad_access(const bad_access&) = default;
+    bad_access& operator=(const bad_access&) = default;
+
+    ~bad_access() override = default;
+    [[nodiscard]] const char* what() const noexcept override {
+        return "Bad opt::option access";
+    }
+};
+
+namespace impl {
+    [[noreturn]] inline void throw_bad_option() {
+#if OPTION_HAS_EXCEPTIONS
+        throw bad_access{};
+#else
+        OPTION_VERIFY(false, "opt::bad_access was thrown but exceptions were disabled");
+#endif
+    }
+}
 
 namespace impl {
     // from https://github.com/microsoft/STL/blob/da52dc0fcadbd83690cfd1ed32408d2847439493/stl/inc/type_traits#L2295
