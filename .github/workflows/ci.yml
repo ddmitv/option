@@ -19,6 +19,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: 'clang 22'
+            cxx: 'clang++-22'
+            cc: 'clang-22'
+            packages: 'llvm-22 g++-multilib'
+            os: 'ubuntu-latest'
+            x64_options: >-
+              -fsanitize=undefined,object-size
+            options: >-
+              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-sanitize-recover=all
+              -ffp-exception-behavior=maytrap
+              --stdlib=libstdc++
+
           - name: 'clang 18'
             cxx: 'clang++-18'
             cc: 'clang-18'
