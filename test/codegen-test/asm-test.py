@@ -153,33 +153,32 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
             else: # function ending (ENDP)
                 current_instructions = None
             continue
-        if cxx_compiler_id == CxxCompilerId.CLANG_CL:
+        if cxx_compiler_id == CxxCompilerId.CLANG or cxx_compiler_id == CxxCompilerId.CLANG_CL:
             POSSIBLE_FUNCTION_END_DIRECTIVES = ('.section', '.globl', '.def', '.addrsig', '.ident')
             if current_instructions is not None and any(line.lstrip().startswith(d) for d in POSSIBLE_FUNCTION_END_DIRECTIVES):
                 current_instructions = None
                 continue
 
-            if line.startswith('"?'):
-                current_instructions = []
-                # skip "
-                parsed_functions[demangle_msvc(line[1:])] = current_instructions
-                continue
-        if cxx_compiler_id == CxxCompilerId.CLANG:
-            POSSIBLE_FUNCTION_END_DIRECTIVES = ('.size', '.def', '.section', '.addrsig', '.ident')
-            if current_instructions is not None and any(line.lstrip().startswith(d) for d in POSSIBLE_FUNCTION_END_DIRECTIVES):
-                current_instructions = None
-                continue
-
-            if line.startswith('_Z'):
-                if len(line) >= 3 and line[2].isdigit():
+            if cxx_compiler_id == CxxCompilerId.CLANG_CL:
+                if line.startswith('"?'):
                     current_instructions = []
-                    parsed_functions[demangle_itanium(line)] = current_instructions
-                else:
-                    current_instructions = None
-                continue
+                    # skip "
+                    parsed_functions[demangle_msvc(line[1:])] = current_instructions
+                    continue
+            elif cxx_compiler_id == CxxCompilerId.CLANG:
+                if line.startswith('_Z'):
+                    if len(line) >= 3 and line[2].isdigit():
+                        current_instructions = []
+                        parsed_functions[demangle_itanium(line)] = current_instructions
+                    else:
+                        current_instructions = None
+                    continue
         if cxx_compiler_id == CxxCompilerId.GCC and line.startswith('"_Z') and line.endswith('":\n'):
-            current_instructions = []
-            parsed_functions[demangle_itanium(line[1:-2])] = current_instructions
+            if len(line) >= 4 and line[3].isdigit():
+                current_instructions = []
+                parsed_functions[demangle_itanium(line[1:-2])] = current_instructions
+            else:
+                current_instructions = None
             continue
     
         if current_instructions is None:
@@ -193,7 +192,8 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
 REMOVE_DIRECTIVES: set[str] = {
     '.cfi_startproc', '.cfi_endproc', '.size', '.ident', '.section', '.p2align', '.globl', '.type', '.addrsig',
     '.def', '.scl', '.endef', '.ascii', '.seh_proc', '.loc', '.seh_stackalloc', '.seh_endprologue', '.seh_startepilogue',
-    '.seh_endepilogue', '.seh_endproc', '.seh_pushreg', '.file', '.asciz', '.short', '.long', '.byte'
+    '.seh_endepilogue', '.seh_endproc', '.seh_pushreg', '.file', '.asciz', '.short', '.long', '.byte',
+    '.linkonce', '.align',
 }
 
 def normalize_asm(insts: list[str]) -> list[str]:
@@ -208,7 +208,8 @@ def normalize_asm(insts: list[str]) -> list[str]:
             new_inst = re.sub(r'^(j[a-z]{1,2}) (?:SHORT|FAR|NEAR) (.+)', r'\1 \2', new_inst)
             # ret 0 -> ret
             if new_inst == 'ret 0': new_inst = 'ret' 
-        if cxx_compiler_id == CxxCompilerId.MSVC or cxx_compiler_id == CxxCompilerId.GCC:
+            if new_inst == 'int 3': new_inst = 'int3'
+        if cxx_compiler_id in (CxxCompilerId.MSVC, CxxCompilerId.GCC):
             # [rcx+rax*4+8] -> [rcx + rax*4 + 8]
             new_inst = re.sub(r'\[(.+)\]', lambda m: f'[{m[1].replace("+", " + ").replace("-", " - ")}]', new_inst)
             # mov DWORD PTR [rcx+rax*4+8], 6 -> mov	dword ptr [rcx+rax*4+8], 6
@@ -216,22 +217,28 @@ def normalize_asm(insts: list[str]) -> list[str]:
         if cxx_compiler_id == CxxCompilerId.GCC:
             # 8[rdi + rdx*4] -> [rdi + rdx*4 + 8]
             new_inst = re.sub(r'(-)?(\d+)\[(.+)\]', lambda m: f'[{m[3]} {m[1] or '+'} {m[2]}]', new_inst)
-        if cxx_compiler_id == CxxCompilerId.CLANG or cxx_compiler_id == CxxCompilerId.CLANG_CL:
+        if cxx_compiler_id in (CxxCompilerId.CLANG, CxxCompilerId.CLANG_CL):
             # [rdi + 4*rax + 8] -> [rdi + rax*4 + 8]
             new_inst = re.sub(r'(\d)\*([a-z0-9]+)', r'\2*\1', new_inst)
+        if cxx_compiler_id in (CxxCompilerId.GCC, CxxCompilerId.CLANG_CL):
+            # call "function" -> call function
+            new_inst = re.sub(r'^((?:call|jmp|j[a-z]{1,4})) "([^"]+)"$', r'\1 \2', new_inst)
         if cxx_compiler_id != CxxCompilerId.MSVC:
             # movabs rax, 12345 -> mov rax, 12345
             new_inst = f'mov {new_inst[len('movabs '):]}' if new_inst.startswith('movabs ') else new_inst
         # movzx eax, byte ptr [rdi] -> movzx eax, [rdi]
-        new_inst = re.sub(r'([a-z]\w* [a-z]\w*), (?:byte|word|dword|qword|xmmword|ymmword|zmmword) ptr (\[.+\])', r'\1, \2', new_inst, flags=re.IGNORECASE)
+        new_inst = re.sub(r'^([a-z]\w* [a-z]\w*), (?:byte|word|dword|qword|xmmword|ymmword|zmmword) ptr (\[.+\])$', r'\1, \2', new_inst, flags=re.IGNORECASE)
         # mov byte ptr [rdi], al -> mov [rdi], al
-        new_inst = re.sub(r'([a-z]\w*) (?:byte|word|dword|qword|xmmword|ymmword|zmmword) ptr (\[.+\]), ([a-z]\w*)', r'\1 \2, \3', new_inst, flags=re.IGNORECASE)
+        new_inst = re.sub(r'^([a-z]\w*) (?:byte|word|dword|qword|xmmword|ymmword|zmmword) ptr (\[.+\]), ([a-z]\w*)$', r'\1 \2, \3', new_inst, flags=re.IGNORECASE)
 
         new_insts.append(new_inst)
 
-    # remove first useless label
-    if cxx_compiler_id == CxxCompilerId.GCC and len(new_insts) > 0 and new_insts[0].endswith(":"):
+    # remove leading useless label: GCC's `.LFB<N>`:, MSVC's unused `$LN EH` marker at entry
+    if cxx_compiler_id in (CxxCompilerId.GCC, CxxCompilerId.MSVC) and len(new_insts) > 0 and new_insts[0].endswith(":"):
         del new_insts[0]
+    # remove trailing useless label: MSVC's unused `$LN EH` marker at exit
+    if cxx_compiler_id == CxxCompilerId.MSVC and len(new_insts) > 0 and new_insts[-1].endswith(":"):
+        del new_insts[-1]
 
     label_map: dict[str, str] = {}
     label_idx: int = 0
