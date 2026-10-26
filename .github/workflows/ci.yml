@@ -51,7 +51,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install ninja-build ${{matrix.packages}}
+          sudo apt-get install ${{matrix.packages}}
 
       - name: Configure CMake (sanitized)
         run: >-
@@ -92,3 +92,66 @@ jobs:
 
       - name: Run tests (Release x32)
         run: cmake --build build-x32 --config Release --target run-option-test --parallel
+  msan:
+    name: 'Linux clang 23 (msan)'
+    runs-on: ubuntu-latest
+
+    env:
+      CMAKE_GENERATOR: 'Ninja Multi-Config'
+      VERBOSE: 1
+      CXX: clang++-23
+      CC: clang-23
+      MSAN_OPTIONS: 'abort_on_error=1:poison_in_dtor=1'
+
+    steps:
+      - *checkout_step
+
+      - name: Install LLVM 23
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x ./llvm.sh
+          sudo ./llvm.sh 23
+
+      - name: Resolve libc++ source revision
+        id: llvm_ref
+        run: echo "sha=$(git ls-remote https://github.com/llvm/llvm-project.git refs/heads/release/23.x | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache MSan-instrumented libc++
+        id: msan_libcxx
+        uses: actions/cache@v6.1.0
+        with:
+          path: msan-prefix
+          key: libcxx-msan-23-x86_64-${{ steps.llvm_ref.outputs.sha }}
+
+      - name: Build MSan-instrumented libc++
+        if: steps.msan_libcxx.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch release/23.x https://github.com/llvm/llvm-project.git
+          cmake -B libcxx-msan -S llvm-project/runtimes -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+            -DCMAKE_C_COMPILER=clang-23 \
+            -DCMAKE_CXX_COMPILER=clang++-23 \
+            -DLLVM_USE_SANITIZER=MemoryWithOrigins \
+            -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
+            -DLLVM_ENABLE_PIC=ON \
+            -DLIBCXX_INCLUDE_TESTS=OFF \
+            -DLIBCXXABI_INCLUDE_TESTS=OFF \
+            -DLIBUNWIND_INCLUDE_TESTS=OFF \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/msan-prefix
+          cmake --build libcxx-msan --parallel
+          cmake --install libcxx-msan
+
+      - name: Configure CMake (msan)
+        run: >-
+          cmake -B build-msan
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -nostdinc++ -isystem $GITHUB_WORKSPACE/msan-prefix/include/c++/v1"
+          "-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -L$GITHUB_WORKSPACE/msan-prefix/lib -Wl,-rpath,$GITHUB_WORKSPACE/msan-prefix/lib -lc++abi"
+
+      - name: Run tests (Debug)
+        run: cmake --build build-msan --config Debug --target run-option-test --parallel
+
+      - name: Run tests (Release)
+        run: cmake --build build-msan --config Release --target run-option-test --parallel
