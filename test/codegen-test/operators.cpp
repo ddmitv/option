@@ -73,7 +73,7 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 }
 
 //'[std_optional_int16_equal]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=23]
 //' mov ecx, edi
 //' shr ecx, 16
 //' mov edx, esi
@@ -87,6 +87,20 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' bt edi, 16
 //' cmovae ecx, eax
 //' and al, cl
+//' ret
+//'@if $linux & $clang[<23]
+//' mov ecx, edi
+//' shr ecx, 16
+//' mov eax, esi
+//' shr eax, 16
+//' cmp cl, al
+//' sete al
+//' and cl, al
+//' cmp cl, 1
+//' jne .L0
+//' cmp di, si
+//' sete al
+//' .L0:
 //' ret
 //'@if $windows & $clang
 //' mov r8d, ecx
@@ -226,7 +240,7 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 }
 
 //'[std_optional_int32_equal]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=23]
 //' mov rcx, rdi
 //' shr rcx, 32
 //' mov edx, esi
@@ -240,6 +254,20 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' bt rdi, 32
 //' cmovae ecx, eax
 //' and al, cl
+//' ret
+//'@if $linux & $clang[<23]
+//' mov rcx, rdi
+//' shr rcx, 32
+//' mov rax, rsi
+//' shr rax, 32
+//' cmp cl, al
+//' sete al
+//' and cl, al
+//' cmp cl, 1
+//' jne .L0
+//' cmp edi, esi
+//' sete al
+//' .L0:
 //' ret
 //'@if $windows & $clang
 //' mov r8, rcx
@@ -363,7 +391,7 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 }
 
 //'[std_optional_int64_equal]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=23]
 //' movzx ecx, [rdi + 8]
 //' xor eax, eax
 //' cmp cl, [rsi + 8]
@@ -375,6 +403,18 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' test cl, cl
 //' cmove edi, eax
 //' and al, dil
+//' ret
+//'@if $linux & $clang[<23]
+//' movzx ecx, [rdi + 8]
+//' cmp cl, [rsi + 8]
+//' sete al
+//' and cl, al
+//' cmp cl, 1
+//' jne .L0
+//' mov rax, [rdi]
+//' cmp rax, [rsi]
+//' sete al
+//' .L0:
 //' ret
 //'@if $windows & $clang
 //' movzx r8d, [rcx + 8]
@@ -573,7 +613,7 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 }
 
 //'[option_int16_less]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=23]
 //' mov eax, esi
 //' shr esi, 16
 //' test edi, 65536
@@ -582,6 +622,18 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 //' setl al
 //' or al, cl
 //' and al, sil
+//' ret
+//'@if $linux & $clang[<23]
+//' test esi, 65536
+//' jne .L0
+//' xor eax, eax
+//' ret
+//' .L0:
+//' test edi, 65536
+//' sete cl
+//' cmp di, si
+//' setl al
+//' or al, cl
 //' ret
 //'@if $windows & $clang
 //' test edx, 65536
@@ -721,7 +773,7 @@ bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b)
 }
 
 //'[option_int32_less]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=23]
 //' mov eax, esi
 //' shr rsi, 32
 //' bt rdi, 32
@@ -730,6 +782,19 @@ bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b)
 //' setl al
 //' or al, cl
 //' and al, sil
+//' ret
+//'@if $linux & $clang[<23]
+//' bt rsi, 32
+//' jb .L0
+//' xor eax, eax
+//' ret
+//' .L0:
+//' mov rax, 4294967296
+//' test rdi, rax
+//' sete cl
+//' cmp edi, esi
+//' setl al
+//' or al, cl
 //' ret
 //'@if $windows & $clang
 //' bt rdx, 32
