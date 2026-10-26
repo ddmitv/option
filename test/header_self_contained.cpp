@@ -8,6 +8,12 @@ OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat")
 OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat-pedantic")
 OPTION_CLANG_SUPPRESS_WARNING("-Wpre-c++20-compat")
 
+#if OPTION_CLANG
+    #if __clang_major__ == 18
+        OPTION_CLANG_SUPPRESS_WARNING("-Wconsumed")
+    #endif
+#endif
+
 namespace {
 
 template<typename T>
