@@ -331,6 +331,8 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 
 #if OPTION_HAS_CPP_ATTRIBUTE(gnu::no_sanitize)
     #define OPTION_NO_SANITIZE(...) [[gnu::no_sanitize(__VA_ARGS__)]]
+#elif OPTION_HAS_ATTRIBUTE(no_sanitize)
+    #define OPTION_NO_SANITIZE(...) __attribute__((no_sanitize(__VA_ARGS__)))
 #else
     #define OPTION_NO_SANITIZE(...)
 #endif
