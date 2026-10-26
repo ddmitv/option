@@ -3,4 +3,4 @@
 fun:_ZNKSt4less*
 [type]
 # std::variant
-_ZNSt7variant*
+fun:_ZNSt7variant*
