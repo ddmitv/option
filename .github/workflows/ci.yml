@@ -12,8 +12,7 @@ jobs:
       VERBOSE: 1
       CXX: ${{matrix.cxx}}
       CC: ${{matrix.cc}}
-      # detect_invalid_pointer_pairs=2 produces false positives related to std::less
-      ASAN_OPTIONS: 'detect_leaks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_string_checks=1:detect_container_overflow=1:detect_invalid_pointer_pairs=1:halt_on_error=1:abort_on_error=1:strict_init_order=1:handle_ioctl=1:print_cmdline=1:disable_coredump=0:use_madv_dontdump=1'
+      ASAN_OPTIONS: ${{ matrix.asan_options }}
       UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1:print_summary=1'
 
     strategy:
@@ -28,8 +27,12 @@ jobs:
             options: '--stdlib=libstdc++'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,leak,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr -fsanitize-address-use-after-return=runtime
+              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
               -fno-sanitize-recover=all
+              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            debug_asan_options: ':detect_invalid_pointer_pairs=2'
 
     steps:
       - &checkout_step
@@ -55,9 +58,11 @@ jobs:
           cmake -B build
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{matrix.options}} ${{matrix.sanitizer_options}} ${{matrix.sanitizer_x64_options}}"
+          "-DCMAKE_CXX_FLAGS=${{matrix.options}} ${{matrix.sanitizer_options}}"
 
       - name: Run tests (Debug)
+        env:
+          ASAN_OPTIONS: ${{ matrix.asan_options }}${{ matrix.debug_asan_options }}
         run: cmake --build build --config Debug --target run-option-test --parallel
 
       - name: Run tests (Release)
@@ -81,6 +86,8 @@ jobs:
           "-DCMAKE_CXX_FLAGS=-m32 ${{matrix.sanitizer_options}}"
 
       - name: Run tests (Debug x32)
+        env:
+          ASAN_OPTIONS: ${{ matrix.asan_options }}${{ matrix.debug_asan_options }}
         run: cmake --build build-x32 --config Debug --target run-option-test --parallel
 
       - name: Run tests (Release x32)

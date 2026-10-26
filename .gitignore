@@ -5,6 +5,7 @@
 !.gitattributes
 !LICENSE_1_0.txt
 !CMakeLists.txt
+!sanitizer-ignorelist.txt
 !.github/
 
 !include/
