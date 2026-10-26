@@ -33,7 +33,7 @@ jobs:
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
+            debug_asan_options: ':detect_invalid_pointer_pairs=2' # only in debug since in release code gets inlined and -fsanitize-ignorelist doesnt work reliably anymore
 
           - name: 'clang 22'
             llvm: '22'
@@ -55,6 +55,22 @@ jobs:
             llvm: '21'
             cxx: 'clang++-21'
             cc: 'clang-21'
+            packages: 'g++-multilib'
+            os: 'ubuntu-latest'
+            options: '--stdlib=libstdc++'
+            sanitizer_options: >-
+              -fno-omit-frame-pointer -fno-optimize-sibling-calls
+              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fno-sanitize-recover=all
+              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            debug_asan_options: ':detect_invalid_pointer_pairs=2'
+
+          - name: 'clang 20'
+            llvm: '20'
+            cxx: 'clang++-20'
+            cc: 'clang-20'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
             options: '--stdlib=libstdc++'
