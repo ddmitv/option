@@ -24,13 +24,13 @@ jobs:
             cc: 'clang-23'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            x64_options: >-
+            options: '--stdlib=libstdc++'
+            sanitizer_x64_options: >-
               -fsanitize=undefined,object-size
-            options: >-
+            sanitizer_options: >-
               -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
               -fno-sanitize-recover=all
               -ffp-exception-behavior=maytrap
-              --stdlib=libstdc++
 
     steps:
       - &checkout_step
@@ -51,13 +51,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install ninja-build ${{matrix.packages}}
 
-      - name: Configure CMake
+      - name: Configure CMake (sanitized)
         run: >-
           cmake -B build
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.x64_options}}"
-          ${{matrix.cmake_options}}
+          "-DCMAKE_CXX_FLAGS=${{matrix.options}} ${{matrix.sanitizer_options}} ${{matrix.sanitizer_x64_options}}"
 
       - name: Run tests (Debug)
         run: cmake --build build --config Debug --target run-option-test --parallel
@@ -65,20 +64,22 @@ jobs:
       - name: Run tests (Release)
         run: cmake --build build --config Release --target run-option-test --parallel
 
-      - name: Run codegen tests
-        if: matrix.disable_codegen_test != 'true'
-        run: cmake --build build --config Release --target run-option-codegen-test --parallel
+      - name: Configure CMake (codegen, no sanitizers)
+        run: >-
+          cmake -B build-codegen
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=${{matrix.options}}"
 
-      - name: Configure CMake (x32)
-        env:
-          CXXFLAGS: -m32
-          CFLAGS: -m32
+      - name: Run codegen tests
+        run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
+
+      - name: Configure CMake (x32, sanitized)
         run: >-
           cmake -B build-x32
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DOPTION_EXTRA_FLAGS=${{matrix.options}} ${{matrix.x32_options}}"
-          ${{matrix.cmake_options}}
+          "-DCMAKE_CXX_FLAGS=-m32 ${{matrix.sanitizer_options}}"
 
       - name: Run tests (Debug x32)
         run: cmake --build build-x32 --config Debug --target run-option-test --parallel
