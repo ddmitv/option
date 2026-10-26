@@ -37,6 +37,53 @@ struct some_struct {
     char c = 'b';
 };
 
+// std::variant produces false-positives on TypeSanitizer
+template<typename T> OPTION_NO_SANITIZE("type")
+void test_address_sanitizer(const std::remove_cv_t<T>& first_value, const std::remove_cv_t<T>& second_value) {
+    {
+        std::variant<opt::option<T>, int> var{std::in_place_index<0>, first_value};
+        asan_check_unpoisoned(T, &var);
+        check(std::get<0>(var).get() == first_value);
+
+        std::get<0>(var).reset();
+        asan_check_poisoned(T, &var);
+        check(!std::get<0>(var).has_value());
+
+        var.template emplace<1>(563);
+        asan_check_unpoisoned(T, &var);
+        check(std::get<1>(var) == 563);
+    }
+    {
+        opt::option<T> o;
+        asan_check_poisoned(T, &o);
+        check(!o.has_value());
+
+        [[maybe_unused]] auto&& _1 = o.emplace(second_value);
+        asan_check_unpoisoned(T, &o);
+        check(o.get() == second_value);
+    }
+    {
+        opt::option<T> o{second_value};
+        asan_check_unpoisoned(T, &o);
+        check(o.get() == second_value);
+
+        o.reset();
+        asan_check_poisoned(T, &o);
+        check(!o.has_value());
+    }
+    { // option(const option&)
+        opt::option<T> o1{first_value};
+        asan_check_unpoisoned(T, &o1);
+        opt::option<T> o2{o1};
+        asan_check_unpoisoned(T, &o2);
+
+        opt::option<T> o3;
+        asan_check_poisoned(T, &o3);
+        opt::option<T> o4{o3};
+        asan_check_poisoned(T, &o4);
+    }
+}
+
 template<typename T>
 void test_generic_const_opt_option(const std::remove_cv_t<T>& first_value, [[maybe_unused]] const std::remove_cv_t<T>& second_value) {
     { // constructors
@@ -577,50 +624,7 @@ void test_generic_opt_option(const std::remove_cv_t<T>& first_value, const std::
             check(!o2.has_value());
         }
     }
-    { // address sanitizer checks
-        {
-            std::variant<opt::option<T>, int> var{std::in_place_index<0>, first_value};
-            asan_check_unpoisoned(T, &var);
-            check(std::get<0>(var).get() == first_value);
-
-            std::get<0>(var).reset();
-            asan_check_poisoned(T, &var);
-            check(!std::get<0>(var).has_value());
-
-            var.template emplace<1>(563);
-            asan_check_unpoisoned(T, &var);
-            check(std::get<1>(var) == 563);
-        }
-        {
-            opt::option<T> o;
-            asan_check_poisoned(T, &o);
-            check(!o.has_value());
-
-            [[maybe_unused]] auto&& _1 = o.emplace(second_value);
-            asan_check_unpoisoned(T, &o);
-            check(o.get() == second_value);
-        }
-        {
-            opt::option<T> o{second_value};
-            asan_check_unpoisoned(T, &o);
-            check(o.get() == second_value);
-
-            o.reset();
-            asan_check_poisoned(T, &o);
-            check(!o.has_value());
-        }
-        { // option(const option&)
-            opt::option<T> o1{first_value};
-            asan_check_unpoisoned(T, &o1);
-            opt::option<T> o2{o1};
-            asan_check_unpoisoned(T, &o2);
-
-            opt::option<T> o3;
-            asan_check_poisoned(T, &o3);
-            opt::option<T> o4{o3};
-            asan_check_poisoned(T, &o4);
-        }
-    }
+    test_address_sanitizer<T>(first_value, second_value);
 }
 
 template<typename T>
