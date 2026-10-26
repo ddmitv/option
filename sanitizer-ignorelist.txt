@@ -4,3 +4,5 @@ fun:_ZNKSt4less*
 [type]
 # std::variant
 fun:_ZNSt7variant*
+# std::__detail::__variant
+fun:_ZNSt8__detail9__variant*
