@@ -3,7 +3,7 @@
 #include <optional>
 
 //'[option_int16_equal]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=22]
 //' mov eax, edi
 //' shr edi, 16
 //' mov ecx, esi
@@ -14,6 +14,19 @@
 //' cmp ax, cx
 //' sete al
 //' or al, dil
+//' and al, dl
+//' ret
+//'@if $linux & $clang[<22]
+//' mov ecx, edi
+//' shr ecx, 16
+//' mov eax, esi
+//' shr eax, 16
+//' cmp cl, al
+//' sete dl
+//' xor cl, 1
+//' cmp di, si
+//' sete al
+//' or al, cl
 //' and al, dl
 //' ret
 //'@if $windows & $clang
@@ -170,7 +183,7 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 }
 
 //'[option_int32_equal]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=22]
 //' mov eax, edi
 //' shr rdi, 32
 //' mov ecx, esi
@@ -181,6 +194,19 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' cmp eax, ecx
 //' sete al
 //' or al, dil
+//' and al, dl
+//' ret
+//'@if $linux & $clang[<22]
+//' mov rcx, rdi
+//' shr rcx, 32
+//' mov rax, rsi
+//' shr rax, 32
+//' cmp cl, al
+//' sete dl
+//' xor cl, 1
+//' cmp edi, esi
+//' sete al
+//' or al, cl
 //' and al, dl
 //' ret
 //'@if $windows & $clang
@@ -478,13 +504,21 @@ bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::option
 }
 
 //'[option_int32_equal_with_value]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=22]
 //' mov eax, edi
 //' shr rdi, 32
 //' and edi, 1
 //' cmp esi, eax
 //' sete al
 //' and al, dil
+//' ret
+//'@if $linux & $clang[<22]
+//' mov rcx, rdi
+//' shr rcx, 32
+//' and ecx, 1
+//' cmp esi, edi
+//' sete al
+//' and al, cl
 //' ret
 //'@if $windows & $clang
 //' mov eax, ecx
@@ -519,12 +553,19 @@ bool option_int32_equal_with_value(opt::option<int32_t> a, int32_t b) {
 }
 
 //'[std_optional_int32_equal_with_value]
-//'@if $linux & $clang
+//'@if $linux & $clang[>=22]
 //' mov eax, edi
 //' shr rdi, 32
 //' cmp esi, eax
 //' sete al
 //' and al, dil
+//' ret
+//'@if $linux & $clang[<22]
+//' mov rcx, rdi
+//' shr rcx, 32
+//' cmp esi, edi
+//' sete al
+//' and al, cl
 //' ret
 //'@if $windows & $clang
 //' mov eax, ecx
