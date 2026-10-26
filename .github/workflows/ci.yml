@@ -220,3 +220,36 @@ jobs:
 
       - name: Run tests (Release)
         run: cmake --build build-msan --config Release --target run-option-test --parallel
+
+  tysan:
+    name: 'Linux clang 23 (TypeSanitizer)'
+    runs-on: ubuntu-latest
+
+    env:
+      CMAKE_GENERATOR: 'Ninja Multi-Config'
+      VERBOSE: 1
+      CXX: clang++-23
+      CC: clang-23
+      TYSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1'
+
+    steps:
+      - *checkout_step
+
+      - name: Install LLVM 23
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x ./llvm.sh
+          sudo ./llvm.sh 23
+
+      - name: Configure CMake (TypeSanitizer)
+        run: >-
+          cmake -B build-tysan
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=-fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+
+      - name: Run tests (Debug)
+        run: cmake --build build-tysan --config Debug --target run-option-test --parallel
+
+      - name: Run tests (Release)
+        run: cmake --build build-tysan --config Release --target run-option-test --parallel
