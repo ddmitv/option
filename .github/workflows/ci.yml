@@ -20,8 +20,25 @@ jobs:
       matrix:
         include:
           - name: 'clang 23'
+            llvm: '23'
             cxx: 'clang++-23'
             cc: 'clang-23'
+            packages: 'g++-multilib'
+            os: 'ubuntu-latest'
+            options: '--stdlib=libstdc++'
+            sanitizer_options: >-
+              -fno-omit-frame-pointer -fno-optimize-sibling-calls
+              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fno-sanitize-recover=all
+              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            debug_asan_options: ':detect_invalid_pointer_pairs=2'
+
+          - name: 'clang 22'
+            llvm: '22'
+            cxx: 'clang++-22'
+            cc: 'clang-22'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
             options: '--stdlib=libstdc++'
@@ -41,11 +58,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install LLVM 23
+      - name: Install LLVM ${{ matrix.llvm }}
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x ./llvm.sh
-          sudo ./llvm.sh 23
+          sudo ./llvm.sh ${{ matrix.llvm }}
 
       - name: Install dependencies
         run: |
@@ -133,7 +150,7 @@ jobs:
             -DCMAKE_C_COMPILER=clang-23 \
             -DCMAKE_CXX_COMPILER=clang++-23 \
             -DLLVM_USE_SANITIZER=MemoryWithOrigins \
-            -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
+            -DLIBCXXABI_USE_LLVM_UNWINDER=OFF `#fixes the crash` \
             -DLLVM_ENABLE_PIC=ON \
             -DLIBCXX_INCLUDE_TESTS=OFF \
             -DLIBCXXABI_INCLUDE_TESTS=OFF \
