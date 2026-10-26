@@ -520,10 +520,18 @@ bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::option
 //' sete al
 //' and al, cl
 //' ret
-//'@if $linux & $clang[..21]
+//'@if $linux & $clang[20..21]
 //' mov rcx, rdi
 //' shr rcx, 32
 //' cmp esi, edi
+//' sete al
+//' and al, cl
+//' ret
+//'@if $linux & $clang[..20]
+//' mov rcx, rdi
+//' shr rcx, 32
+//' and ecx, 1
+//' cmp edi, esi
 //' sete al
 //' and al, cl
 //' ret
@@ -567,10 +575,17 @@ bool option_int32_equal_with_value(opt::option<int32_t> a, int32_t b) {
 //' sete al
 //' and al, dil
 //' ret
-//'@if $linux & $clang[..22]
+//'@if $linux & $clang[20..22]
 //' mov rcx, rdi
 //' shr rcx, 32
 //' cmp esi, edi
+//' sete al
+//' and al, cl
+//' ret
+//'@if $linux & $clang[..20]
+//' mov rcx, rdi
+//' shr rcx, 32
+//' cmp edi, esi
 //' sete al
 //' and al, cl
 //' ret
