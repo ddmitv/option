@@ -12,8 +12,9 @@ jobs:
       VERBOSE: 1
       CXX: ${{matrix.cxx}}
       CC: ${{matrix.cc}}
-      ASAN_OPTIONS: 'detect_invalid_pointer_pairs=2:strict_string_checks=true:detect_odr_violation=2:detect_stack_use_after_return=true:check_initialization_order=true:strict_init_order=true:${{matrix.asan_options}}'
-      UBSAN_OPTIONS: 'print_stacktrace=1:silence_unsigned_overflow=1'
+      # detect_invalid_pointer_pairs=2 produces false positives related to std::less
+      ASAN_OPTIONS: 'detect_leaks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_string_checks=1:detect_container_overflow=1:detect_invalid_pointer_pairs=1:halt_on_error=1:abort_on_error=1:strict_init_order=1:handle_ioctl=1:print_cmdline=1:disable_coredump=0:use_madv_dontdump=1'
+      UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1:print_summary=1'
 
     strategy:
       fail-fast: false
@@ -25,12 +26,10 @@ jobs:
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
             options: '--stdlib=libstdc++'
-            sanitizer_x64_options: >-
-              -fsanitize=undefined,object-size
             sanitizer_options: >-
-              -fsanitize=address,vptr,alignment,bool,builtin,bounds,enum,float-cast-overflow,float-divide-by-zero,function,integer-divide-by-zero,null,pointer-overflow,return,returns-nonnull-attribute,shift,shift-base,shift-exponent,unreachable
+              -fno-omit-frame-pointer -fno-optimize-sibling-calls
+              -fsanitize=address,leak,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr -fsanitize-address-use-after-return=runtime
               -fno-sanitize-recover=all
-              -ffp-exception-behavior=maytrap
 
     steps:
       - &checkout_step
