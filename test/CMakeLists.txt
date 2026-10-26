@@ -69,6 +69,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEN
         -Wno-lifetime-safety-invalidation
         -Wno-unsafe-buffer-usage
         -Wno-unsafe-buffer-usage-in-libc-call
+        -Wno-unknown-sanitizers
     )
 
     target_compile_options(option-header-test PRIVATE -Weverything -Werror)

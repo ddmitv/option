@@ -95,6 +95,7 @@
     OPTION_CLANG_SUPPRESS_WARNING("-Wlifetime-safety-lifetimebound-violation") \
     OPTION_CLANG_SUPPRESS_WARNING("-Wunsafe-buffer-usage-in-libc-call") \
     OPTION_CLANG_SUPPRESS_WARNING("-Wunsafe-buffer-usage") \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wunknown-sanitizers") \
     OPTION_GCC_SUPPRESS_WARNING_PUSH \
     OPTION_GCC_SUPPRESS_WARNING("-Wshadow")
 
