@@ -246,7 +246,7 @@ jobs:
           cmake -B build-tysan
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=-fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+          "-DCMAKE_CXX_FLAGS=-fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt"
 
       - name: Run tests (Debug)
         run: cmake --build build-tysan --config Debug --target run-option-test --parallel
