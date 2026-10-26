@@ -272,7 +272,51 @@ def parse_target_asm(file: TextIO) -> dict[SourceLine, list[SourceLine]]:
 
     return parsed_functions
 
+def parse_version_str(version_str: str) -> Version:
+    if not version_str:
+        sys.exit('Empty version in version constraint')
+    parts = version_str.split('.')
+    if len(parts) > 4:
+        sys.exit(f'Too many version components in "{version_str}" (max 4)')
+    result: list[int] = []
+    for part in parts:
+        if not part.isdigit():
+            sys.exit(f'Invalid version component "{part}" in "{version_str}"')
+        result.append(int(part))
+    while len(result) < 4:
+        result.append(0)
+    return (result[0], result[1], result[2], result[3])
+
 def check_version_constraint(version: Version, constraint_str: str) -> bool:
+    constraint_str = constraint_str.strip()
+    if not constraint_str:
+        sys.exit('Empty version constraint')
+
+    if '..' in constraint_str:
+        start_str, _, end_str = constraint_str.partition('..')
+        inclusive_end = end_str.startswith('=')
+        if inclusive_end:
+            end_str = end_str[1:]
+        start_str = start_str.strip()
+        end_str = end_str.strip()
+
+        if not start_str and not end_str:
+            sys.exit(f'Invalid version range: "{constraint_str}"')
+
+        if start_str:
+            if version < parse_version_str(start_str):
+                return False
+        if end_str:
+            end = parse_version_str(end_str)
+            if inclusive_end:
+                if version > end:
+                    return False
+            else:
+                if version >= end:
+                    return False
+        return True
+    
+    # legacy
     if constraint_str[:2] in ('==', '>=', '<='):
         operator = constraint_str[:2]
         version_part = constraint_str[2:]
@@ -282,7 +326,7 @@ def check_version_constraint(version: Version, constraint_str: str) -> bool:
     else:
         operator = '=='
         version_part = constraint_str
-    
+
     for actual, expected_str in itertools.zip_longest(version, version_part.split('.'), fillvalue='0'):
         if expected_str == '*':
             break
@@ -303,7 +347,6 @@ def check_version_constraint(version: Version, constraint_str: str) -> bool:
             if actual < expected: return True
             if actual > expected: return False
     return operator in ('==', '>=', '<=')
-
 
 def eval_expr(lexer: Lexer, symbols: dict[str, Symbol], *, min_bp: int = 0) -> bool:
     # uses Pratt parsing

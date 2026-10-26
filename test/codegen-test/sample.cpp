@@ -1470,7 +1470,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 }
 
 //'[std_optional_int64x2_swap]
-//'@if $linux & $clang[>=23]
+//'@if $linux & $clang[23..]
 //' movzx eax, [rsi + 16]
 //' cmp byte ptr [rdi + 16], 1
 //' jne .L0
@@ -1496,7 +1496,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 1
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $clang[<23]
+//'@if $linux & $clang[..23]
 //' movzx eax, [rsi + 16]
 //' cmp byte ptr [rdi + 16], 1
 //' jne .L0
