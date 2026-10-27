@@ -8,8 +8,9 @@ OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat")
 OPTION_CLANG_SUPPRESS_WARNING("-Wc++98-compat-pedantic")
 OPTION_CLANG_SUPPRESS_WARNING("-Wpre-c++20-compat")
 
+// clang versions <= 18 had weaker -Wconsumed analysis and they are producing false positives.
 #if OPTION_CLANG
-    #if __clang_major__ == 18
+    #if __clang_major__ <= 18
         OPTION_CLANG_SUPPRESS_WARNING("-Wconsumed")
     #endif
 #endif
