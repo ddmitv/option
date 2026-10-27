@@ -148,6 +148,25 @@ jobs:
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
 
+          - name: 'clang 15'
+            llvm: '15'
+            cxx: 'clang++-15'
+            cc: 'clang-15'
+            # apt.llvm.org no longer publishes LLVM 15, so llvm.sh cannot install it.
+            # Use the distribution package instead, and install the i386 runtime
+            # explicitly for the -m32 sanitizer builds.
+            packages: 'g++-multilib'
+            os: 'ubuntu-22.04'
+            options: '--stdlib=libstdc++'
+            sanitizer_options: >-
+              -fno-omit-frame-pointer -fno-optimize-sibling-calls
+              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fno-sanitize-recover=all
+              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            debug_asan_options: ':detect_invalid_pointer_pairs=2'
+
     steps:
       - &checkout_step
         name: Checkout
