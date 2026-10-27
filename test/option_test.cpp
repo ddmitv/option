@@ -240,7 +240,8 @@ void test_generic_const_opt_option(const std::remove_cv_t<T>& first_value, [[may
             check((o3 >= o2) == (second_value >= first_value));
             check(o3 >= o3);
         }
-        { // operator<=>(const option<T1>&, const option<T2>&)
+        // operator<=>(const option<T1>&, const option<T2>&)
+        if constexpr (std::three_way_comparable_with<T, T>) {
             check((o1 <=> o1) == std::strong_ordering::equal);
             check((o1 <=> o2) == std::strong_ordering::less);
             check((o1 <=> o3) == std::strong_ordering::less);
@@ -357,7 +358,8 @@ void test_generic_const_opt_option(const std::remove_cv_t<T>& first_value, [[may
             check((second_value >= o2) == (second_value >= first_value));
             check(second_value >= o3);
         }
-        { // operator<=>(const option<T1>&, const T2&)
+        // operator<=>(const option<T1>&, const T2&)
+        if constexpr (std::three_way_comparable_with<T, std::remove_cv_t<T>>) {
             check((o1 <=> first_value) == std::strong_ordering::less);
             check((o2 <=> first_value) == std::strong_ordering::equal);
             check((o3 <=> first_value) == (second_value <=> first_value));
