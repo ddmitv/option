@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <concepts>
 #include <optional>
-#include <vector>
 #include <ranges>
+#include <array>
 
 #include <tests.hpp>
 
@@ -32,7 +32,7 @@ constexpr bool test() {
     check_meta(opt::none <=> opt::none, std::strong_ordering, std::strong_ordering::equal, noexcept);
 
     { // test std::ranges::find with none
-        std::vector<opt::option<int>> vec = {1, 2, opt::none, 4, 5};
+        std::array<opt::option<int>, 5> vec = {1, 2, opt::none, 4, 5};
 
         auto it = std::ranges::find(vec, opt::none);
         check(it != vec.end());
