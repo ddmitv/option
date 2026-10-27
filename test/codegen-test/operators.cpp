@@ -16,7 +16,7 @@
 //' or al, dil
 //' and al, dl
 //' ret
-//'@if $linux & $clang[..22]
+//'@if $linux & $clang[19..22]
 //' mov ecx, edi
 //' shr ecx, 16
 //' mov eax, esi
@@ -24,6 +24,18 @@
 //' cmp cl, al
 //' sete dl
 //' xor cl, 1
+//' cmp di, si
+//' sete al
+//' or al, cl
+//' and al, dl
+//' ret
+//'@if $linux & $clang[..19]
+//' test edi, 16711680
+//' sete cl
+//' setne al
+//' test esi, 16711680
+//' sete dl
+//' xor dl, al
 //' cmp di, si
 //' sete al
 //' or al, cl
@@ -101,7 +113,7 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cmovae ecx, eax
 //' and al, cl
 //' ret
-//'@if $linux & $clang[..23]
+//'@if $linux & $clang[19..23]
 //' mov ecx, edi
 //' shr ecx, 16
 //' mov eax, esi
@@ -111,6 +123,22 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' and cl, al
 //' cmp cl, 1
 //' jne .L0
+//' cmp di, si
+//' sete al
+//' .L0:
+//' ret
+//'@if $linux & $clang[..19]
+//' test edi, 16711680
+//' setne dl
+//' mov ecx, esi
+//' and ecx, 16711680
+//' setne al
+//' xor al, dl
+//' xor al, 1
+//' test edi, 16711680
+//' je .L0
+//' test ecx, ecx
+//' je .L0
 //' cmp di, si
 //' sete al
 //' .L0:
@@ -196,7 +224,7 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' or al, dil
 //' and al, dl
 //' ret
-//'@if $linux & $clang[..22]
+//'@if $linux & $clang[19..22]
 //' mov rcx, rdi
 //' shr rcx, 32
 //' mov rax, rsi
@@ -208,6 +236,19 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' sete al
 //' or al, cl
 //' and al, dl
+//' ret
+//'@if $linux & $clang[..19]
+//' mov rax, 1095216660480
+//' test rdi, rax
+//' sete cl
+//' setne dl
+//' test rsi, rax
+//' sete r8b
+//' xor r8b, dl
+//' cmp edi, esi
+//' sete al
+//' or al, cl
+//' and al, r8b
 //' ret
 //'@if $windows & $clang
 //' mov eax, ecx
@@ -281,7 +322,7 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' cmovae ecx, eax
 //' and al, cl
 //' ret
-//'@if $linux & $clang[..23]
+//'@if $linux & $clang[19..23]
 //' mov rcx, rdi
 //' shr rcx, 32
 //' mov rax, rsi
@@ -291,6 +332,23 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' and cl, al
 //' cmp cl, 1
 //' jne .L0
+//' cmp edi, esi
+//' sete al
+//' .L0:
+//' ret
+//'@if $linux & $clang[..19]
+//' mov rdx, 1095216660480
+//' test rdi, rdx
+//' setne r8b
+//' mov rcx, rsi
+//' and rcx, rdx
+//' setne al
+//' xor al, r8b
+//' xor al, 1
+//' test rdi, rdx
+//' je .L0
+//' test rcx, rcx
+//' je .L0
 //' cmp edi, esi
 //' sete al
 //' .L0:
@@ -364,11 +422,24 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 }
 
 //'[opt_option_int64_equal]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' movzx ecx, [rdi + 8]
 //' cmp cl, [rsi + 8]
 //' sete dl
 //' xor cl, 1
+//' mov rax, [rdi]
+//' cmp rax, [rsi]
+//' sete al
+//' or al, cl
+//' and al, dl
+//' ret
+//'@if $linux & $clang[..19]
+//' cmp byte ptr [rdi + 8], 0
+//' sete cl
+//' setne al
+//' cmp byte ptr [rsi + 8], 0
+//' sete dl
+//' xor dl, al
 //' mov rax, [rdi]
 //' cmp rax, [rsi]
 //' sete al
@@ -430,13 +501,31 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' cmove edi, eax
 //' and al, dil
 //' ret
-//'@if $linux & $clang[..23]
+//'@if $linux & $clang[19..23]
 //' movzx ecx, [rdi + 8]
 //' cmp cl, [rsi + 8]
 //' sete al
 //' and cl, al
 //' cmp cl, 1
 //' jne .L0
+//' mov rax, [rdi]
+//' cmp rax, [rsi]
+//' sete al
+//' .L0:
+//' ret
+//'@if $linux & $clang[..19]
+//' movzx edx, [rdi + 8]
+//' test dl, dl
+//' setne r8b
+//' movzx ecx, [rsi + 8]
+//' test cl, cl
+//' setne al
+//' xor al, r8b
+//' xor al, 1
+//' test dl, dl
+//' je .L0
+//' test cl, cl
+//' je .L0
 //' mov rax, [rdi]
 //' cmp rax, [rsi]
 //' sete al
@@ -527,10 +616,19 @@ bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::option
 //' sete al
 //' and al, cl
 //' ret
-//'@if $linux & $clang[..20]
+//'@if $linux & $clang[19..20]
 //' mov rcx, rdi
 //' shr rcx, 32
 //' and ecx, 1
+//' cmp edi, esi
+//' sete al
+//' and al, cl
+//' ret
+//'@if $linux & $clang[..19]
+//' mov rax, rdi
+//' shr rax, 32
+//' test al, al
+//' setne cl
 //' cmp edi, esi
 //' sete al
 //' and al, cl
@@ -582,9 +680,18 @@ bool option_int32_equal_with_value(opt::option<int32_t> a, int32_t b) {
 //' sete al
 //' and al, cl
 //' ret
-//'@if $linux & $clang[..20]
+//'@if $linux & $clang[19..20]
 //' mov rcx, rdi
 //' shr rcx, 32
+//' cmp edi, esi
+//' sete al
+//' and al, cl
+//' ret
+//'@if $linux & $clang[..19]
+//' mov rax, rdi
+//' shr rax, 32
+//' test al, al
+//' setne cl
 //' cmp edi, esi
 //' sete al
 //' and al, cl
@@ -629,10 +736,17 @@ bool std_optional_int32_equal_with_value(std::optional<int32_t> a, int32_t b) {
 }
 
 //'[option_int64_equal_with_value]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' cmp [rdi], rsi
 //' sete al
 //' and al, [rdi + 8]
+//' ret
+//'@if $linux & $clang[..19]
+//' cmp byte ptr [rdi + 8], 0
+//' setne cl
+//' cmp [rdi], rsi
+//' sete al
+//' and al, cl
 //' ret
 //'@if $windows & ($clang | $clang-cl | $gcc | $msvc)
 //' cmp [rcx], rdx
@@ -644,10 +758,17 @@ bool option_int64_equal_with_value(const opt::option<int64_t>& a, int64_t b) {
 }
 
 //'[std_optional_int64_equal_with_value]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' cmp [rdi], rsi
 //' sete al
 //' and al, [rdi + 8]
+//' ret
+//'@if $linux & $clang[..19]
+//' cmp byte ptr [rdi + 8], 0
+//' setne cl
+//' cmp [rdi], rsi
+//' sete al
+//' and al, cl
 //' ret
 //'@if $windows & ($clang | $clang-cl)
 //' cmp [rcx], rdx
@@ -686,7 +807,7 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 //' or al, cl
 //' and al, sil
 //' ret
-//'@if $linux & $clang[..23]
+//'@if $linux & $clang[19..23]
 //' test esi, 65536
 //' jne .L0
 //' xor eax, eax
@@ -697,6 +818,18 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 //' cmp di, si
 //' setl al
 //' or al, cl
+//' ret
+//'@if $linux & $clang[..19]
+//' test esi, 16711680
+//' je .L0
+//' test edi, 16711680
+//' sete cl
+//' cmp di, si
+//' setl al
+//' or al, cl
+//' ret
+//' .L0:
+//' xor eax, eax
 //' ret
 //'@if $windows & $clang
 //' test edx, 65536
@@ -774,7 +907,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' sete al
 //' and al, sil
 //' ret
-//'@if $linux & $clang[..21]
+//'@if $linux & $clang[19..21]
 //' mov eax, esi
 //' and eax, edi
 //' shr eax, 16
@@ -790,6 +923,22 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' test edi, 65536
 //' sete al
 //' and al, sil
+//' ret
+//'@if $linux & $clang[..19]
+//' test edi, 16711680
+//' je .L0
+//' mov eax, esi
+//' and eax, 16711680
+//' je .L0
+//' cmp di, si
+//' setl al
+//' ret
+//' .L0:
+//' test esi, 16711680
+//' setne cl
+//' test edi, 16711680
+//' sete al
+//' and al, cl
 //' ret
 //'@if $windows & $clang
 //' test edx, 65536
@@ -863,7 +1012,7 @@ bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b)
 //' or al, cl
 //' and al, sil
 //' ret
-//'@if $linux & $clang[..23]
+//'@if $linux & $clang[19..23]
 //' bt rsi, 32
 //' jb .L0
 //' xor eax, eax
@@ -875,6 +1024,19 @@ bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b)
 //' cmp edi, esi
 //' setl al
 //' or al, cl
+//' ret
+//'@if $linux & $clang[..19]
+//' mov rax, 1095216660480
+//' test rsi, rax
+//' je .L0
+//' test rdi, rax
+//' sete cl
+//' cmp edi, esi
+//' setl al
+//' or al, cl
+//' ret
+//' .L0:
+//' xor eax, eax
 //' ret
 //'@if $windows & $clang
 //' bt rdx, 32
@@ -938,7 +1100,7 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 }
 
 //'[std_optional_int32_less]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' mov rax, rsi
 //' and rax, rdi
 //' shr rax, 32
@@ -950,6 +1112,23 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' ret
 //' .L0:
 //' mov rax, 4294967296
+//' test rsi, rax
+//' setne cl
+//' test rdi, rax
+//' sete al
+//' and al, cl
+//' ret
+//'@if $linux & $clang[..19]
+//' mov rax, 1095216660480
+//' test rdi, rax
+//' je .L0
+//' mov rcx, rsi
+//' and rcx, rax
+//' je .L0
+//' cmp edi, esi
+//' setl al
+//' ret
+//' .L0:
 //' test rsi, rax
 //' setne cl
 //' test rdi, rax

@@ -482,11 +482,20 @@ void option_int64_assign_from_value(opt::option<int64_t>& a) {
 }
 
 //'[std_optional_int64_assign_from_value]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' cmp byte ptr [rdi + 8], 0
 //' jne .L0
 //' mov byte ptr [rdi + 8], 1
 //' .L0:
+//' mov qword ptr [rdi], 10
+//' ret
+//'@if $linux & $clang[..19]
+//' cmp byte ptr [rdi + 8], 0
+//' je .L0
+//' mov qword ptr [rdi], 10
+//' ret
+//' .L0:
+//' mov byte ptr [rdi + 8], 1
 //' mov qword ptr [rdi], 10
 //' ret
 //'@if $windows & ($clang | $gcc | $clang-cl)
@@ -913,9 +922,18 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 }
 
 //'[std_optional_int32_to_uint32_ctor]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' mov rax, 8589934591
 //' and rax, rdi
+//' ret
+//'@if $linux & $clang[..19]
+//' mov eax, edi
+//' shr rdi, 32
+//' xor ecx, ecx
+//' test dil, dil
+//' setne cl
+//' shl rcx, 32
+//' or rax, rcx
 //' ret
 //'@if $windows & $clang
 //' mov rdx, 4294967296
@@ -1124,10 +1142,35 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 }
 
 //'[std_optional_int32_swap]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' movzx ecx, [rsi + 4]
 //' cmp byte ptr [rdi + 4], 1
 //' jne .L0
+//' mov eax, [rdi]
+//' test cl, cl
+//' je .L1
+//' mov ecx, [rsi]
+//' mov [rdi], ecx
+//' mov [rsi], eax
+//' ret
+//' .L0:
+//' test cl, cl
+//' je .L2
+//' mov eax, [rsi]
+//' mov [rdi], eax
+//' mov byte ptr [rdi + 4], 1
+//' mov byte ptr [rsi + 4], 0
+//' .L2:
+//' ret
+//' .L1:
+//' mov [rsi], eax
+//' mov byte ptr [rsi + 4], 1
+//' mov byte ptr [rdi + 4], 0
+//' ret
+//'@if $linux & $clang[..19]
+//' cmp byte ptr [rdi + 4], 0
+//' movzx ecx, [rsi + 4]
+//' je .L0
 //' mov eax, [rdi]
 //' test cl, cl
 //' je .L1
@@ -1276,10 +1319,35 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 }
 
 //'[std_optional_int64_swap]
-//'@if $linux & $clang
+//'@if $linux & $clang[19..]
 //' movzx ecx, [rsi + 8]
 //' cmp byte ptr [rdi + 8], 1
 //' jne .L0
+//' mov rax, [rdi]
+//' test cl, cl
+//' je .L1
+//' mov rcx, [rsi]
+//' mov [rdi], rcx
+//' mov [rsi], rax
+//' ret
+//' .L0:
+//' test cl, cl
+//' je .L2
+//' mov rax, [rsi]
+//' mov [rdi], rax
+//' mov byte ptr [rdi + 8], 1
+//' mov byte ptr [rsi + 8], 0
+//' .L2:
+//' ret
+//' .L1:
+//' mov [rsi], rax
+//' mov byte ptr [rsi + 8], 1
+//' mov byte ptr [rdi + 8], 0
+//' ret
+//'@if $linux & $clang[..19]
+//' cmp byte ptr [rdi + 8], 0
+//' movzx ecx, [rsi + 8]
+//' je .L0
 //' mov rax, [rdi]
 //' test cl, cl
 //' je .L1
@@ -1496,10 +1564,38 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 1
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $clang[..23]
+//'@if $linux & $clang[19..23]
 //' movzx eax, [rsi + 16]
 //' cmp byte ptr [rdi + 16], 1
 //' jne .L0
+//' test al, al
+//' je .L1
+//' movups xmm0, [rdi]
+//' movaps [rsp - 24], xmm0
+//' movups xmm0, [rsi]
+//' movups [rdi], xmm0
+//' movaps xmm0, [rsp - 24]
+//' movups [rsi], xmm0
+//' ret
+//' .L0:
+//' test al, al
+//' je .L2
+//' movups xmm0, [rsi]
+//' movups [rdi], xmm0
+//' mov byte ptr [rdi + 16], 1
+//' mov byte ptr [rsi + 16], 0
+//' .L2:
+//' ret
+//' .L1:
+//' movups xmm0, [rdi]
+//' movups [rsi], xmm0
+//' mov byte ptr [rsi + 16], 1
+//' mov byte ptr [rdi + 16], 0
+//' ret
+//'@if $linux & $clang[..19]
+//' cmp byte ptr [rdi + 16], 0
+//' movzx eax, [rsi + 16]
+//' je .L0
 //' test al, al
 //' je .L1
 //' movups xmm0, [rdi]
