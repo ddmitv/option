@@ -119,7 +119,8 @@ jobs:
             llvm: '17'
             cxx: 'clang++-17'
             cc: 'clang-17'
-            packages: 'g++-multilib'
+            # i386 compiler-rt is required for -m32 AddressSanitizer; the amd64 package does not ship libclang_rt.asan-i386.a
+            packages: 'g++-multilib libclang-rt-17-dev libclang-rt-17-dev:i386'
             os: 'ubuntu-latest'
             options: '--stdlib=libstdc++'
             sanitizer_options: >-
