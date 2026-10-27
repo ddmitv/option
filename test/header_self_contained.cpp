@@ -27,7 +27,10 @@ void test_comparisons() {
     (void)(o <= o2);
     (void)(o >  o2);
     (void)(o >= o2);
-    (void)(o <=> o2);
+    // libc++ 15 doesn't have operator<=> for std::string and std::vector
+    if constexpr (std::three_way_comparable_with<T, T>) {
+        (void)(o <=> o2);
+    }
 }
 
 template<typename T>
