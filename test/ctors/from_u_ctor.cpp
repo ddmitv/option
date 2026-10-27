@@ -38,7 +38,7 @@ struct explicit_no_throw {
 
 template<typename T>
 [[maybe_unused]] T prvalue() noexcept {
-    static_assert(false);
+    static_assert(sizeof(T) == 0, "prvalue() should never be instantiated");
 }
 
 // https://github.com/llvm/llvm-project/blob/main/libcxx/test/support/test_convertible.h
