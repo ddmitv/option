@@ -193,7 +193,7 @@ REMOVE_DIRECTIVES: set[str] = {
     '.cfi_startproc', '.cfi_endproc', '.size', '.ident', '.section', '.p2align', '.globl', '.type', '.addrsig',
     '.def', '.scl', '.endef', '.ascii', '.seh_proc', '.loc', '.seh_stackalloc', '.seh_endprologue', '.seh_startepilogue',
     '.seh_endepilogue', '.seh_endproc', '.seh_pushreg', '.file', '.asciz', '.short', '.long', '.byte',
-    '.linkonce', '.align',
+    '.linkonce', '.align', '.cfi_def_cfa_offset'
 }
 
 def normalize_asm(insts: list[str]) -> list[str]:

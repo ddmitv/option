@@ -380,8 +380,14 @@ void option_uint64_reset(opt::option<uint64_t>& a) {
 }
 
 //'[std_optional_uint64_reset]
-//'@if $linux & $clang
+//'@if $linux & $clang[17..]
 //' mov byte ptr [rdi + 8], 0
+//' ret
+//'@if $linux & $clang[..17]
+//' cmp byte ptr [rdi + 8], 0
+//' je .L0
+//' mov byte ptr [rdi + 8], 0
+//' .L0:
 //' ret
 //'@if $windows & $clang
 //' cmp byte ptr [rcx + 8], 1
@@ -408,8 +414,14 @@ void option_int64x2_reset(opt::option<int64x2>& a) {
 }
 
 //'[std_optional_int64x2_reset]
-//'@if $linux & $clang
+//'@if $linux & $clang[17..]
 //' mov byte ptr [rdi + 16], 0
+//' ret
+//'@if $linux & $clang[..17]
+//' cmp byte ptr [rdi + 16], 0
+//' je .L0
+//' mov byte ptr [rdi + 16], 0
+//' .L0:
 //' ret
 //'@if $windows & $clang
 //' cmp byte ptr [rcx + 16], 1
@@ -1919,14 +1931,22 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 }
 
 //'[opt_option_int32_value]
-//'@if $linux & $clang
+//'@if $linux & $clang[17..]
 //' cmp byte ptr [rdi + 4], 0
 //' je .L0
 //' mov eax, [rdi]
 //' ret
 //' .L0:
 //' push rax
-//' .cfi_def_cfa_offset 16
+//' call _ZN3opt4impl16throw_bad_optionEv
+//'@if $linux & $clang[..17]
+//' push rax
+//' cmp byte ptr [rdi + 4], 0
+//' je .L0
+//' mov eax, [rdi]
+//' pop rcx
+//' ret
+//' .L0:
 //' call _ZN3opt4impl16throw_bad_optionEv
 //'@if $windows & $clang
 //' sub rsp, 40
