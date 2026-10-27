@@ -14,6 +14,7 @@ jobs:
       CC: ${{matrix.cc}}
       UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1:print_summary=1'
       TYSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1'
+      MSAN_OPTIONS: 'abort_on_error=1:poison_in_dtor=1'
 
     strategy:
       fail-fast: false
@@ -35,6 +36,7 @@ jobs:
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2' # only in debug since in release code gets inlined and -fsanitize-ignorelist doesnt work reliably anymore
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 22'
             llvm: '22'
@@ -52,6 +54,7 @@ jobs:
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 21'
             llvm: '21'
@@ -69,6 +72,7 @@ jobs:
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 20'
             llvm: '20'
@@ -87,6 +91,7 @@ jobs:
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             # TypeSanitizer only since clang 20
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 19'
             llvm: '19'
@@ -103,6 +108,7 @@ jobs:
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 18'
             llvm: '18'
@@ -119,6 +125,7 @@ jobs:
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 17'
             llvm: '17'
@@ -136,6 +143,7 @@ jobs:
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 16'
             llvm: '16'
@@ -152,6 +160,7 @@ jobs:
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
           - name: 'clang 15'
             llvm: '15'
@@ -171,6 +180,7 @@ jobs:
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
             asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
     steps:
       - &checkout_step
@@ -256,46 +266,27 @@ jobs:
         env:
           ASAN_OPTIONS: ${{ matrix.asan_options }}
         run: cmake --build build-x32 --config Release --target run-option-test --parallel
-  msan:
-    name: 'Linux clang 23 (msan)'
-    runs-on: ubuntu-latest
 
-    env:
-      CMAKE_GENERATOR: 'Ninja Multi-Config'
-      VERBOSE: 1
-      CXX: clang++-23
-      CC: clang-23
-      MSAN_OPTIONS: 'abort_on_error=1:poison_in_dtor=1'
-
-    steps:
-      - *checkout_step
-
-      - name: Install LLVM 23
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x ./llvm.sh
-          sudo ./llvm.sh 23
-
-      - name: Resolve libc++ source revision
+      - name: Resolve libc++ source revision (LLVM ${{ matrix.llvm }})
         id: llvm_ref
-        run: echo "sha=$(git ls-remote https://github.com/llvm/llvm-project.git refs/heads/release/23.x | cut -f1)" >> "$GITHUB_OUTPUT"
+        run: echo "sha=$(git ls-remote https://github.com/llvm/llvm-project.git refs/heads/release/${{ matrix.llvm }}.x | cut -f1)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache MSan-instrumented libc++
+      - name: Cache MemorySanitizer-instrumented libc++
         id: msan_libcxx
         uses: actions/cache@v6.1.0
         with:
           path: msan-prefix
-          key: libcxx-msan-23-x86_64-${{ steps.llvm_ref.outputs.sha }}
+          key: libcxx-msan-${{ matrix.llvm }}-x86_64-${{ steps.llvm_ref.outputs.sha }}
 
-      - name: Build MSan-instrumented libc++
+      - name: Build MemorySanitizer-instrumented libc++
         if: steps.msan_libcxx.outputs.cache-hit != 'true'
         run: |
-          git clone --depth 1 --branch release/23.x https://github.com/llvm/llvm-project.git
+          git clone --depth 1 --branch release/${{ matrix.llvm }}.x https://github.com/llvm/llvm-project.git
           cmake -B libcxx-msan -S llvm-project/runtimes -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
-            -DCMAKE_C_COMPILER=clang-23 \
-            -DCMAKE_CXX_COMPILER=clang++-23 \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
             -DLLVM_USE_SANITIZER=MemoryWithOrigins \
             -DLIBCXXABI_USE_LLVM_UNWINDER=OFF `#fixes the crash` \
             -DLLVM_ENABLE_PIC=ON \
@@ -306,16 +297,16 @@ jobs:
           cmake --build libcxx-msan --parallel
           cmake --install libcxx-msan
 
-      - name: Configure CMake (msan)
+      - name: Configure CMake (MemorySanitizer)
         run: >-
           cmake -B build-msan
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -nostdinc++ -isystem $GITHUB_WORKSPACE/msan-prefix/include/c++/v1"
+          "-DCMAKE_CXX_FLAGS=${{ matrix.msan_options }} -nostdinc++ -isystem $GITHUB_WORKSPACE/msan-prefix/include/c++/v1"
           "-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -L$GITHUB_WORKSPACE/msan-prefix/lib -Wl,-rpath,$GITHUB_WORKSPACE/msan-prefix/lib -lc++abi"
 
-      - name: Run tests (Debug)
+      - name: Run tests (MemorySanitizer, Debug)
         run: cmake --build build-msan --config Debug --target run-option-test --parallel
 
-      - name: Run tests (Release)
+      - name: Run tests (MemorySanitizer, Release)
         run: cmake --build build-msan --config Release --target run-option-test --parallel
