@@ -12,7 +12,6 @@ jobs:
       VERBOSE: 1
       CXX: ${{matrix.cxx}}
       CC: ${{matrix.cc}}
-      ASAN_OPTIONS: ${{ matrix.asan_options }}
       UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1:print_summary=1'
 
     strategy:
@@ -188,7 +187,7 @@ jobs:
 
       - name: Configure CMake (sanitized)
         run: >-
-          cmake -B build
+          cmake -B build-sanitizers
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
           "-DCMAKE_CXX_FLAGS=${{matrix.options}} ${{matrix.sanitizer_options}}"
@@ -196,20 +195,28 @@ jobs:
       - name: Run tests (Debug)
         env:
           ASAN_OPTIONS: ${{ matrix.asan_options }}${{ matrix.debug_asan_options }}
-        run: cmake --build build --config Debug --target run-option-test --parallel
+        run: cmake --build build-sanitizers --config Debug --target run-option-test --parallel
 
       - name: Run tests (Release)
-        run: cmake --build build --config Release --target run-option-test --parallel
+        env:
+          ASAN_OPTIONS: ${{ matrix.asan_options }}
+        run: cmake --build build-sanitizers --config Release --target run-option-test --parallel
 
-      - name: Configure CMake (codegen, no sanitizers)
+      - name: Configure CMake (no sanitizers)
         run: >-
-          cmake -B build-codegen
+          cmake -B build-standard
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
           "-DCMAKE_CXX_FLAGS=${{matrix.options}}"
 
+      - name: Run tests (Debug)
+        run: cmake --build build-sanitizers --config Debug --target run-option-test --parallel
+
+      - name: Run tests (Release)
+        run: cmake --build build-sanitizers --config Release --target run-option-test --parallel
+
       - name: Run codegen tests
-        run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
+        run: cmake --build build-standard --config Release --target run-option-codegen-test --parallel
 
       - name: Configure CMake (x32, sanitized)
         run: >-
@@ -224,6 +231,8 @@ jobs:
         run: cmake --build build-x32 --config Debug --target run-option-test --parallel
 
       - name: Run tests (Release x32)
+        env:
+          ASAN_OPTIONS: ${{ matrix.asan_options }}
         run: cmake --build build-x32 --config Release --target run-option-test --parallel
   msan:
     name: 'Linux clang 23 (msan)'
