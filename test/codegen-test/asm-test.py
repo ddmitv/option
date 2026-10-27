@@ -216,7 +216,7 @@ def normalize_asm(insts: list[str]) -> list[str]:
             new_inst = re.sub(r'(BYTE|WORD|DWORD|QWORD|XMMWORD|YMMWORD|ZMMWORD) PTR', lambda m: m[0].lower(), new_inst)
         if cxx_compiler_id == CxxCompilerId.GCC:
             # 8[rdi + rdx*4] -> [rdi + rdx*4 + 8]
-            new_inst = re.sub(r'(-)?(\d+)\[(.+)\]', lambda m: f'[{m[3]} {m[1] or '+'} {m[2]}]', new_inst)
+            new_inst = re.sub(r'(-)?(\d+)\[(.+)\]', lambda m: f'[{m[3]} {m[1] or "+"} {m[2]}]', new_inst)
         if cxx_compiler_id in (CxxCompilerId.CLANG, CxxCompilerId.CLANG_CL):
             # [rdi + 4*rax + 8] -> [rdi + rax*4 + 8]
             new_inst = re.sub(r'(\d)\*([a-z0-9]+)', r'\2*\1', new_inst)
@@ -225,7 +225,7 @@ def normalize_asm(insts: list[str]) -> list[str]:
             new_inst = re.sub(r'^((?:call|jmp|j[a-z]{1,4})) "([^"]+)"$', r'\1 \2', new_inst)
         if cxx_compiler_id != CxxCompilerId.MSVC:
             # movabs rax, 12345 -> mov rax, 12345
-            new_inst = f'mov {new_inst[len('movabs '):]}' if new_inst.startswith('movabs ') else new_inst
+            new_inst = f'mov {new_inst[len("movabs "):]}' if new_inst.startswith('movabs ') else new_inst
         # movzx eax, byte ptr [rdi] -> movzx eax, [rdi]
         new_inst = re.sub(r'^([a-z]\w* [a-z]\w*), (?:byte|word|dword|qword|xmmword|ymmword|zmmword) ptr (\[.+\])$', r'\1, \2', new_inst, flags=re.IGNORECASE)
         # mov byte ptr [rdi], al -> mov [rdi], al
