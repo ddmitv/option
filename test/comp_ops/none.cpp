@@ -34,7 +34,11 @@ constexpr bool test() {
     { // test std::ranges::find with none
         std::array<opt::option<int>, 5> vec = {1, 2, opt::none, 4, 5};
 
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201911L
         auto it = std::ranges::find(vec, opt::none);
+#else // fallback for libc++ 15
+        auto it = std::find(vec.begin(), vec.end(), opt::none);
+#endif
         check(it != vec.end());
         check(*it == opt::none);
     }
