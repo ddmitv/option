@@ -10,6 +10,7 @@
 #include <memory>
 #include <cstring>
 #include <exception>
+#include <compare>
 
 #include "details/preprocessor.hpp"
 #include "details/asan.hpp"
