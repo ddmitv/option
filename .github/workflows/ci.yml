@@ -183,8 +183,10 @@ jobs:
             llvm: '14'
             cxx: 'clang++-14'
             cc: 'clang-14'
-            packages: 'g++-multilib libclang-rt-14-dev libclang-rt-14-dev:i386'
-            os: 'ubuntu-22.04'
+            # apt.llvm.org has no Ubuntu i386 packages, so use Ubuntu's LLVM 14 (24.04 ships libclang-rt-14-dev, its amd64 package already contains the :i386 x32-ABI package
+            skip_llvm_sh: true
+            packages: 'g++-multilib libclang-rt-14-dev clang-14 lldb-14 lld-14 clangd-14'
+            os: 'ubuntu-latest'
             options: '--stdlib=libstdc++'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
@@ -204,6 +206,7 @@ jobs:
           persist-credentials: false
 
       - name: Install LLVM ${{ matrix.llvm }}
+        if: matrix.skip_llvm_sh != true
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x ./llvm.sh
@@ -212,6 +215,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo dpkg --add-architecture i386
+          sudo dpkg --add-architecture x32
           sudo apt-get update
           sudo apt-get install ${{ matrix.packages }}
 
