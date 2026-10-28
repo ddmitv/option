@@ -183,7 +183,7 @@ jobs:
             llvm: '14'
             cxx: 'clang++-14'
             cc: 'clang-14'
-            packages: 'g++-multilib'
+            packages: 'g++-multilib libclang-rt-14-dev libclang-rt-14-dev:i386'
             os: 'ubuntu-22.04'
             options: '--stdlib=libstdc++'
             sanitizer_options: >-
@@ -240,10 +240,10 @@ jobs:
           "-DCMAKE_CXX_FLAGS=${{ matrix.options }}"
 
       - name: Run tests (unsanitized, Debug)
-        run: cmake --build build-sanitizers --config Debug --target run-option-test --parallel
+        run: cmake --build build-standard --config Debug --target run-option-test --parallel
 
       - name: Run tests (unsanitized, Release)
-        run: cmake --build build-sanitizers --config Release --target run-option-test --parallel
+        run: cmake --build build-standard --config Release --target run-option-test --parallel
 
       - name: Run codegen tests
         run: cmake --build build-standard --config Release --target run-option-codegen-test --parallel
