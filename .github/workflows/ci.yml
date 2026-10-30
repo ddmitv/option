@@ -26,7 +26,8 @@ jobs:
             cc: 'clang-23'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -44,7 +45,8 @@ jobs:
             cc: 'clang-22'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -62,7 +64,8 @@ jobs:
             cc: 'clang-21'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -80,7 +83,8 @@ jobs:
             cc: 'clang-20'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -99,7 +103,8 @@ jobs:
             cc: 'clang-19'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -116,7 +121,8 @@ jobs:
             cc: 'clang-18'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -134,7 +140,8 @@ jobs:
             # i386 compiler-rt is required for -m32 AddressSanitizer; the amd64 package does not ship libclang_rt.asan-i386.a
             packages: 'g++-multilib libclang-rt-17-dev libclang-rt-17-dev:i386'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -151,7 +158,8 @@ jobs:
             cc: 'clang-16'
             packages: 'g++-multilib'
             os: 'ubuntu-22.04' # LLVM 16 is no longer published for ubuntu-latest (24.04) on apt.llvm.org so we're using ubuntu-22.04 where the llvm.sh installation still works
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             # -fstrict-flex-arrays=3 is only since clang 16
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
@@ -169,7 +177,8 @@ jobs:
             cc: 'clang-15'
             packages: 'g++-multilib'
             os: 'ubuntu-22.04'
-            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            options: '--stdlib=libstdc++'
+            hardening_options: '-D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
               -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
@@ -203,7 +212,7 @@ jobs:
           cmake -B build-sanitizers
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.sanitizer_options }}"
+          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.hardening_options }} ${{ matrix.sanitizer_options }}"
 
       - name: Run tests (sanitized, Debug)
         env:
@@ -220,7 +229,7 @@ jobs:
           cmake -B build-standard
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.options }}"
+          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.hardening_options }}"
 
       - name: Run tests (unsanitized, Debug)
         run: cmake --build build-standard --config Debug --target run-option-test --parallel
@@ -228,8 +237,16 @@ jobs:
       - name: Run tests (unsanitized, Release)
         run: cmake --build build-standard --config Release --target run-option-test --parallel
 
+      - name: Configure CMake (codegen)
+        # no hardening_options: glibcxx assertion branches change generated assembly and fail codegen expectations
+        run: >-
+          cmake -B build-codegen
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=${{ matrix.options }}"
+
       - name: Run codegen tests
-        run: cmake --build build-standard --config Release --target run-option-codegen-test --parallel
+        run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
 
       - name: Configure CMake (TypeSanitizer)
         if: matrix.tysan_options
@@ -237,7 +254,7 @@ jobs:
           cmake -B build-tysan
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.tysan_options }}"
+          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.hardening_options }} ${{ matrix.tysan_options }}"
 
       - name: Run tests (TypeSanitizer, Debug)
         if: matrix.tysan_options
