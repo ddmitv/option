@@ -26,17 +26,17 @@ jobs:
             cc: 'clang-23'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2' # only in debug since in release code gets inlined and -fsanitize-ignorelist doesnt work reliably anymore
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
           - name: 'clang 22'
             llvm: '22'
@@ -44,17 +44,17 @@ jobs:
             cc: 'clang-22'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
           - name: 'clang 21'
             llvm: '21'
@@ -62,17 +62,17 @@ jobs:
             cc: 'clang-21'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
           - name: 'clang 20'
             llvm: '20'
@@ -80,18 +80,18 @@ jobs:
             cc: 'clang-20'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             # TypeSanitizer only since clang 20
             tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
           - name: 'clang 19'
             llvm: '19'
@@ -99,16 +99,16 @@ jobs:
             cc: 'clang-19'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
           - name: 'clang 18'
             llvm: '18'
@@ -116,16 +116,16 @@ jobs:
             cc: 'clang-18'
             packages: 'g++-multilib'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
           - name: 'clang 17'
             llvm: '17'
@@ -134,16 +134,16 @@ jobs:
             # i386 compiler-rt is required for -m32 AddressSanitizer; the amd64 package does not ship libclang_rt.asan-i386.a
             packages: 'g++-multilib libclang-rt-17-dev libclang-rt-17-dev:i386'
             os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
           - name: 'clang 16'
             llvm: '16'
@@ -151,14 +151,15 @@ jobs:
             cc: 'clang-16'
             packages: 'g++-multilib'
             os: 'ubuntu-22.04' # LLVM 16 is no longer published for ubuntu-latest (24.04) on apt.llvm.org so we're using ubuntu-22.04 where the llvm.sh installation still works
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
+            # -fstrict-flex-arrays=3 is only since clang 16
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
@@ -168,14 +169,14 @@ jobs:
             cc: 'clang-15'
             packages: 'g++-multilib'
             os: 'ubuntu-22.04'
-            options: '--stdlib=libstdc++'
+            options: '--stdlib=libstdc++ -D_GLIBCXX_ASSERTIONS'
             sanitizer_options: >-
               -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator
+              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
+              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie
               -fno-sanitize-recover=all
               -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096'
+            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
             debug_asan_options: ':detect_invalid_pointer_pairs=2'
             msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
     steps:
