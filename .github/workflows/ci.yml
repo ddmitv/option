@@ -2,192 +2,44 @@ name: CI
 
 on: [push]
 
+env:
+  CMAKE_GENERATOR: 'Ninja Multi-Config'
+  VERBOSE: 1
+  UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1:print_summary=1'
+  TYSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1'
+  MSAN_OPTIONS: 'abort_on_error=1:poison_in_dtor=1'
+  ASAN_OPTIONS: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
+  # only in debug since in release code gets inlined and -fsanitize-ignorelist doesn't work reliably anymore
+  ASAN_DEBUG_OPTIONS: ':detect_invalid_pointer_pairs=2'
+
 jobs:
-  linux:
-    name: 'Linux ${{matrix.name}}'
-    runs-on: ${{matrix.os}}
-
+  # Library tests: clang x {libstdc++, libc++} x {x86-64, arm64}, sanitized and unsanitized.
+  clang:
+    name: 'clang ${{ matrix.llvm }} / ${{ matrix.stdlib }} / ${{ matrix.arch }}'
+    runs-on: ${{ matrix.os || (matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest') }}
     env:
-      CMAKE_GENERATOR: 'Ninja Multi-Config'
-      VERBOSE: 1
-      CXX: ${{matrix.cxx}}
-      CC: ${{matrix.cc}}
-      UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1:print_summary=1'
-      TYSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1'
-      MSAN_OPTIONS: 'abort_on_error=1:poison_in_dtor=1'
-
+      CXX: clang++-${{ matrix.llvm }}
+      CC: clang-${{ matrix.llvm }}
     strategy:
       fail-fast: false
       matrix:
+        llvm: ['15', '16', '17', '18', '19', '20', '21', '22', '23']
+        stdlib: ['libstdc++', 'libc++']
+        arch: ['x64', 'arm64']
         include:
-          - name: 'clang 23'
-            llvm: '23'
-            cxx: 'clang++-23'
-            cc: 'clang-23'
-            packages: 'g++-multilib'
-            os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2' # only in debug since in release code gets inlined and -fsanitize-ignorelist doesnt work reliably anymore
-            tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
-
-          - name: 'clang 22'
-            llvm: '22'
-            cxx: 'clang++-22'
-            cc: 'clang-22'
-            packages: 'g++-multilib'
-            os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
-
-          - name: 'clang 21'
-            llvm: '21'
-            cxx: 'clang++-21'
-            cc: 'clang-21'
-            packages: 'g++-multilib'
-            os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
-
-          - name: 'clang 20'
-            llvm: '20'
-            cxx: 'clang++-20'
-            cc: 'clang-20'
-            packages: 'g++-multilib'
-            os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            # TypeSanitizer only since clang 20
-            tysan_options: -fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
-
-          - name: 'clang 19'
-            llvm: '19'
-            cxx: 'clang++-19'
-            cc: 'clang-19'
-            packages: 'g++-multilib'
-            os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
-
-          - name: 'clang 18'
-            llvm: '18'
-            cxx: 'clang++-18'
-            cc: 'clang-18'
-            packages: 'g++-multilib'
-            os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
-
-          - name: 'clang 17'
-            llvm: '17'
-            cxx: 'clang++-17'
-            cc: 'clang-17'
-            # i386 compiler-rt is required for -m32 AddressSanitizer; the amd64 package does not ship libclang_rt.asan-i386.a
-            packages: 'g++-multilib libclang-rt-17-dev libclang-rt-17-dev:i386'
-            os: 'ubuntu-latest'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
-
-          - name: 'clang 16'
-            llvm: '16'
-            cxx: 'clang++-16'
-            cc: 'clang-16'
-            packages: 'g++-multilib'
-            os: 'ubuntu-22.04' # LLVM 16 is no longer published for ubuntu-latest (24.04) on apt.llvm.org so we're using ubuntu-22.04 where the llvm.sh installation still works
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            # -fstrict-flex-arrays=3 is only since clang 16
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie -fstrict-flex-arrays=3
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
-
-          - name: 'clang 15'
-            llvm: '15'
-            cxx: 'clang++-15'
-            cc: 'clang-15'
-            packages: 'g++-multilib'
+          # LLVM 15/16 are no longer published for ubuntu-latest (24.04) on apt.llvm.org
+          - llvm: '15'
+            arch: 'x64'
             os: 'ubuntu-22.04'
-            options: '--stdlib=libstdc++'
-            hardening_options: '-D_GLIBCXX_ASSERTIONS'
-            sanitizer_options: >-
-              -fno-omit-frame-pointer -fno-optimize-sibling-calls
-              -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr
-              -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie
-              -fno-sanitize-recover=all
-              -fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt
-            asan_options: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
-            debug_asan_options: ':detect_invalid_pointer_pairs=2'
-            msan_options: -fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls
+          - llvm: '15'
+            arch: 'arm64'
+            os: 'ubuntu-22.04-arm'
+          - llvm: '16'
+            arch: 'x64'
+            os: 'ubuntu-22.04'
+          - llvm: '16'
+            arch: 'arm64'
+            os: 'ubuntu-22.04-arm'
     steps:
       - &checkout_step
         name: Checkout
@@ -203,104 +55,150 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo dpkg --add-architecture i386
+          packages='g++'
+          if [[ '${{ matrix.stdlib }}' == 'libc++' ]]; then
+            packages+=' libc++-${{ matrix.llvm }}-dev libc++abi-${{ matrix.llvm }}-dev'
+          fi
+          if [[ "$(uname -m)" == 'x86_64' ]]; then
+            sudo dpkg --add-architecture i386 # needed for the -m32 build
+            packages+=' g++-multilib'
+            if [[ '${{ matrix.llvm }}' == '17' ]]; then
+              # i386 compiler-rt is required for -m32 AddressSanitizer; the amd64 package does not ship libclang_rt.asan-i386.a
+              packages+=' libclang-rt-17-dev libclang-rt-17-dev:i386'
+            fi
+          fi
           sudo apt-get update
-          sudo apt-get install ${{ matrix.packages }}
+          sudo apt-get install -y $packages
+
+      - name: Compute compiler flags
+        id: flags
+        run: |
+          llvm=${{ matrix.llvm }}
+          stdlib=${{ matrix.stdlib }}
+          ignorelist="-fsanitize-ignorelist=$GITHUB_WORKSPACE/sanitizer-ignorelist.txt"
+
+          case "$stdlib" in
+            libstdc++)
+              stdlib_flags='--stdlib=libstdc++'
+              hardening_flags='-D_GLIBCXX_ASSERTIONS'
+              ;;
+            libc++)
+              stdlib_flags='--stdlib=libc++'
+              # available since LLVM 17, older libc++ just ignores the definition
+              hardening_flags='-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE'
+              ;;
+          esac
+
+          sanitizer_flags='-fno-omit-frame-pointer -fno-optimize-sibling-calls'
+          sanitizer_flags+=' -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr'
+          sanitizer_flags+=' -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie'
+          sanitizer_flags+=" -fno-sanitize-recover=all $ignorelist"
+          if (( llvm >= 16 )); then
+            sanitizer_flags+=' -fstrict-flex-arrays=3' # only since clang 16
+          fi
+
+          tysan_flags="-fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls $ignorelist"
+
+          msan_flags='-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls'
+          if (( llvm >= 17 )); then
+            msan_flags+=' -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE'
+          fi
+
+          {
+            echo "stdlib_flags=$stdlib_flags"
+            echo "hardening_flags=$hardening_flags"
+            echo "sanitizer_flags=$sanitizer_flags"
+            echo "tysan_flags=$tysan_flags"
+            echo "msan_flags=$msan_flags"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Configure CMake (sanitized)
         run: >-
           cmake -B build-sanitizers
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.hardening_options }} ${{ matrix.sanitizer_options }}"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }} ${{ steps.flags.outputs.hardening_flags }} ${{ steps.flags.outputs.sanitizer_flags }}"
 
-      - name: Run tests (sanitized, Debug)
-        env:
-          ASAN_OPTIONS: ${{ matrix.asan_options }}${{ matrix.debug_asan_options }}
-        run: cmake --build build-sanitizers --config Debug --target run-option-test --parallel
-
-      - name: Run tests (sanitized, Release)
-        env:
-          ASAN_OPTIONS: ${{ matrix.asan_options }}
-        run: cmake --build build-sanitizers --config Release --target run-option-test --parallel
+      - name: Run tests (sanitized)
+        run: |
+          ASAN_OPTIONS="$ASAN_OPTIONS$ASAN_DEBUG_OPTIONS" cmake --build build-sanitizers --config Debug --target run-option-test --parallel
+          ASAN_OPTIONS="$ASAN_OPTIONS" cmake --build build-sanitizers --config Release --target run-option-test --parallel
 
       - name: Configure CMake (unsanitized)
         run: >-
           cmake -B build-standard
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.hardening_options }}"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }} ${{ steps.flags.outputs.hardening_flags }}"
 
-      - name: Run tests (unsanitized, Debug)
-        run: cmake --build build-standard --config Debug --target run-option-test --parallel
-
-      - name: Run tests (unsanitized, Release)
-        run: cmake --build build-standard --config Release --target run-option-test --parallel
+      - name: Run tests (unsanitized)
+        run: |
+          cmake --build build-standard --config Debug --target run-option-test --parallel
+          cmake --build build-standard --config Release --target run-option-test --parallel
 
       - name: Configure CMake (codegen)
-        # no hardening_options: glibcxx assertion branches change generated assembly and fail codegen expectations
+        # no hardening_flags: glibcxx assertion branches change generated assembly and fail codegen expectations
         run: >-
           cmake -B build-codegen
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.options }}"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }}"
 
       - name: Run codegen tests
         run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
 
       - name: Configure CMake (TypeSanitizer)
-        if: matrix.tysan_options
+        if: &if_tysan "fromJSON(matrix.llvm) >= 20" # TypeSanitizer only since clang 20, on x86-64 and arm64
         run: >-
           cmake -B build-tysan
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.options }} ${{ matrix.hardening_options }} ${{ matrix.tysan_options }}"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }} ${{ steps.flags.outputs.hardening_flags }} ${{ steps.flags.outputs.tysan_flags }}"
 
-      - name: Run tests (TypeSanitizer, Debug)
-        if: matrix.tysan_options
-        run: cmake --build build-tysan --config Debug --target run-option-test --parallel
-
-      - name: Run tests (TypeSanitizer, Release)
-        if: matrix.tysan_options
-        run: cmake --build build-tysan --config Release --target run-option-test --parallel
+      - name: Run tests (TypeSanitizer)
+        if: *if_tysan
+        run: |
+          cmake --build build-tysan --config Debug --target run-option-test --parallel
+          cmake --build build-tysan --config Release --target run-option-test --parallel
 
       - name: Configure CMake (x32, sanitized)
+        if: &if_x64 "runner.arch == 'X64'" # -m32 (32-bit x86) doesn't exist on arm64
         run: >-
           cmake -B build-x32
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=-m32 ${{matrix.sanitizer_options}}"
+          "-DCMAKE_CXX_FLAGS=-m32 ${{ steps.flags.outputs.sanitizer_flags }}"
 
-      - name: Run tests (sanitized, Debug x32)
-        env:
-          ASAN_OPTIONS: ${{ matrix.asan_options }}${{ matrix.debug_asan_options }}
-        run: cmake --build build-x32 --config Debug --target run-option-test --parallel
+      - name: Run tests (x32, sanitized)
+        if: *if_x64
+        run: |
+          ASAN_OPTIONS="$ASAN_OPTIONS$ASAN_DEBUG_OPTIONS" cmake --build build-x32 --config Debug --target run-option-test --parallel
+          ASAN_OPTIONS="$ASAN_OPTIONS" cmake --build build-x32 --config Release --target run-option-test --parallel
 
-      - name: Run tests (sanitized, Release x32)
-        env:
-          ASAN_OPTIONS: ${{ matrix.asan_options }}
-        run: cmake --build build-x32 --config Release --target run-option-test --parallel
-
+      # MemorySanitizer: x86-64 on all LLVM versions, arm64 since LLVM 20; independent of the
+      # stdlib axis (it uses its own instrumented libc++), so it runs once per LLVM version and arch
       - name: Resolve libc++ source revision (LLVM ${{ matrix.llvm }})
+        if: &if_msan "(runner.arch == 'X64' || fromJSON(matrix.llvm) >= 20) && matrix.stdlib == 'libstdc++'"
         id: llvm_ref
         run: echo "sha=$(git ls-remote https://github.com/llvm/llvm-project.git refs/heads/release/${{ matrix.llvm }}.x | cut -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Cache MemorySanitizer-instrumented libc++
+        if: *if_msan
         id: msan_libcxx
         uses: actions/cache@v6.1.0
         with:
           path: msan-prefix
-          key: libcxx-msan-${{ matrix.llvm }}-x86_64-${{ steps.llvm_ref.outputs.sha }}
+          key: libcxx-msan-${{ matrix.llvm }}-${{ matrix.arch }}-${{ steps.llvm_ref.outputs.sha }}
 
       - name: Build MemorySanitizer-instrumented libc++
-        if: steps.msan_libcxx.outputs.cache-hit != 'true'
+        if: "(runner.arch == 'X64' || fromJSON(matrix.llvm) >= 20) && matrix.stdlib == 'libstdc++' && steps.msan_libcxx.outputs.cache-hit != 'true'"
         run: |
           git clone --depth 1 --branch release/${{ matrix.llvm }}.x https://github.com/llvm/llvm-project.git
           cmake -B libcxx-msan -S llvm-project/runtimes -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DCMAKE_C_COMPILER=$CC \
+            -DCMAKE_CXX_COMPILER=$CXX \
             -DLLVM_USE_SANITIZER=MemoryWithOrigins \
             -DLIBCXXABI_USE_LLVM_UNWINDER=OFF `#fixes the crash` \
             -DLLVM_ENABLE_PIC=ON \
@@ -312,15 +210,132 @@ jobs:
           cmake --install libcxx-msan
 
       - name: Configure CMake (MemorySanitizer)
+        if: *if_msan
         run: >-
           cmake -B build-msan
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ matrix.msan_options }} -nostdinc++ -isystem $GITHUB_WORKSPACE/msan-prefix/include/c++/v1"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.msan_flags }} -nostdinc++ -isystem $GITHUB_WORKSPACE/msan-prefix/include/c++/v1"
           "-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -L$GITHUB_WORKSPACE/msan-prefix/lib -Wl,-rpath,$GITHUB_WORKSPACE/msan-prefix/lib -lc++abi"
 
-      - name: Run tests (MemorySanitizer, Debug)
-        run: cmake --build build-msan --config Debug --target run-option-test --parallel
+      - name: Run tests (MemorySanitizer)
+        if: *if_msan
+        run: |
+          cmake --build build-msan --config Debug --target run-option-test --parallel
+          cmake --build build-msan --config Release --target run-option-test --parallel
 
-      - name: Run tests (MemorySanitizer, Release)
-        run: cmake --build build-msan --config Release --target run-option-test --parallel
+  # 32-bit ARM: cross-compiled with the armhf GCC toolchain and run under qemu-user
+  # (there are no arm32 hosted runners). Clang is not used here because apt.llvm.org
+  # does not publish armhf compiler-rt, so its sanitizer runtimes are unavailable.
+  arm32:
+    name: 'gcc armhf cross / arm32'
+    runs-on: ubuntu-24.04-arm
+    env:
+      CXX: arm-linux-gnueabihf-g++
+      CC: arm-linux-gnueabihf-gcc
+      # the workflow-wide ASAN_OPTIONS, adjusted for a 32-bit process under qemu-user:
+      # leak detection doesn't work under qemu, and a 32-bit address space can't afford the 512MB quarantine
+      ASAN_OPTIONS: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=64:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1:detect_leaks=0'
+    steps:
+      - *checkout_step
+
+      - name: Install arm32 toolchain and runtime
+        # the -cross packages provide the sysroot for linking, the :armhf multiarch
+        # packages place the runtime libraries where the guest loader finds them
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install -y g++-arm-linux-gnueabihf libasan8-armhf-cross libubsan1-armhf-cross \
+            libc6:armhf libstdc++6:armhf libgcc-s1:armhf libasan8:armhf libubsan1:armhf \
+            qemu-user-static binfmt-support
+
+      - name: Configure CMake (sanitized, arm32)
+        run: >-
+          cmake -B build-sanitizers
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=-D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+
+      - name: Run tests (sanitized, arm32)
+        run: |
+          cmake --build build-sanitizers --config Debug --target run-option-test --parallel
+          cmake --build build-sanitizers --config Release --target run-option-test --parallel
+
+  # Library tests with GCC. TypeSanitizer and MemorySanitizer are clang-only.
+  gcc:
+    name: 'gcc ${{ matrix.gcc }} / ${{ matrix.arch }}'
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    env:
+      CXX: g++-${{ matrix.gcc }}
+      CC: gcc-${{ matrix.gcc }}
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc: ['12', '13', '14', '15']
+        arch: ['x64', 'arm64']
+        exclude:
+          # no gcc 15 on arm64: the ubuntu-toolchain-r PPA does not publish arm64 builds
+          - gcc: '15'
+            arch: 'arm64'
+    steps:
+      - *checkout_step
+
+      - name: Install GCC ${{ matrix.gcc }}
+        run: |
+          packages="g++-${{ matrix.gcc }}"
+          if [[ "$(uname -m)" == 'x86_64' ]]; then
+            sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # gcc 15 is not in the ubuntu-latest (24.04) archive
+            packages="g++-${{ matrix.gcc }}-multilib" # needed for the -m32 build; also pulls in g++-N and the 32-bit sanitizer runtimes
+          fi
+          sudo apt-get update
+          sudo apt-get install -y $packages
+
+      - name: Configure CMake (sanitized)
+        # gcc doesn't support the clang-only sanitizers (implicit-conversion, nullability, pointer-compare, ...)
+        run: >-
+          cmake -B build-sanitizers
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=-D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+
+      - name: Run tests (sanitized)
+        run: |
+          cmake --build build-sanitizers --config Debug --target run-option-test --parallel
+          cmake --build build-sanitizers --config Release --target run-option-test --parallel
+
+      - name: Configure CMake (unsanitized)
+        run: >-
+          cmake -B build-standard
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=-D_GLIBCXX_ASSERTIONS"
+
+      - name: Run tests (unsanitized)
+        run: |
+          cmake --build build-standard --config Debug --target run-option-test --parallel
+          cmake --build build-standard --config Release --target run-option-test --parallel
+
+      - name: Configure CMake (codegen)
+        # no -D_GLIBCXX_ASSERTIONS: assertion branches change generated assembly and fail codegen expectations
+        run: >-
+          cmake -B build-codegen
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+
+      - name: Run codegen tests
+        run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
+
+      - name: Configure CMake (x32, sanitized)
+        # -m32 (32-bit x86) doesn't exist on arm64
+        if: *if_x64
+        run: >-
+          cmake -B build-x32
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=-m32 -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+
+      - name: Run tests (x32, sanitized)
+        if: *if_x64
+        run: |
+          cmake --build build-x32 --config Debug --target run-option-test --parallel
+          cmake --build build-x32 --config Release --target run-option-test --parallel
