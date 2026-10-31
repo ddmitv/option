@@ -1719,7 +1719,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 }
 
 //'[std_optional_int64x2_swap]
-//'@if $linux & $libcxx & $clang
+//'@if $linux & $libcxx & $clang[23..]
 //' movzx eax, [rdi + 16]
 //' cmp al, [rsi + 16]
 //' jne .L0
@@ -1728,6 +1728,38 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' movups xmm0, [rdi]
 //' movups xmm1, [rsi]
 //' movups [rdi], xmm1
+//' movups [rsi], xmm0
+//' ret
+//' .L0:
+//' test al, al
+//' je .L2
+//' movups xmm0, [rdi]
+//' movups [rsi], xmm0
+//' mov byte ptr [rsi + 16], 1
+//' cmp byte ptr [rdi + 16], 1
+//' jne .L1
+//' mov byte ptr [rdi + 16], 0
+//' ret
+//' .L2:
+//' movups xmm0, [rsi]
+//' movups [rdi], xmm0
+//' mov byte ptr [rdi + 16], 1
+//' cmp byte ptr [rsi + 16], 1
+//' jne .L1
+//' mov byte ptr [rsi + 16], 0
+//' .L1:
+//' ret
+//'@if $linux & $libcxx & $clang[..23]
+//' movzx eax, [rdi + 16]
+//' cmp al, [rsi + 16]
+//' jne .L0
+//' test al, al
+//' je .L1
+//' movups xmm0, [rdi]
+//' movaps [rsp - 24], xmm0
+//' movups xmm0, [rsi]
+//' movups [rdi], xmm0
+//' movaps xmm0, [rsp - 24]
 //' movups [rsi], xmm0
 //' ret
 //' .L0:

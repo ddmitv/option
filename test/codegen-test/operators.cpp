@@ -968,6 +968,18 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' or al, cl
 //' and al, sil
 //' ret
+//'@if $linux & $libcxx & $clang[..23]
+//' test esi, 65536
+//' jne .L0
+//' xor eax, eax
+//' ret
+//' .L0:
+//' test edi, 65536
+//' sete cl
+//' cmp di, si
+//' setl al
+//' or al, cl
+//' ret
 //'@if $linux & $libstdcxx & $clang[21..]
 //' mov eax, esi
 //' and eax, edi
@@ -1227,7 +1239,7 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 }
 
 //'[std_optional_int32_less]
-//'@if $linux & $libcxx & $clang
+//'@if $linux & $libcxx & $clang[23..]
 //' mov eax, esi
 //' shr rsi, 32
 //' bt rdi, 32
@@ -1236,6 +1248,19 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' setl al
 //' or al, cl
 //' and al, sil
+//' ret
+//'@if $linux & $libcxx & $clang[..23]
+//' bt rsi, 32
+//' jb .L0
+//' xor eax, eax
+//' ret
+//' .L0:
+//' mov rax, 4294967296
+//' test rdi, rax
+//' sete cl
+//' cmp edi, esi
+//' setl al
+//' or al, cl
 //' ret
 //'@if $linux & $libstdcxx & $clang[19..]
 //' mov rax, rsi
