@@ -1,6 +1,10 @@
 [address]
 # std::less<T>::*
 fun:_ZNKSt4less*
+# std::__1::vector<T, A>::capacity() const
+fun:_ZNKSt3__16vector*8capacity*
+# std::__1::__vector_layout<T, A>::__capacity() const
+fun:_ZNKSt3__115__vector_layout*__capacity*
 [type]
 # std::variant
 fun:_ZNSt7variant*
