@@ -378,17 +378,20 @@ def eval_expr(lexer: Lexer, symbols: dict[str, Symbol], *, min_bp: int = 0) -> b
         lhs = False
     elif lhs_token.startswith('$'):
         symbol = symbols[lhs_token]
+
+        constraint_token = lexer.peek()
+        has_constraint = constraint_token is not None and constraint_token.startswith('[') and constraint_token.endswith(']')
+        if has_constraint:
+            lexer.next() # advace past [..]
+
         if symbol is None:
             lhs = False
         elif isinstance(symbol, bool):
             lhs = symbol
+        elif has_constraint:
+            lhs = check_version_constraint(symbol, constraint_token[1:-1].strip())
         else:
-            constraint_token = lexer.peek()
-            if constraint_token is not None and constraint_token.startswith('[') and constraint_token.endswith(']'):
-                lexer.next()
-                lhs = check_version_constraint(symbol, constraint_token[1:-1].strip())
-            else:
-                lhs = True
+            lhs = True
     else:
         sys.exit(f'Invalid token: "{lhs_token}"')
 
