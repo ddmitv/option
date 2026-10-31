@@ -958,7 +958,17 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 }
 
 //'[std_optional_int16_less]
-//'@if $linux & $clang[21..]
+//'@if $linux & $libcxx & $clang[23..]
+//' mov eax, esi
+//' shr esi, 16
+//' test edi, 65536
+//' sete cl
+//' cmp di, ax
+//' setl al
+//' or al, cl
+//' and al, sil
+//' ret
+//'@if $linux & $libstdcxx & $clang[21..]
 //' mov eax, esi
 //' and eax, edi
 //' shr eax, 16
@@ -974,7 +984,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' sete al
 //' and al, sil
 //' ret
-//'@if $linux & $clang[19..21]
+//'@if $linux & $libstdcxx & $clang[19..21]
 //' mov eax, esi
 //' and eax, edi
 //' shr eax, 16
@@ -991,7 +1001,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' sete al
 //' and al, sil
 //' ret
-//'@if $linux & $clang[16..19]
+//'@if $linux & $libstdcxx & $clang[16..19]
 //' test edi, 16711680
 //' je .L0
 //' mov eax, esi
@@ -1007,7 +1017,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' sete al
 //' and al, cl
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $linux & $libstdcxx & $clang[..16]
 //' test edi, 16711680
 //' je .L0
 //' mov eax, esi
@@ -1217,7 +1227,17 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 }
 
 //'[std_optional_int32_less]
-//'@if $linux & $clang[19..]
+//'@if $linux & $libcxx & $clang
+//' mov eax, esi
+//' shr rsi, 32
+//' bt rdi, 32
+//' setae cl
+//' cmp edi, eax
+//' setl al
+//' or al, cl
+//' and al, sil
+//' ret
+//'@if $linux & $libstdcxx & $clang[19..]
 //' mov rax, rsi
 //' and rax, rdi
 //' shr rax, 32
@@ -1235,7 +1255,7 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' sete al
 //' and al, cl
 //' ret
-//'@if $linux & $clang[16..19]
+//'@if $linux & $libstdcxx & $clang[16..19]
 //' mov rax, 1095216660480
 //' test rdi, rax
 //' je .L0
@@ -1252,7 +1272,7 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' sete al
 //' and al, cl
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $linux & $libstdcxx & $clang[..16]
 //' mov rax, 1095216660480
 //' test rdi, rax
 //' je .L0
