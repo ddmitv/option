@@ -424,16 +424,16 @@ void option_uint64_reset(opt::option<uint64_t>& a) {
 }
 
 //'[std_optional_uint64_reset]
-//'@if $linux & $clang[23..] & $libcxx
+//'@if $linux & $libcxx & $clang
 //' cmp byte ptr [rdi + 8], 1
 //' jne .L0
 //' mov byte ptr [rdi + 8], 0
 //' .L0:
 //' ret
-//'@if $linux & $clang[17..]
+//'@if $linux & $libstdcxx & $clang[17..]
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $linux & $clang[..17]
+//'@if $linux & $libstdcxx & $clang[..17]
 //' cmp byte ptr [rdi + 8], 0
 //' je .L0
 //' mov byte ptr [rdi + 8], 0
@@ -464,16 +464,16 @@ void option_int64x2_reset(opt::option<int64x2>& a) {
 }
 
 //'[std_optional_int64x2_reset]
-//'@if $linux & $clang[23..] & $libcxx
+//'@if $linux & $libcxx & $clang
 //' cmp byte ptr [rdi + 16], 1
 //' jne .L0
 //' mov byte ptr [rdi + 16], 0
 //' .L0:
 //' ret
-//'@if $linux & $clang[17..]
+//'@if $linux & $libstdcxx & $clang[17..]
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $clang[..17]
+//'@if $linux & $libstdcxx & $clang[..17]
 //' cmp byte ptr [rdi + 16], 0
 //' je .L0
 //' mov byte ptr [rdi + 16], 0
