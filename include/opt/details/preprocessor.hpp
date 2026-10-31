@@ -338,6 +338,12 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_NO_SANITIZE(...)
 #endif
 
+#if OPTION_HAS_FEATURE(type_sanitizer)
+    #define OPTION_NO_SANITIZE_TYPE OPTION_NO_SANITIZE("type")
+#else
+    #define OPTION_NO_SANITIZE_TYPE
+#endif
+
 // see https://github.com/microsoft/STL/issues/5315, https://github.com/microsoft/STL/pull/5318
 #define OPTION_DESTRUCTOR_TOMBSTONES 1
 

@@ -38,7 +38,7 @@ struct some_struct {
 };
 
 // std::variant produces false-positives on TypeSanitizer
-template<typename T> OPTION_NO_SANITIZE("type")
+template<typename T> OPTION_NO_SANITIZE_TYPE
 void test_address_sanitizer(const std::remove_cv_t<T>& first_value, const std::remove_cv_t<T>& second_value) {
     {
         std::variant<opt::option<T>, int> var{std::in_place_index<0>, first_value};
