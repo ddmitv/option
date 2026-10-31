@@ -47,7 +47,18 @@ def main() -> None:
         src_file: Path = Path(src_file_str.strip())
         with src_file.open() as f:
             parsed_target_asm: dict[SourceLine, list[SourceLine]] = parse_target_asm(f)
-        preprocessed_target_asm: dict[SourceLine, list[SourceLine]] = { func_name: preprocess_target_asm(insts, expr_symbols) for func_name, insts in parsed_target_asm.items() }
+        
+        preprocessed_target_asm: dict[SourceLine, list[SourceLine]] = {}
+        has_preprocessor_error = False
+        for func_name, insts in parsed_target_asm.items():
+            try:
+                preprocessed_target_asm[func_name] = preprocess_target_asm(insts, expr_symbols)
+            except PreprocessorError as e:
+                print(f'At {src_file.name}:{func_name.number}, "{func_name.text}":\n  {e}', file=sys.stderr)
+                has_errors = True
+                has_preprocessor_error = True
+        if has_preprocessor_error:
+            continue
 
         for func_name, expected_lines in preprocessed_target_asm.items():
             actual_lines: list[str] | None = normalized_asm.get(func_name.text)
@@ -417,11 +428,14 @@ def eval_prefix_op(op: str, operand: bool) -> bool:
         return not operand
     sys.exit(f'Bad prefix operator: "{op}"')
 
+class PreprocessorError(Exception):
+    pass
+
 def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -> list[SourceLine]:
     processed_lines: list[SourceLine] = []
 
     emit = True
-    matched_if_seen = False
+    matched_if_lines: list[SourceLine] = []
 
     i = 0
     while i < len(insts):
@@ -433,24 +447,26 @@ def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -
                 expr_text = text[len('@if '):]
                 emit = eval_expr(Lexer(expr_text), symbols)
                 if emit:
-                    if matched_if_seen:
-                        sys.exit(f'Multiple @if conditions are true (line {line.number}). Only one @if block may be active')
-                    matched_if_seen = True
+                    matched_if_lines.append(line)
             elif text.startswith('@error'):
                 if emit:
                     err_msg = text[len('@error '):].strip()
                     if len(err_msg) == 0:
-                        sys.exit(f'Preprocessor error at line {line.number}')
+                        raise PreprocessorError(f'Preprocessor error at line {line.number}')
                     else:
-                        sys.exit(f'Preprocessor error (line {line.number}): {err_msg}')
+                        raise PreprocessorError(f'Preprocessor error (line {line.number}): {err_msg}')
             else:
-                sys.exit(f'Unknown preprocessor directive at line {line.number}: "{text}"')
+                raise PreprocessorError(f'Unknown preprocessor directive at line {line.number}: "{text}"')
             i += 1
             continue
 
         if emit:
             processed_lines.append(line)
         i += 1
+
+    if len(matched_if_lines) > 1:
+        matched_desc = '\n'.join(f'    line {l.number}: {l.text}' for l in matched_if_lines)
+        raise PreprocessorError(f'Multiple @if conditions are true. Only one @if block may be active. Matched @if conditions:\n{matched_desc}')
 
     return processed_lines
 
