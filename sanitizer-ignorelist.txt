@@ -10,3 +10,5 @@ fun:_ZNKSt3__115__vector_layout*__capacity*
 fun:_ZNSt7variant*
 # std::__detail::__variant
 fun:_ZNSt8__detail9__variant*
+# std::__1::__variant_detail
+fun:_ZNSt3__116__variant_detail*
