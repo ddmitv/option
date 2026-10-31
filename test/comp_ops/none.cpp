@@ -32,7 +32,7 @@ constexpr bool test() {
     check_meta(opt::none <=> opt::none, std::strong_ordering, std::strong_ordering::equal, noexcept);
 
     { // test std::ranges::find with none
-        std::array<opt::option<int>, 5> vec = {1, 2, opt::none, 4, 5};
+        std::array<opt::option<int>, 5> vec{{1, 2, opt::none, 4, 5}};
 
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201911L
         auto it = std::ranges::find(vec, opt::none);
