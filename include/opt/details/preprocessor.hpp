@@ -257,6 +257,12 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_ADDRESSOF(x) ::std::addressof(x)
 #endif
 
+#if OPTION_HAS_BUILTIN(__is_volatile)
+    #define OPTION_IS_VOLATILE(x) __is_volatile(x)
+#else
+    #define OPTION_IS_VOLATILE(x) ::std::is_volatile_v<x>
+#endif
+
 #ifndef OPTION_CONSUMED_ANNOTATION_CHECKING
     #define OPTION_CONSUMED_ANNOTATION_CHECKING 0
 #endif
