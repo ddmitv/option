@@ -59,7 +59,7 @@ jobs:
           if [[ '${{ matrix.stdlib }}' == 'libc++' ]]; then
             packages+=' libc++-${{ matrix.llvm }}-dev libc++abi-${{ matrix.llvm }}-dev'
           fi
-          if [[ "$(uname -m)" == 'x86_64' ]]; then
+          if [[ '${{ matrix.arch }}' == 'x64' ]]; then
             sudo dpkg --add-architecture i386 # needed for the -m32 build
             packages+=' g++-multilib'
             if [[ '${{ matrix.llvm }}' == '17' ]]; then
@@ -162,7 +162,7 @@ jobs:
           cmake --build build-tysan --config Release --target run-option-test --parallel
 
       - name: Configure CMake (x32, sanitized)
-        if: &if_x64 "runner.arch == 'X64'" # -m32 (32-bit x86) doesn't exist on arm64
+        if: &if_x64 "matrix.arch == 'x64'" # -m32 (32-bit x86) doesn't exist on arm64
         run: >-
           cmake -B build-x32
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
@@ -178,7 +178,7 @@ jobs:
       # MemorySanitizer: x86-64 on all LLVM versions, arm64 since LLVM 20; independent of the
       # stdlib axis (it uses its own instrumented libc++), so it runs once per LLVM version and arch
       - name: Resolve libc++ source revision (LLVM ${{ matrix.llvm }})
-        if: &if_msan "(runner.arch == 'X64' || fromJSON(matrix.llvm) >= 20) && matrix.stdlib == 'libstdc++'"
+        if: &if_msan "(matrix.arch == 'x64' || fromJSON(matrix.llvm) >= 20) && matrix.stdlib == 'libstdc++'"
         id: llvm_ref
         run: echo "sha=$(git ls-remote https://github.com/llvm/llvm-project.git refs/heads/release/${{ matrix.llvm }}.x | cut -f1)" >> "$GITHUB_OUTPUT"
 
@@ -191,7 +191,7 @@ jobs:
           key: libcxx-msan-${{ matrix.llvm }}-${{ matrix.arch }}-${{ steps.llvm_ref.outputs.sha }}
 
       - name: Build MemorySanitizer-instrumented libc++
-        if: "(runner.arch == 'X64' || fromJSON(matrix.llvm) >= 20) && matrix.stdlib == 'libstdc++' && steps.msan_libcxx.outputs.cache-hit != 'true'"
+        if: "(matrix.arch == 'x64' || fromJSON(matrix.llvm) >= 20) && matrix.stdlib == 'libstdc++' && steps.msan_libcxx.outputs.cache-hit != 'true'"
         run: |
           git clone --depth 1 --branch release/${{ matrix.llvm }}.x https://github.com/llvm/llvm-project.git
           cmake -B libcxx-msan -S llvm-project/runtimes -G Ninja \
@@ -281,9 +281,8 @@ jobs:
           # gcc 15 and 16 are not in the ubuntu-latest (24.04) archive; the PPA publishes amd64 and arm64 builds
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           packages="g++-${{ matrix.gcc }}"
-          if [[ "$(uname -m)" == 'x86_64' ]]; then
-            # needed for the -m32 build; also pulls in g++-N and the 32-bit sanitizer runtimes
-            packages="g++-${{ matrix.gcc }}-multilib"
+          if [[ '${{ matrix.arch }}' == 'x64' ]]; then
+            packages="g++-${{ matrix.gcc }}-multilib" # needed for the -m32 build; also pulls in g++-N and the 32-bit sanitizer runtimes
           fi
           sudo apt-get update
           sudo apt-get install -y $packages
@@ -324,8 +323,7 @@ jobs:
         run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
 
       - name: Configure CMake (x32, sanitized)
-        # -m32 (32-bit x86) doesn't exist on arm64
-        if: *if_x64
+        if: *if_x64 # -m32 (32-bit x86) doesn't exist on arm64
         run: >-
           cmake -B build-x32
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
