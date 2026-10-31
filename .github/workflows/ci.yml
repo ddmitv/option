@@ -271,21 +271,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gcc: ['12', '13', '14', '15']
+        gcc: ['12', '13', '14', '15', '16']
         arch: ['x64', 'arm64']
-        exclude:
-          # no gcc 15 on arm64: the ubuntu-toolchain-r PPA does not publish arm64 builds
-          - gcc: '15'
-            arch: 'arm64'
     steps:
       - *checkout_step
 
       - name: Install GCC ${{ matrix.gcc }}
         run: |
+          # gcc 15 and 16 are not in the ubuntu-latest (24.04) archive; the PPA publishes amd64 and arm64 builds
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           packages="g++-${{ matrix.gcc }}"
           if [[ "$(uname -m)" == 'x86_64' ]]; then
-            sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # gcc 15 is not in the ubuntu-latest (24.04) archive
-            packages="g++-${{ matrix.gcc }}-multilib" # needed for the -m32 build; also pulls in g++-N and the 32-bit sanitizer runtimes
+            # needed for the -m32 build; also pulls in g++-N and the 32-bit sanitizer runtimes
+            packages="g++-${{ matrix.gcc }}-multilib"
           fi
           sudo apt-get update
           sudo apt-get install -y $packages
