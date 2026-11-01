@@ -11,6 +11,14 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 
 OPTION_CLANG_SUPPRESS_WARNING("-Wunneeded-member-function")
 
+// __is_nothrow_constructible and __is_nothrow_assignable incorrectly report true for trivial noexcept(false) special members
+// See GCC PR96090, PR100470
+#if OPTION_GCC && __GNUC__ < 14
+    #define GCC_NOEXCEPT_TRIVIAL_BUG 1
+#else
+    #define GCC_NOEXCEPT_TRIVIAL_BUG 0
+#endif
+
 namespace {
 
 struct non_trivial_copy_ctor {
@@ -96,7 +104,9 @@ struct trivial_throw_move_ctor {
 };
 static_assert(std::is_trivially_move_constructible_v<opt::option<trivial_throw_move_ctor>>);
 static_assert(std::is_move_constructible_v<opt::option<trivial_throw_move_ctor>>);
+#if !GCC_NOEXCEPT_TRIVIAL_BUG
 static_assert(!std::is_nothrow_move_constructible_v<opt::option<trivial_throw_move_ctor>>);
+#endif
 // move assignment operator is implicitly deleted if move ctor is declared
 static_assert(!std::is_trivially_move_assignable_v<opt::option<trivial_throw_move_ctor>>);
 static_assert(!std::is_move_assignable_v<opt::option<trivial_throw_move_ctor>>);
@@ -192,7 +202,9 @@ static_assert(std::is_nothrow_move_constructible_v<opt::option<trivial_throw_mov
 
 static_assert(std::is_trivially_move_assignable_v<opt::option<trivial_throw_move_assign>>);
 static_assert(std::is_move_assignable_v<opt::option<trivial_throw_move_assign>>);
+#if !GCC_NOEXCEPT_TRIVIAL_BUG
 static_assert(!std::is_nothrow_move_assignable_v<opt::option<trivial_throw_move_assign>>);
+#endif
 
 struct deleted_move_assign {
     deleted_move_assign(deleted_move_assign&&) = default;
