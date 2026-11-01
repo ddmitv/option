@@ -93,7 +93,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wcast-align=strict -Wcast-qual -Wstrict-aliasing=3 -Wclass-memaccess
         -Wconversion -Warith-conversion -Wfloat-conversion -Wfloat-equal -Wenum-conversion -Wsign-promo
         -Wconditionally-supported -Wdeprecated-copy-dtor -Wdeprecated-enum-enum-conversion -Wdeprecated-enum-float-conversion
-        -Winit-list-lifetime -Wnoexcept -Wnoexcept-type -Wtemplate-body -Wmissing-template-keyword -Wmissing-requires
+        -Winit-list-lifetime -Wnoexcept -Wnoexcept-type -Wmissing-template-keyword -Wmissing-requires
         -Wchanges-meaning -Wstrict-overflow=5 -Wstringop-overflow=4 -Wstringop-overread -Wundef -Wpragmas -Wunknown-pragmas
         -Wint-in-bool-context -Wlogical-op -Wtautological-compare -Wtype-limits -Wduplicated-branches -Wduplicated-cond
         -Wnull-dereference -Wdangling-pointer=2 -Wuse-after-free=3 -Warray-bounds=2 -Wmaybe-uninitialized -Wuninitialized
@@ -101,6 +101,10 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wodr -Wlto-type-mismatch -Winvalid-constexpr -Wmultistatement-macros -Wunused -Wunused-const-variable=2
         -fanalyzer
     )
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+        # only available since gcc 15 otherwise older gcc makes an "unrecognized command-line option" error
+        target_compile_options(option-header-test PRIVATE -Wtemplate-body)
+    endif()
 endif()
 
 add_custom_target(run-option-test VERBATIM
