@@ -97,7 +97,9 @@
     OPTION_CLANG_SUPPRESS_WARNING("-Wunsafe-buffer-usage") \
     OPTION_CLANG_SUPPRESS_WARNING("-Wunknown-sanitizers") \
     OPTION_GCC_SUPPRESS_WARNING_PUSH \
-    OPTION_GCC_SUPPRESS_WARNING("-Wshadow")
+    OPTION_GCC_SUPPRESS_WARNING("-Wshadow") \
+    /* GCC checks this after inlining and scalar replacement, so for trivially-copyable T it cannot correlate `engaged` with payload initialization and reports guarded reads of an empty option's never-written payload as maybe-uninitialized at -O2+ */ \
+    OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")
 
 #define OPTION_SUPPRESS_COMMON_WARNINGS_POP \
     OPTION_MSVC_SUPPRESS_WARNING_POP \
