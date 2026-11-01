@@ -243,7 +243,8 @@ def normalize_asm(insts: list[str]) -> list[str]:
             new_inst = re.sub(r'(\d)\*([a-z0-9]+)', r'\2*\1', new_inst)
         if cxx_compiler_id in (CxxCompilerId.GCC, CxxCompilerId.CLANG_CL):
             # call "function" -> call function
-            new_inst = re.sub(r'^((?:call|jmp|j[a-z]{1,4})) "([^"]+)"$', r'\1 \2', new_inst)
+            # call "function"@PLT -> call function@PLT
+            new_inst = re.sub(r'^((?:call|jmp|j[a-z]{1,4})) "([^"]+)"(.*)$', r'\1 \2\3', new_inst)
         if cxx_compiler_id != CxxCompilerId.MSVC:
             # movabs rax, 12345 -> mov rax, 12345
             new_inst = f'mov {new_inst[len("movabs "):]}' if new_inst.startswith('movabs ') else new_inst

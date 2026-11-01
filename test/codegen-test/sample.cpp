@@ -1987,7 +1987,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' ret
 //' .L0:
 //' .cfi_restore_state
-//' call "__stack_chk_fail"@PLT
+//' call __stack_chk_fail@PLT
 //'@if $windows & $gcc
 //' sub rsp, 40
 //' movdqu xmm1, [rdx]
