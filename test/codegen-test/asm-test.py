@@ -164,8 +164,12 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
             else: # function ending (ENDP)
                 current_instructions = None
             continue
-        if cxx_compiler_id == CxxCompilerId.CLANG or cxx_compiler_id == CxxCompilerId.CLANG_CL:
-            POSSIBLE_FUNCTION_END_DIRECTIVES = ('.section', '.globl', '.def', '.addrsig', '.ident')
+        if cxx_compiler_id in (CxxCompilerId.CLANG, CxxCompilerId.CLANG_CL, CxxCompilerId.GCC):
+            POSSIBLE_FUNCTION_END_DIRECTIVES = (
+                '.section', '.globl', '.def', '.addrsig', '.ident',
+                '.cfi_endproc',   # GCC/Clang: emitted right after the final `ret`
+                '.size',          # GCC/Clang fallback (present even with -fno-asynchronous-unwind-tables)
+            )
             if current_instructions is not None and any(line.lstrip().startswith(d) for d in POSSIBLE_FUNCTION_END_DIRECTIVES):
                 current_instructions = None
                 continue
@@ -184,13 +188,13 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
                     else:
                         current_instructions = None
                     continue
-        if cxx_compiler_id == CxxCompilerId.GCC and line.startswith('"_Z') and line.endswith('":\n'):
-            if len(line) >= 4 and line[3].isdigit():
-                current_instructions = []
-                parsed_functions[demangle_itanium(line[1:-2])] = current_instructions
-            else:
-                current_instructions = None
-            continue
+            elif cxx_compiler_id == CxxCompilerId.GCC and line.startswith('"_Z') and line.endswith('":\n'):
+                if len(line) >= 4 and line[3].isdigit():
+                    current_instructions = []
+                    parsed_functions[demangle_itanium(line[1:-2])] = current_instructions
+                else:
+                    current_instructions = None
+                continue
     
         if current_instructions is None:
             continue
@@ -200,18 +204,20 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
             current_instructions.append(stripped_line)
     return parsed_functions
 
-REMOVE_DIRECTIVES: set[str] = {
+REMOVE_INSTRUCTIONS: set[str] = {
     '.cfi_startproc', '.cfi_endproc', '.size', '.ident', '.section', '.p2align', '.globl', '.type', '.addrsig',
     '.def', '.scl', '.endef', '.ascii', '.seh_proc', '.loc', '.seh_stackalloc', '.seh_endprologue', '.seh_startepilogue',
     '.seh_endepilogue', '.seh_endproc', '.seh_pushreg', '.file', '.asciz', '.short', '.long', '.byte',
-    '.linkonce', '.align', '.cfi_def_cfa_offset'
+    '.linkonce', '.align', '.cfi_def_cfa_offset', '.string', '.zero', '.comm', '.local',
+
+    'endbr64', 'endbr32',
 }
 
 def normalize_asm(insts: list[str]) -> list[str]:
     new_insts: list[str] = []
     for inst in insts:
         new_inst = inst.replace('\t', ' ')
-        if new_inst.partition(' ')[0] in REMOVE_DIRECTIVES:
+        if new_inst.partition(' ')[0] in REMOVE_INSTRUCTIONS:
             continue
 
         if cxx_compiler_id == CxxCompilerId.MSVC:
