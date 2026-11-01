@@ -183,7 +183,7 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' sete al
 //' .L0:
 //' ret
-//'@if $linux & $gcc
+//'@if $linux & $gcc[16..]
 //' mov eax, edi
 //' mov edx, esi
 //' mov [rsp - 8], edi
@@ -200,6 +200,28 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cmp [rsp - 8], ax
 //' sete cl
 //' .L0:
+//' mov eax, ecx
+//' ret
+//'@if $linux & $gcc[..16]
+//' mov eax, edi
+//' mov edx, esi
+//' mov [rsp - 8], edi
+//' xor ecx, ecx
+//' shr eax, 16
+//' shr edx, 16
+//' mov [rsp - 16], esi
+//' cmp al, dl
+//' je .L0
+//' .L1:
+//' mov eax, ecx
+//' ret
+//' .L0:
+//' mov ecx, 1
+//' test al, al
+//' je .L1
+//' movzx eax, [rsp - 16]
+//' cmp [rsp - 8], ax
+//' sete cl
 //' mov eax, ecx
 //' ret
 //'@if $windows & $gcc
@@ -455,7 +477,7 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' sete al
 //' .L0:
 //' ret
-//'@if $linux & $gcc
+//'@if $linux & $gcc[16..]
 //' mov rax, rdi
 //' mov rdx, rsi
 //' mov [rsp - 8], rdi
@@ -472,6 +494,28 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' cmp [rsp - 8], eax
 //' sete cl
 //' .L0:
+//' mov eax, ecx
+//' ret
+//'@if $linux & $gcc[..16]
+//' mov rax, rdi
+//' mov rdx, rsi
+//' mov [rsp - 8], rdi
+//' xor ecx, ecx
+//' shr rax, 32
+//' shr rdx, 32
+//' mov [rsp - 16], rsi
+//' cmp al, dl
+//' je .L0
+//' .L1:
+//' mov eax, ecx
+//' ret
+//' .L0:
+//' mov ecx, 1
+//' test al, al
+//' je .L1
+//' mov eax, [rsp - 16]
+//' cmp [rsp - 8], eax
+//' sete cl
 //' mov eax, ecx
 //' ret
 //'@if $windows & $gcc
@@ -662,7 +706,7 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' sete al
 //' .L0:
 //' ret
-//'@if $linux & $gcc
+//'@if $linux & $gcc[16..]
 //' movzx edx, [rdi + 8]
 //' xor eax, eax
 //' cmp dl, [rsi + 8]
@@ -674,6 +718,21 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' cmp [rdi], rax
 //' sete al
 //' .L0:
+//' ret
+//'@if $linux & $gcc[..16]
+//' movzx edx, [rdi + 8]
+//' xor eax, eax
+//' cmp dl, [rsi + 8]
+//' je .L0
+//' .L1:
+//' ret
+//' .L0:
+//' mov eax, 1
+//' test dl, dl
+//' je .L1
+//' mov rax, [rsi]
+//' cmp [rdi], rax
+//' sete al
 //' ret
 //'@if $windows & $gcc
 //' xor eax, eax
