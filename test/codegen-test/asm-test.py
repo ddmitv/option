@@ -188,13 +188,17 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
                     else:
                         current_instructions = None
                     continue
-            elif cxx_compiler_id == CxxCompilerId.GCC and line.startswith('"_Z') and line.endswith('":\n'):
-                if len(line) >= 4 and line[3].isdigit():
-                    current_instructions = []
-                    parsed_functions[demangle_itanium(line[1:-2])] = current_instructions
-                else:
-                    current_instructions = None
-                continue
+            elif cxx_compiler_id == CxxCompilerId.GCC:
+                label = line.rstrip('\n') # gcc may emit function labels quoted
+                if label.endswith(':'):
+                    label = label[:-1]
+                    if label.startswith('"') and label.endswith('"'):
+                        label = label[1:-1]
+                    
+                    if label.startswith('_Z') and len(label) >= 3 and label[2].isdigit():
+                        current_instructions = []
+                        parsed_functions[demangle_itanium(label)] = current_instructions
+                        continue
     
         if current_instructions is None:
             continue
