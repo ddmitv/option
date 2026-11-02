@@ -12,7 +12,7 @@ cxx_compiler_id: 'CxxCompilerId | None' = None
 
 def main() -> None:
     global cxx_compiler_id
-    raw_compiler_id, raw_frontend_compiler_id, compiler_version, stdlib_id, raw_stdlib_version, build_config, target_os = sys.argv[1].strip().split(';')
+    raw_compiler_id, raw_frontend_compiler_id, compiler_version, stdlib_id, raw_stdlib_version, target_arch, build_config, target_os = sys.argv[1].strip().split(';')
 
     print(f'''Info:
     Build Configuration: {build_config}
@@ -21,6 +21,7 @@ def main() -> None:
     Compiler Version: {compiler_version}
     C++ Standard Library: {stdlib_id}
     C++ Standard Library Version: {raw_stdlib_version}
+    Target Arch: {target_arch}
     Target OS: {target_os}''', flush=True)
 
     if build_config != 'Release':
