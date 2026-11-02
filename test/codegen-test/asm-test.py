@@ -116,7 +116,15 @@ Symbol = Version | bool | None
 
 class Lexer:
     def __init__(self, text: str):
-        self._tokens: list[str] = re.findall(r'([!|&\(\)]|true|false|\$[\w\-]+|\[[^\]]+\])', text)
+        self._tokens: list[str] = []
+        pos = 0
+        for m in re.finditer(r'([!|&\(\)]|true|false|\$[\w\-]+|\[[^\]]+\])', text):
+            gap = text[pos:m.start()].strip()
+            if len(gap) > 0: raise EvaluationError(f'Unexpected character(s) {gap!r} in expression: {text!r}')
+            self._tokens.append(m.group(0))
+            pos = m.end()
+        tail = text[pos:].strip()
+        if len(tail) > 0: raise EvaluationError(f'Unexpected trailing character(s) {tail!r} in expression: {text!r}')
         self._current: int = 0
     def next(self) -> str | None:
         if self._current >= len(self._tokens):
@@ -328,16 +336,19 @@ def parse_target_asm(file: TextIO) -> dict[SourceLine, list[SourceLine]]:
 
     return parsed_functions
 
+class EvaluationError(Exception):
+    pass
+
 def parse_version_str(version_str: str) -> Version:
     if not version_str:
-        sys.exit('Empty version in version constraint')
+        raise EvaluationError('Empty version in version constraint')
     parts = version_str.split('.')
     if len(parts) > 4:
-        sys.exit(f'Too many version components in "{version_str}" (max 4)')
+        raise EvaluationError(f'Too many version components in "{version_str}" (max 4)')
     result: list[int] = []
     for part in parts:
         if not part.isdigit():
-            sys.exit(f'Invalid version component "{part}" in "{version_str}"')
+            raise EvaluationError(f'Invalid version component "{part}" in "{version_str}"')
         result.append(int(part))
     while len(result) < 4:
         result.append(0)
@@ -346,7 +357,7 @@ def parse_version_str(version_str: str) -> Version:
 def check_version_constraint(version: Version, constraint_str: str) -> bool:
     constraint_str = constraint_str.strip()
     if not constraint_str:
-        sys.exit('Empty version constraint')
+        raise EvaluationError('Empty version constraint')
 
     if '..' in constraint_str:
         start_str, _, end_str = constraint_str.partition('..')
@@ -357,7 +368,7 @@ def check_version_constraint(version: Version, constraint_str: str) -> bool:
         end_str = end_str.strip()
 
         if not start_str and not end_str:
-            sys.exit(f'Invalid version range: "{constraint_str}"')
+            raise EvaluationError(f'Invalid version range: "{constraint_str}"')
 
         if start_str:
             if version < parse_version_str(start_str):
@@ -408,12 +419,12 @@ def eval_expr(lexer: Lexer, symbols: dict[str, Symbol], *, min_bp: int = 0) -> b
     # uses Pratt parsing
     lhs_token = lexer.next()
     if lhs_token is None:
-        sys.exit('Unexpected EOF')
+        raise EvaluationError('Unexpected EOF')
 
     if lhs_token == '(':
         lhs = eval_expr(lexer, symbols, min_bp=0)
         if lexer.next() != ')':
-            sys.exit('Expected closing parenthesis ")"')
+            raise EvaluationError('Expected closing parenthesis ")"')
     elif (prefix_bp := prefix_binding_power(lhs_token)) is not None:
         rhs = eval_expr(lexer, symbols, min_bp=prefix_bp)
         lhs = eval_prefix_op(lhs_token, rhs)
@@ -438,7 +449,7 @@ def eval_expr(lexer: Lexer, symbols: dict[str, Symbol], *, min_bp: int = 0) -> b
         else:
             lhs = True
     else:
-        sys.exit(f'Invalid token: "{lhs_token}"')
+        raise EvaluationError(f'Invalid token: "{lhs_token}"')
 
     while True:
         op = lexer.peek()
@@ -452,7 +463,9 @@ def eval_expr(lexer: Lexer, symbols: dict[str, Symbol], *, min_bp: int = 0) -> b
             rhs = eval_expr(lexer, symbols, min_bp=right_bp)
             lhs = eval_op(lhs, rhs, op)
             continue
-        break
+        if op == ')':
+            break
+        raise EvaluationError(f'Unexpected token {op!r} in expression')
     return lhs
 
 def infix_binding_power(op: str) -> tuple[int, int] | None:
@@ -466,7 +479,7 @@ def eval_op(lhs: bool, rhs: bool, op: str) -> bool:
         return lhs and rhs
     if op == '|':
         return lhs or rhs
-    sys.exit(f'Bad operator: "{op}"')
+    raise EvaluationError(f'Bad operator: "{op}"')
 def prefix_binding_power(op: str) -> int | None:
     if op == '!':
         return 5
@@ -474,7 +487,7 @@ def prefix_binding_power(op: str) -> int | None:
 def eval_prefix_op(op: str, operand: bool) -> bool:
     if op == '!':
         return not operand
-    sys.exit(f'Bad prefix operator: "{op}"')
+    raise EvaluationError(f'Bad prefix operator: "{op}"')
 
 class PreprocessorError(Exception):
     pass
@@ -483,6 +496,7 @@ def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -
     processed_lines: list[SourceLine] = []
 
     emit = True
+    eval_errors: list[tuple[int, str]] = []
     matched_if_lines: list[SourceLine] = []
 
     i = 0
@@ -493,7 +507,11 @@ def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -
         if text.startswith('@'):
             if text.startswith('@if '):
                 expr_text = text[len('@if '):]
-                emit = eval_expr(Lexer(expr_text), symbols)
+                try:
+                    emit = eval_expr(Lexer(expr_text), symbols)
+                except EvaluationError as e:
+                    eval_errors.append((line.number, str(e)))
+                    emit = False
                 if emit:
                     matched_if_lines.append(line)
             elif text.startswith('@error'):
@@ -511,6 +529,10 @@ def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -
         if emit:
             processed_lines.append(line)
         i += 1
+
+    if len(eval_errors) > 0:
+        desc = '\n'.join(f'    line {ln}: {msg}' for ln, msg in eval_errors)
+        raise PreprocessorError(f'@if condition(s) failed to evaluate:\n{desc}')
 
     if len(matched_if_lines) > 1:
         matched_desc = '\n'.join(f'    line {l.number}: {l.text}' for l in matched_if_lines)
