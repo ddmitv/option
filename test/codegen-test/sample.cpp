@@ -10,23 +10,23 @@ struct int64x2 {
 };
 
 //'[third_fn]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' movsxd rax, edx
 //' mov dword ptr [rdi + rax*4 + 8], 6
 //' ret
-//'@if $linux & $gcc[14..]
+//'@if $x64 & $linux & $gcc[14..]
 //' movsxd rdx, edx
 //' mov dword ptr [rdi + rdx*4 + 8], 6
 //' ret
-//'@if $linux & $gcc[..14]
+//'@if $x64 & $linux & $gcc[..14]
 //' movsx rdx, edx
 //' mov dword ptr [rdi + rdx*4 + 8], 6
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movsxd r8, r8d
 //' mov dword ptr [rcx + r8*4 + 8], 6
 //' ret
-//'@if $windows & ($msvc | $clang-cl | $clang)
+//'@if $x64 & $windows & ($msvc | $clang-cl | $clang)
 //' movsxd rax, r8d
 //' mov dword ptr [rcx + rax*4 + 8], 6
 //' ret
@@ -35,38 +35,38 @@ void third_fn(int* x, int y, int z) {
 }
 
 //'[option_make_from_int32_sum]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' lea eax, [rdx + r8]
 //' mov byte ptr [rcx + 4], 1
 //' mov [rcx], eax
 //' mov rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' add edx, r8d
 //' mov [rcx], edx
 //' mov byte ptr [rcx + 4], 1
 //' ret
-//'@if $linux & $clang[16..]
+//'@if $x64 & $linux & $clang[16..]
 //' lea ecx, [rdi + rsi]
 //' mov rax, 4294967296
 //' or rax, rcx
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' add esi, edx
 //' mov [rdi], esi
 //' mov byte ptr [rdi + 4], 1
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' lea eax, [rdi + rsi]
 //' bts rax, 32
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' lea eax, [rcx + rdx]
 //' bts rax, 32
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' add ecx, edx
 //' mov rax, 4294967296
 //' or rax, rcx
@@ -76,38 +76,38 @@ opt::option<int32_t> option_make_from_int32_sum(int32_t x, int32_t y) {
 }
 
 //'[option_make_from_int64_sum]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' lea rax, [rdx + r8]
 //' mov byte ptr [rcx + 8], 1
 //' mov [rcx], rax
 //' mov rax, rcx
 //' ret
-//'@if $linux & $clang[16..]
+//'@if $x64 & $linux & $clang[16..]
 //' lea rax, [rdi + rsi]
 //' mov dl, 1
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' add rsi, rdx
 //' mov [rdi], rsi
 //' mov byte ptr [rdi + 8], 1
 //' ret
-//'@if $linux & $gcc[14..]
+//'@if $x64 & $linux & $gcc[14..]
 //' xor edx, edx
 //' lea rax, [rdi + rsi]
 //' mov dl, 1
 //' ret
-//'@if $linux & $gcc[..14]
+//'@if $x64 & $linux & $gcc[..14]
 //' lea rax, [rdi + rsi]
 //' mov edx, 1
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' mov rax, rcx
 //' add rdx, r8
 //' mov byte ptr [rcx + 8], 1
 //' mov [rcx], rdx
 //' ret
-//'@if $windows & ($clang-cl | $clang)
+//'@if $x64 & $windows & ($clang-cl | $clang)
 //' mov rax, rcx
 //' add rdx, r8
 //' mov [rcx], rdx
@@ -118,30 +118,30 @@ opt::option<int64_t> option_make_from_int64_sum(int64_t x, int64_t y) {
 }
 
 //'[std_optional_make_from_int32_sum]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' lea eax, [rdx + r8]
 //' mov byte ptr [rcx + 4], 1
 //' mov [rcx], eax
 //' mov rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' add edx, r8d
 //' mov [rcx], edx
 //' mov byte ptr [rcx + 4], 1
 //' ret
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' lea ecx, [rdi + rsi]
 //' mov rax, 4294967296
 //' or rax, rcx
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' add edi, esi
 //' mov byte ptr [rsp - 4], 1
 //' mov [rsp - 8], edi
 //' mov rax, [rsp - 8]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' sub rsp, 24
 //' add ecx, edx
 //' mov byte ptr [rsp + 12], 1
@@ -149,7 +149,7 @@ opt::option<int64_t> option_make_from_int64_sum(int64_t x, int64_t y) {
 //' mov rax, [rsp + 8]
 //' add rsp, 24
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' add ecx, edx
 //' mov rax, 4294967296
 //' or rax, rcx
@@ -159,30 +159,30 @@ std::optional<int32_t> std_optional_make_from_int32_sum(int32_t x, int32_t y) {
 }
 
 //'[std_optional_make_from_int64_sum]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' lea rax, [rdx + r8]
 //' mov byte ptr [rcx + 8], 1
 //' mov [rcx], rax
 //' mov rax, rcx
 //' ret
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' lea rax, [rdi + rsi]
 //' mov dl, 1
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' add rdi, rsi
 //' mov byte ptr [rsp - 16], 1
 //' mov rdx, [rsp - 16]
 //' mov [rsp - 24], rdi
 //' mov rax, [rsp - 24]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' mov rax, rcx
 //' add rdx, r8
 //' mov byte ptr [rcx + 8], 1
 //' mov [rcx], rdx
 //' ret
-//'@if $windows & ($clang-cl | $clang)
+//'@if $x64 & $windows & ($clang-cl | $clang)
 //' mov rax, rcx
 //' add rdx, r8
 //' mov [rcx], rdx
@@ -193,18 +193,18 @@ std::optional<int64_t> std_optional_make_from_int64_sum(int64_t x, int64_t y) {
 }
 
 //'[option_bool_empty]
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 1], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 1], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang[16..] | $gcc
+//'@if $x64 & $clang[16..] | $gcc
 //' xor eax, eax
 //' ret
-//'@if $clang[..16]
+//'@if $x64 & $clang[..16]
 //' mov rax, rdi
 //' mov byte ptr [rdi + 1], 0
 //' ret
@@ -213,18 +213,18 @@ opt::option<bool> option_bool_empty() {
 }
 
 //'[option_int32_empty]
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 4], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 4], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang[16..] | $gcc
+//'@if $x64 & $clang[16..] | $gcc
 //' xor eax, eax
 //' ret
-//'@if $clang[..16]
+//'@if $x64 & $clang[..16]
 //' mov rax, rdi
 //' mov byte ptr [rdi + 4], 0
 //' ret
@@ -233,26 +233,26 @@ opt::option<int32_t> option_int32_empty() {
 }
 
 //'[option_int64_empty]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 8], 0
 //' mov rax, rcx
 //' ret
-//'@if $linux & $clang[16..]
+//'@if $x64 & $linux & $clang[16..]
 //' xor edx, edx
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' xor eax, eax
 //' xor edx, edx
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' xor edx, edx
 //' xor eax, eax
 //' ret
-//'@if $windows & ($clang-cl | $clang | $gcc)
+//'@if $x64 & $windows & ($clang-cl | $clang | $gcc)
 //' mov rax, rcx
 //' mov byte ptr [rcx + 8], 0
 //' ret
@@ -261,15 +261,15 @@ opt::option<int64_t> option_int64_empty() {
 }
 
 //'[std_optional_bool_empty]
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 1], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 1], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang | $gcc
+//'@if $x64 & $clang | $gcc
 //' xor eax, eax
 //' ret
 std::optional<bool> std_optional_bool_empty() {
@@ -277,27 +277,27 @@ std::optional<bool> std_optional_bool_empty() {
 }
 
 //'[std_optional_int32_empty]
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 4], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 4], 0
 //' mov rax, rcx
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' xor eax, eax
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' mov byte ptr [rsp - 4], 0
 //' mov rax, [rsp - 8]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' sub rsp, 24
 //' xor eax, eax
 //' add rsp, 24
 //' ret
-//'@if $clang
+//'@if $x64 & $clang
 //' xor eax, eax
 //' ret
 std::optional<int32_t> std_optional_int32_empty() {
@@ -305,36 +305,36 @@ std::optional<int32_t> std_optional_int32_empty() {
 }
 
 //'[std_optional_int64_empty]
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 8], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 8], 0
 //' mov rax, rcx
 //' ret
-//'@if $linux & $libcxx & $clang
+//'@if $x64 & $linux & $libcxx & $clang
 //' xor eax, eax
 //' xor edx, edx
 //' ret
-//'@if $linux & $libstdcxx & $clang
+//'@if $x64 & $linux & $libstdcxx & $clang
 //' xor edx, edx
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' xor eax, eax
 //' xor edx, edx
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' mov byte ptr [rsp - 16], 0
 //' mov rax, [rsp - 24]
 //' mov rdx, [rsp - 16]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' pxor xmm0, xmm0
 //' mov rax, rcx
 //' movups [rcx], xmm0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' mov rax, rcx
 //' mov byte ptr [rcx], 0
 //' mov byte ptr [rcx + 8], 0
@@ -344,18 +344,18 @@ std::optional<int64_t> std_optional_int64_empty() {
 }
 
 //'[option_bool_default]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 1], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 1], 0
 //' ret
-//'@if $clang[16..] | $gcc
+//'@if $x64 & $clang[16..] | $gcc
 //' xor eax, eax
 //' ret
-//'@if $clang[..16]
+//'@if $x64 & $clang[..16]
 //' mov rax, rdi
 //' mov byte ptr [rdi + 1], 0
 //' ret
@@ -364,15 +364,15 @@ opt::option<bool> option_bool_default() {
 }
 
 //'[std_optional_bool_default]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 1], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 1], 0
 //' ret
-//'@if $clang | $gcc
+//'@if $x64 & $clang | $gcc
 //' xor eax, eax
 //' ret
 std::optional<bool> std_optional_bool_default() {
@@ -380,18 +380,18 @@ std::optional<bool> std_optional_bool_default() {
 }
 
 //'[option_int32_default]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 4], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 4], 0
 //' ret
-//'@if $clang[16..] | $gcc
+//'@if $x64 & $clang[16..] | $gcc
 //' xor eax, eax
 //' ret
-//'@if $clang[..16]
+//'@if $x64 & $clang[..16]
 //' mov rax, rdi
 //' mov byte ptr [rdi + 4], 0
 //' ret
@@ -400,25 +400,25 @@ opt::option<int32_t> option_int32_default() {
 }
 
 //'[std_optional_int32_default]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 4], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 4], 0
 //' ret
-//'@if $clang
+//'@if $x64 & $clang
 //' xor eax, eax
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' xor eax, eax
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' mov byte ptr [rsp - 4], 0
 //' mov rax, [rsp - 8]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' sub rsp, 24
 //' xor eax, eax
 //' add rsp, 24
@@ -428,26 +428,26 @@ std::optional<int32_t> std_optional_int32_default() {
 }
 
 //'[option_int64_default]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 8], 0
 //' mov rax, rcx
 //' ret
-//'@if $linux & $clang[16..]
+//'@if $x64 & $linux & $clang[16..]
 //' xor edx, edx
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' xor eax, eax
 //' xor edx, edx
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' xor edx, edx
 //' xor eax, eax
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl)
 //' mov rax, rcx
 //' mov byte ptr [rcx + 8], 0
 //' ret
@@ -456,36 +456,36 @@ opt::option<int64_t> option_int64_default() {
 }
 
 //'[std_optional_int64_default]
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 8], 0
 //' mov rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 8], 0
 //' ret
-//'@if $linux & $libcxx & $clang
+//'@if $x64 & $linux & $libcxx & $clang
 //' xor eax, eax
 //' xor edx, edx
 //' ret
-//'@if $linux & $libstdcxx & $clang
+//'@if $x64 & $linux & $libstdcxx & $clang
 //' xor edx, edx
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' mov rax, rcx
 //' mov byte ptr [rcx], 0
 //' mov byte ptr [rcx + 8], 0
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' xor eax, eax
 //' xor edx, edx
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' mov byte ptr [rsp - 16], 0
 //' mov rax, [rsp - 24]
 //' mov rdx, [rsp - 16]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' pxor xmm0, xmm0
 //' mov rax, rcx
 //' movups [rcx], xmm0
@@ -495,10 +495,10 @@ std::optional<int64_t> std_optional_int64_default() {
 }
 
 //'[option_uint64_reset]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $windows & ($clang | $clang-cl | $gcc | $msvc)
+//'@if $x64 & $windows & ($clang | $clang-cl | $gcc | $msvc)
 //' mov byte ptr [rcx + 8], 0
 //' ret
 void option_uint64_reset(opt::option<uint64_t>& a) {
@@ -506,34 +506,34 @@ void option_uint64_reset(opt::option<uint64_t>& a) {
 }
 
 //'[std_optional_uint64_reset]
-//'@if $linux & $libcxx & $clang[19..]
+//'@if $x64 & $linux & $libcxx & $clang[19..]
 //' cmp byte ptr [rdi + 8], 1
 //' jne .L0
 //' mov byte ptr [rdi + 8], 0
 //' .L0:
 //' ret
-//'@if $linux & $libcxx & $clang[..19]
+//'@if $x64 & $linux & $libcxx & $clang[..19]
 //' cmp byte ptr [rdi + 8], 0
 //' je .L0
 //' mov byte ptr [rdi + 8], 0
 //' .L0:
 //' ret
-//'@if $linux & $libstdcxx & ($clang[17..] | $gcc[13..])
+//'@if $x64 & $linux & $libstdcxx & ($clang[17..] | $gcc[13..])
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $linux & $libstdcxx & ($clang[..17] | $gcc[..13])
+//'@if $x64 & $linux & $libstdcxx & ($clang[..17] | $gcc[..13])
 //' cmp byte ptr [rdi + 8], 0
 //' je .L0
 //' mov byte ptr [rdi + 8], 0
 //' .L0:
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' cmp byte ptr [rcx + 8], 1
 //' jne .L0
 //' mov byte ptr [rcx + 8], 0
 //' .L0:
 //' ret
-//'@if $windows & ($gcc | $msvc | $clang-cl)
+//'@if $x64 & $windows & ($gcc | $msvc | $clang-cl)
 //' mov byte ptr [rcx + 8], 0
 //' ret
 void std_optional_uint64_reset(std::optional<uint64_t>& a) {
@@ -541,10 +541,10 @@ void std_optional_uint64_reset(std::optional<uint64_t>& a) {
 }
 
 //'[option_int64x2_reset]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $windows & ($clang | $clang-cl | $msvc | $gcc)
+//'@if $x64 & $windows & ($clang | $clang-cl | $msvc | $gcc)
 //' mov byte ptr [rcx + 16], 0
 //' ret
 void option_int64x2_reset(opt::option<int64x2>& a) {
@@ -552,34 +552,34 @@ void option_int64x2_reset(opt::option<int64x2>& a) {
 }
 
 //'[std_optional_int64x2_reset]
-//'@if $linux & $libcxx & $clang[19..]
+//'@if $x64 & $linux & $libcxx & $clang[19..]
 //' cmp byte ptr [rdi + 16], 1
 //' jne .L0
 //' mov byte ptr [rdi + 16], 0
 //' .L0:
 //' ret
-//'@if $linux & $libcxx & $clang[..19]
+//'@if $x64 & $linux & $libcxx & $clang[..19]
 //' cmp byte ptr [rdi + 16], 0
 //' je .L0
 //' mov byte ptr [rdi + 16], 0
 //' .L0:
 //' ret
-//'@if $linux & $libstdcxx & ($clang[17..] | $gcc[13..])
+//'@if $x64 & $linux & $libstdcxx & ($clang[17..] | $gcc[13..])
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $libstdcxx & ($clang[..17] | $gcc[..13])
+//'@if $x64 & $linux & $libstdcxx & ($clang[..17] | $gcc[..13])
 //' cmp byte ptr [rdi + 16], 0
 //' je .L0
 //' mov byte ptr [rdi + 16], 0
 //' .L0:
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' cmp byte ptr [rcx + 16], 1
 //' jne .L0
 //' mov byte ptr [rcx + 16], 0
 //' .L0:
 //' ret
-//'@if $windows & ($clang-cl | $msvc | $gcc)
+//'@if $x64 & $windows & ($clang-cl | $msvc | $gcc)
 //' mov byte ptr [rcx + 16], 0
 //' ret
 void std_optional_int64x2_reset(std::optional<int64x2>& a) {
@@ -587,10 +587,10 @@ void std_optional_int64x2_reset(std::optional<int64x2>& a) {
 }
 
 //'[option_uint64_has_value]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' movzx eax, [rdi + 8]
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl | $msvc)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl | $msvc)
 //' movzx eax, [rcx + 8]
 //' ret
 bool option_uint64_has_value(const opt::option<uint64_t>& a) {
@@ -598,10 +598,10 @@ bool option_uint64_has_value(const opt::option<uint64_t>& a) {
 }
 
 //'[std_optional_uint64_has_value]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' movzx eax, [rdi + 8]
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl | $msvc)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl | $msvc)
 //' movzx eax, [rcx + 8]
 //' ret
 bool std_optional_uint64_has_value(const std::optional<uint64_t>& a) {
@@ -609,10 +609,10 @@ bool std_optional_uint64_has_value(const std::optional<uint64_t>& a) {
 }
 
 //'[option_int64x2_has_value]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' movzx eax, [rdi + 16]
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl | $msvc)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl | $msvc)
 //' movzx eax, [rcx + 16]
 //' ret
 bool option_int64x2_has_value(const opt::option<int64x2>& a) {
@@ -620,10 +620,10 @@ bool option_int64x2_has_value(const opt::option<int64x2>& a) {
 }
 
 //'[std_optional_int64x2_has_value]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' movzx eax, [rdi + 16]
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl | $msvc)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl | $msvc)
 //' movzx eax, [rcx + 16]
 //' ret
 bool std_optional_int64x2_has_value(const std::optional<int64x2>& a) {
@@ -631,11 +631,11 @@ bool std_optional_int64x2_has_value(const std::optional<int64x2>& a) {
 }
 
 //'[option_int64_assign_from_value]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov qword ptr [rdi], 10
 //' mov byte ptr [rdi + 8], 1
 //' ret
-//'@if $windows & ($clang | $clang-cl | $msvc | $gcc)
+//'@if $x64 & $windows & ($clang | $clang-cl | $msvc | $gcc)
 //' mov qword ptr [rcx], 10
 //' mov byte ptr [rcx + 8], 1
 //' ret
@@ -644,14 +644,14 @@ void option_int64_assign_from_value(opt::option<int64_t>& a) {
 }
 
 //'[std_optional_int64_assign_from_value]
-//'@if $linux & ($clang[19..] | $gcc)
+//'@if $x64 & $linux & ($clang[19..] | $gcc)
 //' cmp byte ptr [rdi + 8], 0
 //' jne .L0
 //' mov byte ptr [rdi + 8], 1
 //' .L0:
 //' mov qword ptr [rdi], 10
 //' ret
-//'@if $linux & $clang[16..19]
+//'@if $x64 & $linux & $clang[16..19]
 //' cmp byte ptr [rdi + 8], 0
 //' je .L0
 //' mov qword ptr [rdi], 10
@@ -660,7 +660,7 @@ void option_int64_assign_from_value(opt::option<int64_t>& a) {
 //' mov byte ptr [rdi + 8], 1
 //' mov qword ptr [rdi], 10
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' cmp byte ptr [rdi + 8], 0
 //' mov qword ptr [rdi], 10
 //' je .L0
@@ -668,14 +668,14 @@ void option_int64_assign_from_value(opt::option<int64_t>& a) {
 //' .L0:
 //' mov byte ptr [rdi + 8], 1
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl)
 //' cmp byte ptr [rcx + 8], 0
 //' jne .L0
 //' mov byte ptr [rcx + 8], 1
 //' .L0:
 //' mov qword ptr [rcx], 10
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov qword ptr [rcx], 10
 //' cmp byte ptr [rcx + 8], 0
 //' jne .L0
@@ -687,19 +687,19 @@ void std_optional_int64_assign_from_value(std::optional<int64_t>& a) {
 }
 
 //'[option_int64_assign_from_other]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' movdqu xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & ($clang | $clang-cl | $msvc)
+//'@if $x64 & $windows & ($clang | $clang-cl | $msvc)
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
@@ -708,31 +708,31 @@ void option_int64_assign_from_other(opt::option<int64_t>& a, const opt::option<i
 }
 
 //'[std_optional_int64_assign_from_other]
-//'@if $linux & $libcxx & $clang
+//'@if $x64 & $linux & $libcxx & $clang
 //' movzx eax, [rsi + 8]
 //' mov [rdi + 8], al
 //' mov rax, [rsi]
 //' mov [rdi], rax
 //' ret
-//'@if $linux & $libstdcxx & $clang
+//'@if $x64 & $linux & $libstdcxx & $clang
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' movzx eax, [rdx + 8]
 //' mov [rcx + 8], al
 //' mov rax, [rdx]
 //' mov [rcx], rax
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' movdqu xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
-//'@if $clang-cl | $msvc
+//'@if $x64 & $clang-cl | $msvc
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
@@ -741,31 +741,31 @@ void std_optional_int64_assign_from_other(std::optional<int64_t>& a, const std::
 }
 
 //'[option_int64x2_assign_from_other]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, [rsi + 16]
 //' mov [rdi + 16], rax
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, [rdx + 16]
 //' mov [rcx + 16], rax
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' movdqu xmm0, [rsi]
 //' movups [rdi], xmm0
 //' mov rax, [rsi + 16]
 //' mov [rdi + 16], rax
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' movups [rcx], xmm0
 //' mov rax, [rdx + 16]
 //' mov [rcx + 16], rax
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' movsd xmm1, [rdx + 16]
@@ -776,43 +776,43 @@ void option_int64x2_assign_from_other(opt::option<int64x2>& a, const opt::option
 }
 
 //'[std_optional_int64x2_assign_from_other]
-//'@if $linux & $libcxx & $clang
+//'@if $x64 & $linux & $libcxx & $clang
 //' movzx eax, [rsi + 16]
 //' mov [rdi + 16], al
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $linux & $libstdcxx & $clang
+//'@if $x64 & $linux & $libstdcxx & $clang
 //' mov rax, [rsi + 16]
 //' mov [rdi + 16], rax
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' movzx eax, [rdx + 16]
 //' mov [rcx + 16], al
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' movdqu xmm0, [rsi]
 //' movups [rdi], xmm0
 //' mov rax, [rsi + 16]
 //' mov [rdi + 16], rax
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' movups [rcx], xmm0
 //' mov rax, [rdx + 16]
 //' mov [rcx + 16], rax
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, [rdx + 16]
 //' mov [rcx + 16], rax
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' movsd xmm1, [rdx + 16]
@@ -823,30 +823,30 @@ void std_optional_int64x2_assign_from_other(std::optional<int64x2>& a, const std
 }
 
 //'[option_int64_copy]
-//'@if $linux & $clang[16..]
+//'@if $x64 & $linux & $clang[16..]
 //' mov rax, [rdi]
 //' movzx edx, [rdi + 8]
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' mov rax, [rdi]
 //' mov rdx, [rdi + 8]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' mov rax, rcx
 //' movups [rcx], xmm0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' mov rax, rcx
 //' movups [rcx], xmm0
@@ -856,25 +856,25 @@ opt::option<int64_t> option_int64_copy(const opt::option<int64_t>& a) {
 }
 
 //'[std_optional_int64_copy]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, [rdi]
 //' movzx edx, [rdi + 8]
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
 //' movups xmm0, [rdx]
 //' movups [rcx], xmm0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' mov rax, [rdi]
 //' mov rdx, [rdi + 8]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' mov rax, rcx
 //' movups [rcx], xmm0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' mov rax, rcx
 //' movups [rcx], xmm0
@@ -884,35 +884,35 @@ std::optional<int64_t> std_optional_int64_copy(const std::optional<int64_t>& a) 
 }
 
 //'[option_int64x2_copy]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, rdi
 //' mov rcx, [rsi + 16]
 //' mov [rdi + 16], rcx
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
 //' mov rcx, [rdx + 16]
 //' mov [rax + 16], rcx
 //' movups xmm0, [rdx]
 //' movups [rax], xmm0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' movdqu xmm0, [rsi]
 //' mov rdx, [rsi + 16]
 //' mov rax, rdi
 //' mov [rdi + 16], rdx
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' mov rdx, [rdx + 16]
 //' mov rax, rcx
 //' mov [rcx + 16], rdx
 //' movups [rcx], xmm0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' mov rax, rcx
 //' movsd xmm1, [rdx + 16]
@@ -924,35 +924,35 @@ opt::option<int64x2> option_int64x2_copy(const opt::option<int64x2>& a) {
 }
 
 //'[std_optional_int64x2_copy]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, rdi
 //' mov rcx, [rsi + 16]
 //' mov [rdi + 16], rcx
 //' movups xmm0, [rsi]
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
 //' mov rcx, [rdx + 16]
 //' mov [rax + 16], rcx
 //' movups xmm0, [rdx]
 //' movups [rax], xmm0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' movdqu xmm0, [rsi]
 //' mov rdx, [rsi + 16]
 //' mov rax, rdi
 //' mov [rdi + 16], rdx
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' mov rdx, [rdx + 16]
 //' mov rax, rcx
 //' mov [rcx + 16], rdx
 //' movups [rcx], xmm0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' mov rax, rcx
 //' movsd xmm1, [rdx + 16]
@@ -964,7 +964,7 @@ std::optional<int64x2> std_optional_int64x2_copy(const std::optional<int64x2>& a
 }
 
 //'[option_uint8x64_copy]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, rdi
 //' movzx ecx, [rsi + 64]
 //' mov [rdi + 64], cl
@@ -977,7 +977,7 @@ std::optional<int64x2> std_optional_int64x2_copy(const std::optional<int64x2>& a
 //' movups [rdi + 16], xmm1
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
 //' movzx ecx, [rdx + 64]
 //' mov [rax + 64], cl
@@ -990,7 +990,7 @@ std::optional<int64x2> std_optional_int64x2_copy(const std::optional<int64x2>& a
 //' movups [rax + 16], xmm1
 //' movups [rax], xmm0
 //' ret
-//'@if $linux & $gcc[14..]
+//'@if $x64 & $linux & $gcc[14..]
 //' movdqu xmm0, [rsi]
 //' movzx edx, [rsi + 64]
 //' mov rax, rdi
@@ -1003,7 +1003,7 @@ std::optional<int64x2> std_optional_int64x2_copy(const std::optional<int64x2>& a
 //' movdqu xmm0, [rsi + 48]
 //' movups [rdi + 48], xmm0
 //' ret
-//'@if $linux & $gcc[..14]
+//'@if $x64 & $linux & $gcc[..14]
 //' movdqu xmm0, [rsi]
 //' movdqu xmm1, [rsi + 16]
 //' mov rax, rdi
@@ -1016,7 +1016,7 @@ std::optional<int64x2> std_optional_int64x2_copy(const std::optional<int64x2>& a
 //' movups [rdi + 32], xmm2
 //' movups [rdi + 48], xmm3
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' movups [rcx], xmm0
 //' movdqu xmm0, [rdx + 16]
@@ -1029,7 +1029,7 @@ std::optional<int64x2> std_optional_int64x2_copy(const std::optional<int64x2>& a
 //' movups [rcx + 48], xmm0
 //' mov [rcx + 64], dl
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movzx eax, [rdx + 64]
 //' movups xmm1, [rdx + 16]
@@ -1047,7 +1047,7 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_copy(const opt::option<std:
 }
 
 //'[std_optional_uint8x64_copy]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, rdi
 //' movzx ecx, [rsi + 64]
 //' mov [rdi + 64], cl
@@ -1060,7 +1060,7 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_copy(const opt::option<std:
 //' movups [rdi + 16], xmm1
 //' movups [rdi], xmm0
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
 //' movzx ecx, [rdx + 64]
 //' mov [rax + 64], cl
@@ -1073,7 +1073,7 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_copy(const opt::option<std:
 //' movups [rax + 16], xmm1
 //' movups [rax], xmm0
 //' ret
-//'@if $linux & $gcc[14..]
+//'@if $x64 & $linux & $gcc[14..]
 //' movdqu xmm0, [rsi]
 //' movzx edx, [rsi + 64]
 //' mov rax, rdi
@@ -1086,7 +1086,7 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_copy(const opt::option<std:
 //' movdqu xmm0, [rsi + 48]
 //' movups [rdi + 48], xmm0
 //' ret
-//'@if $linux & $gcc[..14]
+//'@if $x64 & $linux & $gcc[..14]
 //' movdqu xmm0, [rsi]
 //' movdqu xmm1, [rsi + 16]
 //' mov rax, rdi
@@ -1099,7 +1099,7 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_copy(const opt::option<std:
 //' movups [rdi + 32], xmm2
 //' movups [rdi + 48], xmm3
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rdx]
 //' movups [rcx], xmm0
 //' movdqu xmm0, [rdx + 16]
@@ -1112,7 +1112,7 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_copy(const opt::option<std:
 //' movups [rcx + 48], xmm0
 //' mov [rcx + 64], dl
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movzx eax, [rdx + 64]
 //' movups xmm1, [rdx + 16]
@@ -1130,19 +1130,19 @@ std::optional<std::array<uint8_t, 64>> std_optional_uint8x64_copy(const std::opt
 }
 
 //'[option_uint8x64_default]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, rdi
 //' mov byte ptr [rdi + 64], 0
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' mov byte ptr [rdi + 64], 0
 //' mov rax, rdi
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl)
 //' mov rax, rcx
 //' mov byte ptr [rcx + 64], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 64], 0
 //' mov rax, rcx
 //' ret
@@ -1151,21 +1151,21 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_default() {
 }
 
 //'[std_optional_uint8x64_default]
-//'@if $linux & $libcxx & $clang
+//'@if $x64 & $linux & $libcxx & $clang
 //' mov rax, rdi
 //' mov byte ptr [rdi], 0
 //' mov byte ptr [rdi + 64], 0
 //' ret
-//'@if $linux & $libstdcxx & $clang
+//'@if $x64 & $linux & $libstdcxx & $clang
 //' mov rax, rdi
 //' mov byte ptr [rdi + 64], 0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' mov rax, rcx
 //' mov byte ptr [rcx], 0
 //' mov byte ptr [rcx + 64], 0
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' pxor xmm0, xmm0
 //' mov byte ptr [rdi + 64], 0
 //' mov rax, rdi
@@ -1174,11 +1174,11 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_default() {
 //' movups [rdi + 32], xmm0
 //' movups [rdi + 48], xmm0
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' mov byte ptr [rdi + 64], 0
 //' mov rax, rdi
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' pxor xmm0, xmm0
 //' mov rax, rcx
 //' mov byte ptr [rcx + 64], 0
@@ -1187,11 +1187,11 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_default() {
 //' movups [rcx + 32], xmm0
 //' movups [rcx + 48], xmm0
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 64], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov byte ptr [rcx + 64], 0
 //' mov rax, rcx
 //' ret
@@ -1200,28 +1200,28 @@ std::optional<std::array<uint8_t, 64>> std_optional_uint8x64_default() {
 }
 
 //'[option_int32_to_uint32_ctor]
-//'@if $linux & ($clang[16..] | $gcc)
+//'@if $x64 & $linux & ($clang[16..] | $gcc)
 //' mov rax, 1099511627775
 //' and rax, rdi
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' mov ecx, [rsp + 8]
 //' mov [rdi], ecx
 //' movzx ecx, [rsp + 12]
 //' mov [rdi + 4], cl
 //' ret
-//'@if $windows & ($clang | $gcc)
+//'@if $x64 & $windows & ($clang | $gcc)
 //' mov rax, 1099511627775
 //' and rax, rcx
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov [rcx], edx
 //' shr rdx, 32
 //' mov [rcx + 4], dl
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov [rcx], edx
 //' mov rax, rcx
 //' shr rdx, 32
@@ -1232,7 +1232,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 }
 
 //'[std_optional_int32_to_uint32_ctor]
-//'@if $linux & $libcxx & $clang[19..]
+//'@if $x64 & $linux & $libcxx & $clang[19..]
 //' mov rcx, 4294967296
 //' and rcx, rdi
 //' mov rax, rdi
@@ -1241,7 +1241,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' and eax, edi
 //' or rax, rcx
 //' ret
-//'@if $linux & $libcxx & $clang[..19]
+//'@if $x64 & $linux & $libcxx & $clang[..19]
 //' mov rcx, 1095216660480
 //' and rcx, rdi
 //' mov edx, edi
@@ -1250,11 +1250,11 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' test rcx, rcx
 //' cmove rax, rcx
 //' ret
-//'@if $linux & $libstdcxx & $clang[19..]
+//'@if $x64 & $linux & $libstdcxx & $clang[19..]
 //' mov rax, 8589934591
 //' and rax, rdi
 //' ret
-//'@if $linux & $libstdcxx & $clang[..19]
+//'@if $x64 & $linux & $libstdcxx & $clang[..19]
 //' mov eax, edi
 //' shr rdi, 32
 //' xor ecx, ecx
@@ -1263,7 +1263,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' shl rcx, 32
 //' or rax, rcx
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' mov rdx, 4294967296
 //' and rdx, rcx
 //' mov rax, rcx
@@ -1272,7 +1272,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' and eax, ecx
 //' or rax, rdx
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' mov rax, rdi
 //' mov [rsp - 24], rdi
 //' xor edx, edx
@@ -1286,7 +1286,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' mov [rsp - 4], dl
 //' mov rax, [rsp - 8]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' sub rsp, 24
 //' xor eax, eax
 //' mov rdx, rcx
@@ -1302,7 +1302,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' mov rax, [rsp + 8]
 //' add rsp, 24
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' mov byte ptr [rcx + 4], 0
 //' bt rdx, 32
@@ -1311,7 +1311,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' mov byte ptr [rax + 4], 1
 //' .L0:
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov rax, rdx
 //' mov byte ptr [rcx + 4], 0
 //' shr rax, 32
@@ -1327,38 +1327,38 @@ std::optional<uint32_t> std_optional_int32_to_uint32_ctor(const std::optional<in
 }
 
 //'[option_int32_to_uint64_ctor]
-//'@if $linux & $clang[16..]
+//'@if $x64 & $linux & $clang[16..]
 //' movsxd rax, edi
 //' mov rdx, rdi
 //' shr rdx, 32
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' movsxd rcx, [rsp + 8]
 //' mov [rdi], rcx
 //' movzx ecx, [rsp + 12]
 //' mov [rdi + 8], cl
 //' ret
-//'@if $linux & $gcc[14..]
+//'@if $x64 & $linux & $gcc[14..]
 //' mov rcx, rdi
 //' movsxd rax, edi
 //' shr rcx, 32
 //' movzx edx, cl
 //' ret
-//'@if $linux & $gcc[..14]
+//'@if $x64 & $linux & $gcc[..14]
 //' mov rcx, rdi
 //' movsx rax, edi
 //' shr rcx, 32
 //' movzx edx, cl
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl)
 //' mov rax, rcx
 //' movsxd rcx, edx
 //' shr rdx, 32
 //' mov [rax], rcx
 //' mov [rax + 8], dl
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movsxd rax, edx
 //' mov [rcx], rax
 //' mov rax, rcx
@@ -1370,25 +1370,25 @@ opt::option<uint64_t> option_int32_to_uint64_ctor(const opt::option<int32_t> a) 
 }
 
 //'[option_int32_assign_from_uint32]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov eax, [rsi]
 //' mov [rdi], eax
 //' movzx eax, [rsi + 4]
 //' mov [rdi + 4], al
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov eax, [rdx]
 //' mov [rcx], eax
 //' movzx eax, [rdx + 4]
 //' mov [rcx + 4], al
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' mov eax, [rdx]
 //' mov [rcx], eax
 //' movzx eax, [rdx + 4]
 //' mov [rcx + 4], al
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov eax, [rdx]
 //' mov [rcx], eax
 //' movzx eax, [rdx + 4]
@@ -1399,25 +1399,25 @@ void option_int32_assign_from_uint32(opt::option<int32_t>& a, const opt::option<
 }
 
 //'[option_int64_assign_from_uint32]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov eax, [rsi]
 //' mov [rdi], rax
 //' movzx eax, [rsi + 4]
 //' mov [rdi + 8], al
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov eax, [rdx]
 //' mov [rcx], rax
 //' movzx eax, [rdx + 4]
 //' mov [rcx + 8], al
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' mov eax, [rdx]
 //' mov [rcx], rax
 //' movzx eax, [rdx + 4]
 //' mov [rcx + 8], al
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov eax, [rdx]
 //' mov [rcx], rax
 //' movzx eax, [rdx + 4]
@@ -1428,11 +1428,11 @@ void option_int64_assign_from_uint32(opt::option<int64_t>& a, const opt::option<
 }
 
 //'[option_int32_emplace]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov dword ptr [rdi], 100
 //' mov byte ptr [rdi + 4], 1
 //' ret
-//'@if $windows & ($clang | $gcc | $msvc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $msvc | $clang-cl)
 //' mov dword ptr [rcx], 100
 //' mov byte ptr [rcx + 4], 1
 //' ret
@@ -1441,11 +1441,11 @@ void option_int32_emplace(opt::option<int32_t>& a) {
 }
 
 //'[std_optional_int32_emplace]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov dword ptr [rdi], 100
 //' mov byte ptr [rdi + 4], 1
 //' ret
-//'@if $windows & ($clang | $gcc | $msvc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $msvc | $clang-cl)
 //' mov dword ptr [rcx], 100
 //' mov byte ptr [rcx + 4], 1
 //' ret
@@ -1454,11 +1454,11 @@ void std_optional_int32_emplace(std::optional<int32_t>& a) {
 }
 
 //'[option_int64_emplace]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov qword ptr [rdi], 100
 //' mov byte ptr [rdi + 8], 1
 //' ret
-//'@if $windows & ($clang | $gcc | $msvc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $msvc | $clang-cl)
 //' mov qword ptr [rcx], 100
 //' mov byte ptr [rcx + 8], 1
 //' ret
@@ -1467,11 +1467,11 @@ void option_int64_emplace(opt::option<int64_t>& a) {
 }
 
 //'[std_optional_int64_emplace]
-//'@if $linux & ($clang | $gcc)
+//'@if $x64 & $linux & ($clang | $gcc)
 //' mov qword ptr [rdi], 100
 //' mov byte ptr [rdi + 8], 1
 //' ret
-//'@if $windows & ($clang | $gcc | $msvc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $msvc | $clang-cl)
 //' mov qword ptr [rcx], 100
 //' mov byte ptr [rcx + 8], 1
 //' ret
@@ -1480,25 +1480,25 @@ void std_optional_int64_emplace(std::optional<int64_t>& a) {
 }
 
 //'[option_int32_swap]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, [rdi]
 //' mov rcx, [rsi]
 //' mov [rdi], rcx
 //' mov [rsi], rax
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' mov rax, [rdi]
 //' mov rdx, [rsi]
 //' mov [rdi], rdx
 //' mov [rsi], rax
 //' ret
-//'@if $windows & ($clang | $gcc | $clang-cl)
+//'@if $x64 & $windows & ($clang | $gcc | $clang-cl)
 //' mov rax, [rcx]
 //' mov r8, [rdx]
 //' mov [rcx], r8
 //' mov [rdx], rax
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov rax, [rdx]
 //' mov r8, [rcx]
 //' mov [rcx], rax
@@ -1509,7 +1509,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 }
 
 //'[std_optional_int32_swap]
-//'@if $linux & $libcxx & $clang[19..]
+//'@if $x64 & $linux & $libcxx & $clang[19..]
 //' movzx eax, [rdi + 4]
 //' cmp al, [rsi + 4]
 //' jne .L0
@@ -1539,7 +1539,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rsi + 4], 0
 //' .L1:
 //' ret
-//'@if $linux & $libcxx & $clang[..19]
+//'@if $x64 & $linux & $libcxx & $clang[..19]
 //' movzx eax, [rdi + 4]
 //' test al, al
 //' setne cl
@@ -1573,7 +1573,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rsi + 4], 0
 //' .L2:
 //' ret
-//'@if $linux & $libstdcxx & $clang[19..]
+//'@if $x64 & $linux & $libstdcxx & $clang[19..]
 //' movzx ecx, [rsi + 4]
 //' cmp byte ptr [rdi + 4], 1
 //' jne .L0
@@ -1598,7 +1598,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rsi + 4], 1
 //' mov byte ptr [rdi + 4], 0
 //' ret
-//'@if $linux & $libstdcxx & $clang[..19]
+//'@if $x64 & $linux & $libstdcxx & $clang[..19]
 //' cmp byte ptr [rdi + 4], 0
 //' movzx ecx, [rsi + 4]
 //' je .L0
@@ -1623,7 +1623,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rsi + 4], 1
 //' mov byte ptr [rdi + 4], 0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' movzx eax, [rcx + 4]
 //' cmp al, [rdx + 4]
 //' jne .L0
@@ -1653,7 +1653,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rdx + 4], 0
 //' .L1:
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' movzx eax, [rsi + 4]
 //' cmp byte ptr [rdi + 4], 0
 //' je .L0
@@ -1678,7 +1678,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rsi + 4], 1
 //' mov byte ptr [rdi + 4], 0
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' cmp byte ptr [rdi + 4], 0
 //' movzx eax, [rsi + 4]
 //' je .L0
@@ -1703,7 +1703,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rsi + 4], 1
 //' mov byte ptr [rdi + 4], 0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movzx eax, [rdx + 4]
 //' cmp byte ptr [rcx + 4], 0
 //' je .L0
@@ -1728,13 +1728,13 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov byte ptr [rdx + 4], 1
 //' mov byte ptr [rcx + 4], 0
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, [rcx]
 //' mov r8, [rdx]
 //' mov [rcx], r8
 //' mov [rdx], rax
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' mov rax, [rdx]
 //' mov r8, [rcx]
 //' mov [rcx], rax
@@ -1745,7 +1745,7 @@ void std_optional_int32_swap(std::optional<int32_t>& a, std::optional<int32_t>& 
 }
 
 //'[option_int64_swap]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' movups xmm0, [rdi]
 //' movaps [rsp - 24], xmm0
 //' movups xmm0, [rsi]
@@ -1753,7 +1753,7 @@ void std_optional_int32_swap(std::optional<int32_t>& a, std::optional<int32_t>& 
 //' movaps xmm0, [rsp - 24]
 //' movups [rsi], xmm0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' sub rsp, 24
 //' movups xmm0, [rcx]
 //' movaps [rsp], xmm0
@@ -1763,19 +1763,19 @@ void std_optional_int32_swap(std::optional<int32_t>& a, std::optional<int32_t>& 
 //' movups [rdx], xmm0
 //' add rsp, 24
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' movdqu xmm0, [rdi]
 //' movdqu xmm1, [rsi]
 //' movups [rdi], xmm1
 //' movups [rsi], xmm0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rcx]
 //' movdqu xmm1, [rdx]
 //' movups [rcx], xmm1
 //' movups [rdx], xmm0
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' sub rsp, 56
 //' mov rax, [rip + __security_cookie]
 //' xor rax, rsp
@@ -1795,7 +1795,7 @@ void std_optional_int32_swap(std::optional<int32_t>& a, std::optional<int32_t>& 
 //' .L0:
 //' call __security_check_cookie
 //' int3
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movups xmm1, [rcx]
 //' movups [rcx], xmm0
@@ -1806,7 +1806,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 }
 
 //'[std_optional_int64_swap]
-//'@if $linux & $libcxx & $clang[19..]
+//'@if $x64 & $linux & $libcxx & $clang[19..]
 //' movzx eax, [rdi + 8]
 //' cmp al, [rsi + 8]
 //' jne .L0
@@ -1836,7 +1836,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rsi + 8], 0
 //' .L1:
 //' ret
-//'@if $linux & $libcxx & $clang[..19]
+//'@if $x64 & $linux & $libcxx & $clang[..19]
 //' movzx eax, [rdi + 8]
 //' test al, al
 //' setne cl
@@ -1870,7 +1870,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rsi + 8], 0
 //' .L2:
 //' ret
-//'@if $linux & $libstdcxx & $clang[19..]
+//'@if $x64 & $linux & $libstdcxx & $clang[19..]
 //' movzx ecx, [rsi + 8]
 //' cmp byte ptr [rdi + 8], 1
 //' jne .L0
@@ -1895,7 +1895,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rsi + 8], 1
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $linux & $libstdcxx & $clang[..19]
+//'@if $x64 & $linux & $libstdcxx & $clang[..19]
 //' cmp byte ptr [rdi + 8], 0
 //' movzx ecx, [rsi + 8]
 //' je .L0
@@ -1920,7 +1920,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rsi + 8], 1
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' movzx eax, [rcx + 8]
 //' cmp al, [rdx + 8]
 //' jne .L0
@@ -1950,7 +1950,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rdx + 8], 0
 //' .L1:
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' movzx eax, [rsi + 8]
 //' cmp byte ptr [rdi + 8], 0
 //' je .L0
@@ -1975,7 +1975,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rsi + 8], 1
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' cmp byte ptr [rdi + 8], 0
 //' movzx eax, [rsi + 8]
 //' je .L0
@@ -2000,7 +2000,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rsi + 8], 1
 //' mov byte ptr [rdi + 8], 0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movzx eax, [rdx + 8]
 //' cmp byte ptr [rcx + 8], 0
 //' je .L0
@@ -2025,7 +2025,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov byte ptr [rdx + 8], 1
 //' mov byte ptr [rcx + 8], 0
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' sub rsp, 56
 //' mov rax, [rip + __security_cookie]
 //' xor rax, rsp
@@ -2045,7 +2045,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' .L0:
 //' call __security_check_cookie
 //' int3
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movups xmm1, [rcx]
 //' movups [rcx], xmm0
@@ -2056,7 +2056,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 }
 
 //'[option_int64x2_swap]
-//'@if $linux & $clang
+//'@if $x64 & $linux & $clang
 //' mov rax, [rdi + 16]
 //' mov [rsp - 8], rax
 //' movups xmm0, [rdi]
@@ -2070,7 +2070,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' movaps xmm0, [rsp - 24]
 //' movups [rsi], xmm0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' sub rsp, 24
 //' mov rax, [rcx + 16]
 //' mov [rsp + 16], rax
@@ -2086,7 +2086,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' movups [rdx], xmm0
 //' add rsp, 24
 //' ret
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' sub rsp, 40
 //' movdqu xmm1, [rsi]
 //' movdqu xmm0, [rdi]
@@ -2106,7 +2106,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' ret
 //' .L0:
 //' call __stack_chk_fail@PLT
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' sub rsp, 40
 //' movdqu xmm1, [rdx]
 //' movdqu xmm0, [rcx]
@@ -2118,7 +2118,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' movups [rdx], xmm0
 //' add rsp, 40
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' sub rsp, 72
 //' mov rax, [rip + __security_cookie]
 //' xor rax, rsp
@@ -2144,7 +2144,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' .L0:
 //' call __security_check_cookie
 //' int3
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movups xmm3, [rcx]
 //' movsd xmm2, [rcx + 16]
@@ -2159,7 +2159,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 }
 
 //'[std_optional_int64x2_swap]
-//'@if $linux & $libcxx & $clang[23..]
+//'@if $x64 & $linux & $libcxx & $clang[23..]
 //' movzx eax, [rdi + 16]
 //' cmp al, [rsi + 16]
 //' jne .L0
@@ -2189,7 +2189,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 0
 //' .L1:
 //' ret
-//'@if $linux & $libcxx & $clang[19..23]
+//'@if $x64 & $linux & $libcxx & $clang[19..23]
 //' movzx eax, [rdi + 16]
 //' cmp al, [rsi + 16]
 //' jne .L0
@@ -2221,7 +2221,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 0
 //' .L1:
 //' ret
-//'@if $linux & $libcxx & $clang[..19]
+//'@if $x64 & $linux & $libcxx & $clang[..19]
 //' movzx eax, [rdi + 16]
 //' test al, al
 //' setne cl
@@ -2257,7 +2257,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 0
 //' .L2:
 //' ret
-//'@if $linux & $libstdcxx & $clang[23..]
+//'@if $x64 & $linux & $libstdcxx & $clang[23..]
 //' movzx eax, [rsi + 16]
 //' cmp byte ptr [rdi + 16], 1
 //' jne .L0
@@ -2283,7 +2283,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 1
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $libstdcxx & $clang[19..23]
+//'@if $x64 & $linux & $libstdcxx & $clang[19..23]
 //' movzx eax, [rsi + 16]
 //' cmp byte ptr [rdi + 16], 1
 //' jne .L0
@@ -2311,7 +2311,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 1
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $libstdcxx & $clang[..19]
+//'@if $x64 & $linux & $libstdcxx & $clang[..19]
 //' cmp byte ptr [rdi + 16], 0
 //' movzx eax, [rsi + 16]
 //' je .L0
@@ -2339,7 +2339,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' mov byte ptr [rsi + 16], 1
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' sub rsp, 24
 //' movzx eax, [rcx + 16]
 //' cmp al, [rdx + 16]
@@ -2375,7 +2375,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' .L1:
 //' add rsp, 24
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' movzx eax, [rsi + 16]
 //' cmp byte ptr [rdi + 16], 0
 //' je .L0
@@ -2401,7 +2401,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' movups [rsi], xmm0
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $gcc[14..15]
+//'@if $x64 & $linux & $gcc[14..15]
 //' cmp byte ptr [rdi + 16], 0
 //' movzx eax, [rsi + 16]
 //' je .L0
@@ -2427,7 +2427,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' movups [rsi], xmm0
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $linux & $gcc[..14]
+//'@if $x64 & $linux & $gcc[..14]
 //' cmp byte ptr [rdi + 16], 0
 //' movzx eax, [rsi + 16]
 //' je .L0
@@ -2453,7 +2453,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' movups [rsi], xmm2
 //' mov byte ptr [rdi + 16], 0
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' movzx eax, [rdx + 16]
 //' cmp byte ptr [rcx + 16], 0
 //' je .L0
@@ -2479,7 +2479,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' movups [rdx], xmm0
 //' mov byte ptr [rcx + 16], 0
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' sub rsp, 72
 //' mov rax, [rip + __security_cookie]
 //' xor rax, rsp
@@ -2505,7 +2505,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' .L0:
 //' call __security_check_cookie
 //' int3
-//'@if $msvc
+//'@if $x64 & $msvc
 //' movups xmm0, [rdx]
 //' movups xmm3, [rcx]
 //' movsd xmm2, [rcx + 16]
@@ -2520,7 +2520,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 }
 
 //'[option_find_index_of_value]
-//'@if $linux & $clang[16..]
+//'@if $x64 & $linux & $clang[16..]
 //' xor eax, eax
 //' test rsi, rsi
 //' je .L0
@@ -2539,7 +2539,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' .L2:
 //' mov dl, 1
 //' ret
-//'@if $linux & $clang[..16]
+//'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
 //' test rdx, rdx
 //' je .L0
@@ -2559,7 +2559,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov cl, 1
 //' mov [rax + 8], cl
 //' ret
-//'@if $windows & ($clang | $clang-cl)
+//'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
 //' test r8, r8
 //' je .L0
@@ -2579,7 +2579,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov cl, 1
 //' mov [rax + 8], cl
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' mov ecx, edx
 //' test rsi, rsi
 //' je .L0
@@ -2605,7 +2605,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov rax, r8
 //' mov rdx, r9
 //' ret
-//'@if $linux & $gcc[14..15]
+//'@if $x64 & $linux & $gcc[14..15]
 //' test rsi, rsi
 //' je .L0
 //' xor ecx, ecx
@@ -2630,7 +2630,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov rax, r8
 //' mov rdx, r9
 //' ret
-//'@if $linux & $gcc[..14]
+//'@if $x64 & $linux & $gcc[..14]
 //' test rsi, rsi
 //' je .L0
 //' xor eax, eax
@@ -2652,7 +2652,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' movzx edx, al
 //' mov rax, rcx
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' mov rax, rcx
 //' test r8, r8
 //' je .L0
@@ -2671,7 +2671,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' .L0:
 //' mov byte ptr [rax + 8], 0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' xor eax, eax
 //' test r8, r8
 //' je .L0
@@ -2700,7 +2700,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 }
 
 //'[std_optional_find_index_of_value]
-//'@if $linux & $libcxx & $clang
+//'@if $x64 & $linux & $libcxx & $clang
 //' test rsi, rsi
 //' je .L0
 //' xor eax, eax
@@ -2717,7 +2717,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' .L2:
 //' mov dl, 1
 //' ret
-//'@if $linux & $libstdcxx & $clang
+//'@if $x64 & $linux & $libstdcxx & $clang
 //' xor eax, eax
 //' test rsi, rsi
 //' je .L0
@@ -2736,7 +2736,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' .L2:
 //' mov dl, 1
 //' ret
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' mov rax, rcx
 //' test r8, r8
 //' je .L0
@@ -2757,7 +2757,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov cl, 1
 //' mov [rax + 8], cl
 //' ret
-//'@if $clang-cl
+//'@if $x64 & $clang-cl
 //' mov rax, rcx
 //' test r8, r8
 //' je .L0
@@ -2777,7 +2777,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov cl, 1
 //' mov [rax + 8], cl
 //' ret
-//'@if $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[15..]
 //' test rsi, rsi
 //' je .L0
 //' xor eax, eax
@@ -2800,7 +2800,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov rax, [rsp - 24]
 //' mov rdx, [rsp - 16]
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $x64 & $linux & $gcc[..15]
 //' test rsi, rsi
 //' je .L0
 //' xor eax, eax
@@ -2824,7 +2824,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov rax, [rsp - 24]
 //' mov rdx, [rsp - 16]
 //' ret
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' mov rax, rcx
 //' test r8, r8
 //' je .L0
@@ -2844,7 +2844,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' pxor xmm0, xmm0
 //' movups [rax], xmm0
 //' ret
-//'@if $msvc
+//'@if $x64 & $msvc
 //' xor eax, eax
 //' test r8, r8
 //' je .L0
@@ -2873,7 +2873,7 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 }
 
 //'[opt_option_int32_value]
-//'@if $linux & $clang[17..]
+//'@if $x64 & $linux & $clang[17..]
 //' cmp byte ptr [rdi + 4], 0
 //' je .L0
 //' mov eax, [rdi]
@@ -2881,7 +2881,7 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 //' .L0:
 //' push rax
 //' call _ZN3opt4impl16throw_bad_optionEv
-//'@if $linux & $clang[..17]
+//'@if $x64 & $linux & $clang[..17]
 //' push rax
 //' cmp byte ptr [rdi + 4], 0
 //' je .L0
@@ -2890,7 +2890,7 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 //' ret
 //' .L0:
 //' call _ZN3opt4impl16throw_bad_optionEv
-//'@if $windows & $clang
+//'@if $x64 & $windows & $clang
 //' sub rsp, 40
 //' cmp byte ptr [rcx + 4], 0
 //' je .L0
@@ -2900,11 +2900,11 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 //' .L0:
 //' call _ZN3opt4impl16throw_bad_optionEv
 //' int3
-//'@if $linux & $gcc
+//'@if $x64 & $linux & $gcc
 //' .L0:
 //' push rax
 //' call _ZN3opt4impl16throw_bad_optionEv
-//'@if $windows & $gcc
+//'@if $x64 & $windows & $gcc
 //' sub rsp, 40
 //' cmp byte ptr [rcx + 4], 0
 //' je .L0
@@ -2914,7 +2914,7 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 //' .L0:
 //' call _ZN3opt4impl16throw_bad_optionEv
 //' nop
-//'@if $msvc | $clang-cl
+//'@if $x64 & $msvc | $clang-cl
 //' sub rsp, 40
 //' cmp byte ptr [rcx + 4], 0
 //' je .L0
