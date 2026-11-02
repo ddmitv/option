@@ -298,7 +298,7 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cmp r8b, al
 //' sete al
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[16..]
 //' sub sp, sp, 16
 //' ubfx x2, x0, 16, 8
 //' str w1, [sp]
@@ -315,6 +315,27 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cset w0, eq
 //' .L0:
 //' add sp, sp, 16
+//' ret
+//'@if $arm64 & $gcc[..16]
+//' sub sp, sp, 16
+//' ubfx x2, x0, 16, 8
+//' str w1, [sp]
+//' ubfx x1, x1, 16, 8
+//' str w0, [sp, 8]
+//' mov w0, 0
+//' cmp w1, w2
+//' beq .L0
+//' .L1:
+//' add sp, sp, 16
+//' ret
+//' .L0:
+//' mov w0, 1
+//' tbz x1, 0, .L1
+//' ldrsh w0, [sp]
+//' ldrsh w1, [sp, 8]
+//' add sp, sp, 16
+//' cmp w1, w0
+//' cset w0, eq
 //' ret
 bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b) {
     return a == b;
@@ -635,7 +656,7 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' cmp r8b, al
 //' sete al
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[16..]
 //' sub sp, sp, 16
 //' ubfx x2, x0, 32, 8
 //' stp x1, x0, [sp]
@@ -651,6 +672,26 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' cset w0, eq
 //' .L0:
 //' add sp, sp, 16
+//' ret
+//'@if $arm64 & $gcc[..16]
+//' sub sp, sp, 16
+//' ubfx x2, x0, 32, 8
+//' stp x1, x0, [sp]
+//' ubfx x1, x1, 32, 8
+//' mov w0, 0
+//' cmp w1, w2
+//' beq .L0
+//' .L1:
+//' add sp, sp, 16
+//' ret
+//' .L0:
+//' mov w0, 1
+//' tbz x1, 0, .L1
+//' ldr w0, [sp]
+//' ldr w1, [sp, 8]
+//' add sp, sp, 16
+//' cmp w1, w0
+//' cset w0, eq
 //' ret
 bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b) {
     return a == b;
@@ -888,7 +929,7 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' cmp r8b, al
 //' sete al
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[16..]
 //' ldrb w3, [x0, 8]
 //' ldrb w2, [x1, 8]
 //' cmp w2, w3
@@ -904,6 +945,24 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' ret
 //' .L0:
 //' mov w3, 0
+//' mov w0, w3
+//' ret
+//'@if $arm64 & $gcc[..16]
+//' ldrb w3, [x0, 8]
+//' ldrb w2, [x1, 8]
+//' cmp w2, w3
+//' beq .L0
+//' mov w3, 0
+//' .L1:
+//' mov w0, w3
+//' ret
+//' .L0:
+//' mov w3, 1
+//' tbz x2, 0, .L1
+//' ldr x2, [x0]
+//' ldr x0, [x1]
+//' cmp x2, x0
+//' cset w3, eq
 //' mov w0, w3
 //' ret
 bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::optional<int64_t>& b) {

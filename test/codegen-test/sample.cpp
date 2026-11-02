@@ -3058,7 +3058,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov rax, rcx
 //' mov byte ptr [rcx + 8], 1
 //' ret
-//'@if $arm64
+//'@if $arm64 % $gcc[16..]
 //' cbz x1, .L0
 //' neg x6, x0, lsr 2
 //' mov x7, 5
@@ -3185,6 +3185,143 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' b .L13
 //' .L6:
 //' mov x7, 2
+//' b .L8
+//'@if $arm64 % $gcc[..16]
+//' cbz x1, .L0
+//' neg x6, x0, lsr 2
+//' mov x7, 5
+//' and x5, x6, 3
+//' sub x4, x1, 1
+//' add x3, x5, 4
+//' cmp x3, x7
+//' csel x3, x3, x7, cs
+//' cmp x4, x3
+//' bcc .L1
+//' cbz x5, .L2
+//' ldr w3, [x0]
+//' cmp w2, w3
+//' beq .L3
+//' tbz x6, 1, .L4
+//' ldr w3, [x0, 4]
+//' cmp w2, w3
+//' beq .L5
+//' cmp x5, 3
+//' bne .L6
+//' ldr w3, [x0, 8]
+//' cmp w2, w3
+//' beq .L7
+//' fmov d27, x5
+//' .L8:
+//' adrp x3, .L9
+//' sub x7, x1, x5
+//' dup v30.2d, v27.d[0]
+//' adrp x4, .L10
+//' ldr q31, [x3, :lo12:.L9]
+//' dup v29.4s, w2
+//' ldr q28, [x4, :lo12:.L10]
+//' add x5, x0, x5, lsl 2
+//' add v30.2d, v30.2d, v31.2d
+//' lsr x6, x7, 2
+//' mov x3, 0
+//' b .L11
+//' .L12:
+//' add v30.2d, v30.2d, v28.2d
+//' cmp x6, x3
+//' beq .L13
+//' .L11:
+//' lsl x4, x3, 4
+//' add x3, x3, 1
+//' ldr q31, [x5, x4]
+//' cmeq v31.4s, v31.4s, v29.4s
+//' umaxp v31.4s, v31.4s, v31.4s
+//' fmov x4, d31
+//' cbz x4, .L12
+//' fmov x3, d30
+//' .L14:
+//' ldr w4, [x0, x3, lsl 2]
+//' cmp w2, w4
+//' beq .L15
+//' add x4, x3, 1
+//' cmp x4, x1
+//' bcs .L0
+//' add x0, x0, x3, lsl 2
+//' ldr w5, [x0, 4]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 2
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 8]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 3
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 12]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 4
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 16]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 5
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 20]
+//' cmp w2, w5
+//' beq .L16
+//' add x3, x3, 6
+//' cmp x1, x3
+//' bls .L0
+//' ldr w0, [x0, 24]
+//' cmp w2, w0
+//' beq .L15
+//' .L0:
+//' mov w3, 0
+//' .L17:
+//' mov x0, x8
+//' and x1, x3, 1
+//' ret
+//' .L16:
+//' mov x3, x4
+//' .L15:
+//' mov x8, x3
+//' mov w3, 1
+//' mov x0, x8
+//' and x1, x3, 1
+//' ret
+//' .L13:
+//' mov w3, 0
+//' tst x7, 3
+//' beq .L17
+//' fmov x3, d27
+//' and x7, x7, -4
+//' add x3, x7, x3
+//' b .L14
+//' .L2:
+//' movi v27.2d, 0
+//' b .L8
+//' .L1:
+//' mov x3, 0
+//' b .L14
+//' .L7:
+//' mov x3, 2
+//' b .L15
+//' .L3:
+//' mov x3, 0
+//' b .L15
+//' .L4:
+//' mov x3, 1
+//' fmov d27, x3
+//' b .L8
+//' .L5:
+//' mov x3, 1
+//' b .L15
+//' .L6:
+//' mov x3, 2
+//' fmov d27, x3
 //' b .L8
 opt::option<size_t> option_find_index_of_value(const int* array, size_t size, int value) {
     for (size_t i = 0; i < size; ++i) {
@@ -3359,7 +3496,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov rax, rcx
 //' mov byte ptr [rcx + 8], 1
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[16..]
 //' sub sp, sp, 16
 //' cbz x1, .L0
 //' neg x6, x0, lsr 2
@@ -3488,6 +3625,143 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' b .L14
 //' .L6:
 //' mov x6, 2
+//' b .L8
+//'@if $arm64 & $gcc[..16]
+//' sub sp, sp, 16
+//' cbz x1, .L0
+//' neg x6, x0, lsr 2
+//' mov x7, 5
+//' and x5, x6, 3
+//' sub x4, x1, 1
+//' add x3, x5, 4
+//' cmp x3, x7
+//' csel x3, x3, x7, cs
+//' cmp x4, x3
+//' bcc .L1
+//' cbz x5, .L2
+//' ldr w3, [x0]
+//' cmp w2, w3
+//' beq .L3
+//' tbz x6, 1, .L4
+//' ldr w3, [x0, 4]
+//' cmp w2, w3
+//' beq .L5
+//' cmp x5, 3
+//' bne .L6
+//' ldr w3, [x0, 8]
+//' cmp w2, w3
+//' beq .L7
+//' fmov d27, x5
+//' .L8:
+//' adrp x3, .L9
+//' sub x7, x1, x5
+//' dup v30.2d, v27.d[0]
+//' adrp x4, .L10
+//' ldr q31, [x3, :lo12:.L9]
+//' dup v29.4s, w2
+//' ldr q28, [x4, :lo12:.L10]
+//' add x5, x0, x5, lsl 2
+//' add v30.2d, v30.2d, v31.2d
+//' lsr x6, x7, 2
+//' mov x3, 0
+//' b .L11
+//' .L12:
+//' add v30.2d, v30.2d, v28.2d
+//' cmp x6, x3
+//' beq .L13
+//' .L11:
+//' lsl x4, x3, 4
+//' add x3, x3, 1
+//' ldr q31, [x5, x4]
+//' cmeq v31.4s, v31.4s, v29.4s
+//' umaxp v31.4s, v31.4s, v31.4s
+//' fmov x4, d31
+//' cbz x4, .L12
+//' fmov x3, d30
+//' .L14:
+//' ldr w4, [x0, x3, lsl 2]
+//' cmp w2, w4
+//' beq .L15
+//' add x4, x3, 1
+//' cmp x4, x1
+//' bcs .L0
+//' add x0, x0, x3, lsl 2
+//' ldr w5, [x0, 4]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 2
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 8]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 3
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 12]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 4
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 16]
+//' cmp w2, w5
+//' beq .L16
+//' add x4, x3, 5
+//' cmp x1, x4
+//' bls .L0
+//' ldr w5, [x0, 20]
+//' cmp w2, w5
+//' beq .L16
+//' add x3, x3, 6
+//' cmp x1, x3
+//' bls .L0
+//' ldr w0, [x0, 24]
+//' cmp w2, w0
+//' beq .L15
+//' .L0:
+//' stp xzr, xzr, [sp]
+//' ldp x0, x1, [sp]
+//' add sp, sp, 16
+//' ret
+//' .L16:
+//' mov x3, x4
+//' .L15:
+//' mov w0, 1
+//' str x3, [sp]
+//' strb w0, [sp, 8]
+//' ldp x0, x1, [sp]
+//' add sp, sp, 16
+//' ret
+//' .L13:
+//' tst x7, 3
+//' beq .L0
+//' fmov x3, d27
+//' and x7, x7, -4
+//' add x3, x7, x3
+//' b .L14
+//' .L2:
+//' movi v27.2d, 0
+//' b .L8
+//' .L1:
+//' mov x3, 0
+//' b .L14
+//' .L7:
+//' mov x3, 2
+//' b .L15
+//' .L3:
+//' mov x3, 0
+//' b .L15
+//' .L4:
+//' mov x3, 1
+//' fmov d27, x3
+//' b .L8
+//' .L5:
+//' mov x3, 1
+//' b .L15
+//' .L6:
+//' mov x3, 2
+//' fmov d27, x3
 //' b .L8
 std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t size, int value) {
     for (size_t i = 0; i < size; ++i) {
