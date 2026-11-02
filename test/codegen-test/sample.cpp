@@ -2103,10 +2103,8 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' sub rax, qword ptr fs:40
 //' jne .L0
 //' add rsp, 40
-//' .cfi_remember_state
 //' ret
 //' .L0:
-//' .cfi_restore_state
 //' call __stack_chk_fail@PLT
 //'@if $windows & $gcc
 //' sub rsp, 40

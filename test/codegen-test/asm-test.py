@@ -11,8 +11,8 @@ TARGET_ASM_PREFIX = "//'"
 cxx_compiler_id: 'CxxCompilerId | None' = None
 
 def main() -> None:
-    global cxx_compiler_id
-    raw_compiler_id, raw_frontend_compiler_id, compiler_version, stdlib_id, raw_stdlib_version, target_arch, build_config, target_os = sys.argv[1].strip().split(';')
+    global cxx_compiler_id, target_arch
+    raw_compiler_id, raw_frontend_compiler_id, compiler_version, stdlib_id, raw_stdlib_version, raw_target_arch, build_config, target_os = sys.argv[1].strip().split(';')
 
     print(f'''Info:
     Build Configuration: {build_config}
@@ -21,12 +21,17 @@ def main() -> None:
     Compiler Version: {compiler_version}
     C++ Standard Library: {stdlib_id}
     C++ Standard Library Version: {raw_stdlib_version}
-    Target Arch: {target_arch}
+    Target Arch: {raw_target_arch}
     Target OS: {target_os}''', flush=True)
 
     if build_config != 'Release':
         print(f'Skipping codegen test in {build_config} configuration...')
         return
+    
+    try:
+        target_arch = TargetArch(raw_target_arch.strip().lower())
+    except ValueError:
+        assert False, f"Unknown Target Arch: \"{raw_target_arch}\""
 
     cxx_compiler_id = get_cxx_compiler_id(raw_compiler_id, raw_frontend_compiler_id)
     obj_files: list[str] = sys.argv[2].split(';')
@@ -83,6 +88,23 @@ class CxxCompilerId(enum.Enum):
     GCC = 3
     CLANG_CL = 4
 
+class TargetArch(enum.Enum):
+    UNKNOWN = 'unknown'
+    X64 = 'x64'
+    X86 = 'x86'
+    ARM64 = 'arm64'
+    ARM64EC = 'arm64ec'
+    ARM = 'arm'
+    RISCV = 'riscv'
+    PPC64 = 'ppc64'
+
+    def is_aarch64(self) -> bool:
+        return self is TargetArch.ARM64 or self is TargetArch.ARM64EC
+    def is_x86_family(self) -> bool:
+        return self is TargetArch.X64 or self is TargetArch.X86
+
+target_arch: TargetArch = TargetArch.UNKNOWN
+
 @dataclass(frozen=True)
 class SourceLine:
     number: int
@@ -111,8 +133,9 @@ class Lexer:
 def strip_asm_comments(line: str) -> str:
     if cxx_compiler_id == CxxCompilerId.MSVC:
         return line.partition(';')[0].strip()
-    else:
-        return line.partition('#')[0].strip()
+    elif target_arch.is_aarch64() and cxx_compiler_id in (CxxCompilerId.GCC, CxxCompilerId.CLANG):
+        return line.partition('//')[0].strip()
+    return line.partition('#')[0].strip()
 
 def get_cxx_compiler_id(raw_id: str, raw_frontend_id: str) -> CxxCompilerId:
     # https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
@@ -214,8 +237,12 @@ REMOVE_INSTRUCTIONS: set[str] = {
     '.def', '.scl', '.endef', '.ascii', '.seh_proc', '.loc', '.seh_stackalloc', '.seh_endprologue', '.seh_startepilogue',
     '.seh_endepilogue', '.seh_endproc', '.seh_pushreg', '.file', '.asciz', '.short', '.long', '.byte',
     '.linkonce', '.align', '.cfi_def_cfa_offset', '.string', '.zero', '.comm', '.local',
-
     'endbr64', 'endbr32',
+    # AArch64 directives
+    '.hword', '.word', '.xword', '.quad', '.syntax', '.variant_pcs', '.inst',
+    '.cfi_offset', '.cfi_restore', '.cfi_remember_state', '.cfi_restore_state',
+    '.cfi_def_cfa', '.cfi_def_cfa_register', '.cfi_adjust_cfa_offset',
+    '.cfi_escape', '.cfi_personality', '.cfi_lsda',
 }
 
 def normalize_asm(insts: list[str]) -> list[str]:
@@ -223,6 +250,11 @@ def normalize_asm(insts: list[str]) -> list[str]:
     for inst in insts:
         new_inst = inst.replace('\t', ' ')
         if new_inst.partition(' ')[0] in REMOVE_INSTRUCTIONS:
+            continue
+
+        if target_arch.is_aarch64():
+            new_inst = new_inst.replace('#', '')
+            new_insts.append(new_inst)
             continue
 
         if cxx_compiler_id == CxxCompilerId.MSVC:
@@ -532,6 +564,14 @@ def get_expression_symbols(compiler_version_str: str, stdlib_id: str, raw_stdlib
 
     symbols['$ms-abi'] = target_os == 'Windows'
     symbols['$sysv-abi'] = target_os != 'Windows'
+
+    symbols['$arm64'] = target_arch == TargetArch.ARM64
+    symbols['$arm64ec'] = target_arch == TargetArch.ARM64EC
+    symbols['$x64'] = target_arch == TargetArch.X64
+    symbols['$x86'] = target_arch == TargetArch.X86
+    symbols['$arm'] = target_arch == TargetArch.ARM
+    symbols['$riscv'] = target_arch == TargetArch.RISCV
+    symbols['$ppc64'] = target_arch == TargetArch.PPC64
 
     return symbols
 
