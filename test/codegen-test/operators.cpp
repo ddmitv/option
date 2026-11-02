@@ -1324,7 +1324,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' setg al
 //' .L0:
 //' ret
-//'@if $linux & $gcc[..15]
+//'@if $linux & $gcc[14..15]
 //' mov edx, edi
 //' mov eax, esi
 //' mov [rsp - 8], edi
@@ -1337,6 +1337,24 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' movzx eax, [rsp - 8]
 //' cmp [rsp - 16], ax
 //' setg al
+//' .L0:
+//' ret
+//'@if $linux & $gcc[..14]
+//' mov edx, edi
+//' mov eax, esi
+//' mov [rsp - 8], edi
+//' shr eax, 16
+//' and edx, 16711680
+//' mov [rsp - 16], esi
+//' je .L0
+//' test al, al
+//' je .L0
+//' movsx edx, [rsp - 16]
+//' movsx ecx, [rsp - 8]
+//' cmp ecx, edx
+//' mov edx, 0
+//' setl al
+//' cmove eax, edx
 //' .L0:
 //' ret
 //'@if $windows & $gcc
@@ -1671,7 +1689,7 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' setl al
 //' or al, r8b
 //' ret
-//'@if $linux & $gcc
+//'@if $linux & $gcc[14..]
 //' mov rdx, rdi
 //' mov rax, rsi
 //' mov [rsp - 8], rdi
@@ -1684,6 +1702,24 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' je .L0
 //' mov eax, [rsp - 16]
 //' cmp [rsp - 8], eax
+//' setl al
+//' .L0:
+//' ret
+//'@if $linux & $gcc[..14]
+//' mov rdx, rdi
+//' mov rax, rsi
+//' mov [rsp - 8], rdi
+//' shr rdx, 32
+//' mov [rsp - 16], rsi
+//' shr rax, 32
+//' test dl, dl
+//' je .L0
+//' test al, al
+//' je .L0
+//' mov ecx, [rsp - 16]
+//' xor eax, eax
+//' cmp [rsp - 8], ecx
+//' je .L0
 //' setl al
 //' .L0:
 //' ret
