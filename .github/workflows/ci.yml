@@ -57,7 +57,7 @@ jobs:
         run: |
           packages='g++'
           if [[ '${{ matrix.stdlib }}' == 'libc++' ]]; then
-            packages+=' libc++-${{ matrix.llvm }}-dev libc++abi-${{ matrix.llvm }}-dev'
+            packages+=' libc++-${{ matrix.llvm }}-dev libc++abi-${{ matrix.llvm }}-dev libunwind-${{ matrix.llvm }}-dev'
           fi
           if [[ '${{ matrix.arch }}' == 'x64' ]]; then
             sudo dpkg --add-architecture i386 # needed for the -m32 build
