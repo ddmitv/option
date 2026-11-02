@@ -3058,7 +3058,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov rax, rcx
 //' mov byte ptr [rcx + 8], 1
 //' ret
-//'@if $arm64 % $gcc[16..]
+//'@if $arm64 & $gcc[16..]
 //' cbz x1, .L0
 //' neg x6, x0, lsr 2
 //' mov x7, 5
@@ -3186,7 +3186,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' .L6:
 //' mov x7, 2
 //' b .L8
-//'@if $arm64 % $gcc[..16]
+//'@if $arm64 & $gcc[..16]
 //' cbz x1, .L0
 //' neg x6, x0, lsr 2
 //' mov x7, 5
