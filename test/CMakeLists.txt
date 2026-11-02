@@ -94,16 +94,19 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wconversion -Warith-conversion -Wfloat-conversion -Wfloat-equal -Wenum-conversion -Wsign-promo
         -Wconditionally-supported -Wdeprecated-copy-dtor -Wdeprecated-enum-enum-conversion -Wdeprecated-enum-float-conversion
         -Winit-list-lifetime -Wnoexcept -Wnoexcept-type -Wmissing-template-keyword -Wmissing-requires
-        -Wchanges-meaning -Wstrict-overflow=5 -Wstringop-overflow=4 -Wstringop-overread -Wundef -Wpragmas -Wunknown-pragmas
+        -Wstrict-overflow=5 -Wstringop-overflow=4 -Wstringop-overread -Wundef -Wpragmas -Wunknown-pragmas
         -Wint-in-bool-context -Wlogical-op -Wtautological-compare -Wtype-limits -Wduplicated-branches -Wduplicated-cond
         -Wnull-dereference -Wdangling-pointer=2 -Wuse-after-free=3 -Warray-bounds=2 -Wmaybe-uninitialized -Wuninitialized
         -Wmismatched-tags -Wredundant-tags -Wignored-attributes -Wignored-qualifiers
-        -Wodr -Wlto-type-mismatch -Winvalid-constexpr -Wmultistatement-macros -Wunused -Wunused-const-variable=2
+        -Wodr -Wlto-type-mismatch -Wmultistatement-macros -Wunused -Wunused-const-variable=2
         -fanalyzer
     )
+    # the following only available since gcc-N otherwise older gcc makes an "unrecognized command-line option" error
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
-        # only available since gcc 15 otherwise older gcc makes an "unrecognized command-line option" error
         target_compile_options(option-header-test PRIVATE -Wtemplate-body)
+    endif()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
+        target_compile_options(option-header-test PRIVATE -Wchanges-meaning -Winvalid-constexpr)
     endif()
 endif()
 
