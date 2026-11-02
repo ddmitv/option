@@ -156,6 +156,19 @@
 //' orr w0, w0, w2
 //' and w0, w0, w1
 //' ret
+//'@if $arm64 & $clang
+//' ubfx x8, x0, 16, 8
+//' lsr w9, w1, 16
+//' and w10, w0, 0xffff
+//' lsr x11, x0, 16
+//' cmp w8, w9, uxtb
+//' cset w8, eq
+//' cmp w10, w1, uxth
+//' eor w9, w11, 0x1
+//' cset w10, eq
+//' orr w9, w10, w9
+//' and w0, w8, w9
+//' ret
 bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
     return a == b;
 }
@@ -370,6 +383,18 @@ bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cmp w1, w0
 //' cset w0, eq
 //' ret
+//'@if $arm64 & $clang
+//' ubfx x8, x0, 16, 8
+//' lsr w9, w1, 16
+//' and w10, w0, 0xffff
+//' lsr x11, x0, 16
+//' cmp w8, w9, uxtb
+//' cset w8, eq
+//' cmp w10, w1, uxth
+//' cset w9, eq
+//' tst w8, w11
+//' csel w0, w9, w8, ne
+//' ret
 bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b) {
     return a == b;
 }
@@ -526,6 +551,18 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' eor w1, w1, 1
 //' orr w0, w2, w0
 //' and w0, w0, w1
+//' ret
+//'@if $arm64 & $clang
+//' ubfx x8, x0, 32, 8
+//' lsr x9, x1, 32
+//' lsr x10, x0, 32
+//' cmp w8, w9, uxtb
+//' eor w9, w10, 0x1
+//' cset w8, eq
+//' cmp w0, w1
+//' cset w10, eq
+//' orr w9, w10, w9
+//' and w0, w8, w9
 //' ret
 bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
     return a == b;
@@ -757,6 +794,17 @@ bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' cmp w1, w0
 //' cset w0, eq
 //' ret
+//'@if $arm64 & $clang
+//' ubfx x8, x0, 32, 8
+//' lsr x9, x1, 32
+//' lsr x10, x0, 32
+//' cmp w8, w9, uxtb
+//' cset w8, eq
+//' cmp w0, w1
+//' cset w9, eq
+//' tst w8, w10
+//' csel w0, w9, w8, ne
+//' ret
 bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b) {
     return a == b;
 }
@@ -872,6 +920,17 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' eor w1, w1, 1
 //' orr w0, w0, w2
 //' and w0, w0, w1
+//' ret
+//'@if $arm64 & $clang
+//' ldrb w8, [x0, 8]
+//' ldr x9, [x0]
+//' ldr x10, [x1]
+//' ldrb w11, [x1, 8]
+//' eor w12, w8, 0x1
+//' cmp x9, x10
+//' csinc w9, w12, wzr, ne
+//' cmp w8, w11
+//' csel w0, wzr, w9, ne
 //' ret
 bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int64_t>& b) {
     return a == b;
@@ -1076,6 +1135,18 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' cmp x2, x0
 //' cset w0, eq
 //' ret
+//'@if $arm64 & $clang
+//' ldrb w8, [x0, 8]
+//' ldrb w9, [x1, 8]
+//' ldr x10, [x0]
+//' ldr x11, [x1]
+//' cmp w8, w9
+//' cset w9, eq
+//' cmp x10, x11
+//' cset w10, eq
+//' tst w9, w8
+//' csel w0, w10, w9, ne
+//' ret
 bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::optional<int64_t>& b) {
     return a == b;
 }
@@ -1162,11 +1233,16 @@ bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::option
 //' shr rcx, 32
 //' and al, cl
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc
 //' cmp w1, w0
 //' ubfx x0, x0, 32, 8
 //' cset w1, eq
 //' and w0, w1, w0
+//' ret
+//'@if $arm64 & $clang
+//' ubfx x8, x0, 32, 1
+//' cmp w1, w0
+//' csel w0, wzr, w8, ne
 //' ret
 bool option_int32_equal_with_value(opt::option<int32_t> a, int32_t b) {
     return a == b;
@@ -1271,6 +1347,12 @@ bool option_int32_equal_with_value(opt::option<int32_t> a, int32_t b) {
 //' .L0:
 //' add sp, sp, 16
 //' ret
+//'@if $arm64 & $clang
+//' lsr x8, x0, 32
+//' cmp w1, w0
+//' cset w9, eq
+//' and w0, w8, w9
+//' ret
 bool std_optional_int32_equal_with_value(std::optional<int32_t> a, int32_t b) {
     return a == b;
 }
@@ -1298,12 +1380,19 @@ bool std_optional_int32_equal_with_value(std::optional<int32_t> a, int32_t b) {
 //' sete al
 //' and al, [rcx + 8]
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc
 //' ldr x2, [x0]
 //' ldrb w0, [x0, 8]
 //' cmp x2, x1
 //' cset w1, eq
 //' and w0, w1, w0
+//' ret
+//'@if $arm64 & $clang
+//' ldr x8, [x0]
+//' ldrb w9, [x0, 8]
+//' cmp x8, x1
+//' cset w8, eq
+//' and w0, w8, w9
 //' ret
 bool option_int64_equal_with_value(const opt::option<int64_t>& a, int64_t b) {
     return a == b;
@@ -1378,6 +1467,12 @@ bool option_int64_equal_with_value(const opt::option<int64_t>& a, int64_t b) {
 //' cmp x0, x1
 //' cset w0, eq
 //' .L0:
+//' ret
+//'@if $arm64 & $clang
+//' ldr x8, [x0]
+//' ldrb w9, [x0, 8]
+//' cmp x8, x1
+//' csel w0, wzr, w9, ne
 //' ret
 bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_t b) {
     return a == b;
@@ -1556,6 +1651,14 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 //' cmp w1, w2, sxth
 //' cset w0, gt
 //' .L0:
+//' ret
+//'@if $arm64 & $clang
+//' sxth w8, w0
+//' sxth w9, w1
+//' tst x0, 0x10000
+//' ccmp w8, w9, 8, ne
+//' cset w8, lt
+//' and w0, w8, w1, lsr 16
 //' ret
 bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
     return a < b;
@@ -1863,6 +1966,14 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' mov w0, w1
 //' add sp, sp, 16
 //' ret
+//'@if $arm64 & $clang
+//' sxth w8, w0
+//' sxth w9, w1
+//' tst x0, 0x10000
+//' ccmp w8, w9, 8, ne
+//' cset w8, lt
+//' and w0, w8, w1, lsr 16
+//' ret
 bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b) {
     return a < b;
 }
@@ -2030,6 +2141,13 @@ bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b)
 //' cmp w2, w1
 //' cset w0, lt
 //' .L0:
+//' ret
+//'@if $arm64 & $clang
+//' tst x0, 0x100000000
+//' lsr x8, x1, 32
+//' ccmp w0, w1, 8, ne
+//' cset w9, lt
+//' and w0, w8, w9
 //' ret
 bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
     return a < b;
@@ -2315,6 +2433,13 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' .L0:
 //' mov w0, w1
 //' add sp, sp, 16
+//' ret
+//'@if $arm64 & $clang
+//' tst x0, 0x100000000
+//' lsr x8, x1, 32
+//' ccmp w0, w1, 8, ne
+//' cset w9, lt
+//' and w0, w8, w9
 //' ret
 bool std_optional_int32_less(std::optional<int32_t> a, std::optional<int32_t> b) {
     return a < b;
