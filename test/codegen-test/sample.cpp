@@ -347,9 +347,15 @@ std::optional<bool> std_optional_bool_empty() {
 //'@if $x64 & $clang
 //' xor eax, eax
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' sub sp, sp, 16
 //' mov x0, 0
+//' add sp, sp, 16
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' sub sp, sp, 16
+//' strb wzr, [sp, 12]
+//' ldr x0, [sp, 8]
 //' add sp, sp, 16
 //' ret
 std::optional<int32_t> std_optional_int32_empty() {
@@ -391,10 +397,16 @@ std::optional<int32_t> std_optional_int32_empty() {
 //' mov byte ptr [rcx], 0
 //' mov byte ptr [rcx + 8], 0
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' sub sp, sp, 16
 //' mov x0, 0
 //' mov x1, 0
+//' add sp, sp, 16
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' sub sp, sp, 16
+//' strb wzr, [sp, 8]
+//' ldp x0, x1, [sp]
 //' add sp, sp, 16
 //' ret
 std::optional<int64_t> std_optional_int64_empty() {
@@ -490,9 +502,15 @@ opt::option<int32_t> option_int32_default() {
 //' xor eax, eax
 //' add rsp, 24
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' sub sp, sp, 16
 //' mov x0, 0
+//' add sp, sp, 16
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' sub sp, sp, 16
+//' strb wzr, [sp, 12]
+//' ldr x0, [sp, 8]
 //' add sp, sp, 16
 //' ret
 std::optional<int32_t> std_optional_int32_default() {
@@ -566,10 +584,16 @@ opt::option<int64_t> option_int64_default() {
 //' mov rax, rcx
 //' movups [rcx], xmm0
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' sub sp, sp, 16
 //' mov x0, 0
 //' mov x1, 0
+//' add sp, sp, 16
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' sub sp, sp, 16
+//' strb wzr, [sp, 8]
+//' ldp x0, x1, [sp]
 //' add sp, sp, 16
 //' ret
 std::optional<int64_t> std_optional_int64_default() {
@@ -1377,11 +1401,14 @@ opt::option<std::array<uint8_t, 64>> option_uint8x64_default() {
 //' mov byte ptr [rcx + 64], 0
 //' mov rax, rcx
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' movi v31.4s, 0
 //' strb wzr, [x8, 64]
 //' stp q31, q31, [x8]
 //' stp q31, q31, [x8, 32]
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' strb wzr, [x8, 64]
 //' ret
 std::optional<std::array<uint8_t, 64>> std_optional_uint8x64_default() {
     return {};
@@ -2465,7 +2492,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' movups [rdx], xmm3
 //' movsd [rdx + 16], xmm2
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' sub sp, sp, 48
 //' adrp x2, :got:__stack_chk_guard
 //' ldr x2, [x2, :got_lo12:__stack_chk_guard]
@@ -2482,6 +2509,35 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' str x3, [x0, 16]
 //' adrp x0, :got:__stack_chk_guard
 //' ldr x0, [x0, :got_lo12:__stack_chk_guard]
+//' stp x4, x5, [sp]
+//' stp x4, x5, [x1]
+//' str x2, [x1, 16]
+//' str x2, [sp, 16]
+//' ldr x2, [sp, 24]
+//' ldr x1, [x0]
+//' subs x2, x2, x1
+//' mov x1, 0
+//' bne .L0
+//' ldp x29, x30, [sp, 32]
+//' add sp, sp, 48
+//' ret
+//' .L0:
+//' bl __stack_chk_fail
+//'@if $arm64 & $gcc[..15]
+//' sub sp, sp, 48
+//' adrp x2, :got:__stack_chk_guard;ldr x2, [x2, :got_lo12:__stack_chk_guard]
+//' stp x29, x30, [sp, 32]
+//' add x29, sp, 32
+//' ldr x3, [x2]
+//' str x3, [sp, 24]
+//' mov x3, 0
+//' ldp x6, x7, [x1]
+//' ldr x3, [x1, 16]
+//' ldp x4, x5, [x0]
+//' stp x6, x7, [x0]
+//' ldr x2, [x0, 16]
+//' str x3, [x0, 16]
+//' adrp x0, :got:__stack_chk_guard;ldr x0, [x0, :got_lo12:__stack_chk_guard]
 //' stp x4, x5, [sp]
 //' stp x4, x5, [x1]
 //' str x2, [x1, 16]
@@ -3186,7 +3242,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' .L6:
 //' mov x7, 2
 //' b .L8
-//'@if $arm64 & $gcc[..16]
+//'@if $arm64 & $gcc[15..16]
 //' cbz x1, .L0
 //' neg x6, x0, lsr 2
 //' mov x7, 5
@@ -3323,6 +3379,28 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov x3, 2
 //' fmov d27, x3
 //' b .L8
+//'@if $arm64 & $gcc[..15]
+//' cbz x1, .L0
+//' mov x3, 0
+//' b .L1
+//' .L2:
+//' add x3, x3, 1
+//' cmp x3, x1
+//' beq .L0
+//' .L1:
+//' ldr w4, [x0, x3, lsl 2]
+//' cmp w4, w2
+//' bne .L2
+//' mov x5, x3
+//' mov w1, 1
+//' mov x0, x5
+//' and x1, x1, 1
+//' ret
+//' .L0:
+//' mov x0, x5
+//' mov w1, 0
+//' and x1, x1, 1
+//' ret
 opt::option<size_t> option_find_index_of_value(const int* array, size_t size, int value) {
     for (size_t i = 0; i < size; ++i) {
         if (array[i] == value) {
@@ -3626,7 +3704,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' .L6:
 //' mov x6, 2
 //' b .L8
-//'@if $arm64 & $gcc[..16]
+//'@if $arm64 & $gcc[15..16]
 //' sub sp, sp, 16
 //' cbz x1, .L0
 //' neg x6, x0, lsr 2
@@ -3763,6 +3841,31 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov x3, 2
 //' fmov d27, x3
 //' b .L8
+//'@if $arm64 & $gcc[..15]
+//' sub sp, sp, 16
+//' cbz x1, .L0
+//' mov x3, 0
+//' b .L1
+//' .L2:
+//' add x3, x3, 1
+//' cmp x3, x1
+//' beq .L0
+//' .L1:
+//' ldr w4, [x0, x3, lsl 2]
+//' cmp w4, w2
+//' bne .L2
+//' mov w0, 1
+//' str x3, [sp]
+//' strb w0, [sp, 8]
+//' ldp x0, x1, [sp]
+//' add sp, sp, 16
+//' ret
+//' .L0:
+//' mov w0, 0
+//' strb w0, [sp, 8]
+//' ldp x0, x1, [sp]
+//' add sp, sp, 16
+//' ret
 std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t size, int value) {
     for (size_t i = 0; i < size; ++i) {
         if (array[i] == value) {

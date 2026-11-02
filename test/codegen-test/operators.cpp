@@ -947,7 +947,7 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' mov w3, 0
 //' mov w0, w3
 //' ret
-//'@if $arm64 & $gcc[..16]
+//'@if $arm64 & $gcc[15..16]
 //' ldrb w3, [x0, 8]
 //' ldrb w2, [x1, 8]
 //' cmp w2, w3
@@ -964,6 +964,23 @@ bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int
 //' cmp x2, x0
 //' cset w3, eq
 //' mov w0, w3
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' mov x2, x0
+//' ldrb w3, [x1, 8]
+//' ldrb w0, [x0, 8]
+//' cmp w3, w0
+//' beq .L0
+//' mov w0, 0
+//' .L1:
+//' ret
+//' .L0:
+//' mov w0, 1
+//' tbz x3, 0, .L1
+//' ldr x0, [x1]
+//' ldr x2, [x2]
+//' cmp x2, x0
+//' cset w0, eq
 //' ret
 bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::optional<int64_t>& b) {
     return a == b;
@@ -1230,7 +1247,7 @@ bool option_int64_equal_with_value(const opt::option<int64_t>& a, int64_t b) {
 //' .L0:
 //' xor al, al
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' ldrb w2, [x0, 8]
 //' tbz x2, 0, .L0
 //' ldr x0, [x0]
@@ -1238,6 +1255,15 @@ bool option_int64_equal_with_value(const opt::option<int64_t>& a, int64_t b) {
 //' cset w2, eq
 //' .L0:
 //' mov w0, w2
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' mov x2, x0
+//' ldrb w0, [x0, 8]
+//' tbz x0, 0, .L0
+//' ldr x0, [x2]
+//' cmp x0, x1
+//' cset w0, eq
+//' .L0:
 //' ret
 bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_t b) {
     return a == b;
@@ -1377,7 +1403,7 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 //' cmp cx, dx
 //' setl al
 //' ret
-//'@if $arm64
+//'@if $arm64 & $gcc[15..]
 //' sub sp, sp, 16
 //' stp w1, w0, [sp, 8]
 //' ubfx x0, x1, 16, 8
@@ -1386,6 +1412,21 @@ bool std_optional_int64_equal_with_value(const std::optional<int64_t>& a, int64_
 //' tbz x1, 0, .L0
 //' ldrsh w0, [sp, 8]
 //' ldrsh w1, [sp, 12]
+//' cmp w1, w0
+//' cset w0, lt
+//' .L0:
+//' add sp, sp, 16
+//' ret
+//'@if $arm64 & $gcc[..15]
+//' sub sp, sp, 16
+//' str w1, [sp]
+//' str w0, [sp, 8]
+//' ubfx x0, x1, 16, 8
+//' tbz x1, 16, .L0
+//' ldrb w1, [sp, 10]
+//' tbz x1, 0, .L0
+//' ldrsh w0, [sp]
+//' ldrsh w1, [sp, 8]
 //' cmp w1, w0
 //' cset w0, lt
 //' .L0:
