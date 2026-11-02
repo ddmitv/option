@@ -76,6 +76,7 @@ def main() -> None:
                 has_errors = True
             total_functions += 1
 
+    sys.stdout.flush()
     if has_errors:
         print(f'Codegen test failed', file=sys.stderr)
         sys.exit(1)
