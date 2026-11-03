@@ -750,8 +750,14 @@ void option_uint64_reset(opt::option<uint64_t>& a) {
 //' strb wzr, [x0, 8]
 //' .L0:
 //' ret
-//'@if $arm64 & $libstdcxx & $clang
+//'@if $arm64 & $libstdcxx & $clang[17..]
 //' strb wzr, [x0, 8]
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..17]
+//' ldrb w8, [x0, 8]
+//' cbz w8, .L0
+//' strb wzr, [x0, 8]
+//' .L0:
 //' ret
 void std_optional_uint64_reset(std::optional<uint64_t>& a) {
     a.reset();
@@ -830,8 +836,14 @@ void option_int64x2_reset(opt::option<int64x2>& a) {
 //' strb wzr, [x0, 16]
 //' .L0:
 //' ret
-//'@if $arm64 & $libstdcxx & $clang
+//'@if $arm64 & $libstdcxx & $clang[17..]
 //' strb wzr, [x0, 16]
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..17]
+//' ldrb w8, [x0, 16]
+//' cbz w8, .L0
+//' strb wzr, [x0, 16]
+//' .L0:
 //' ret
 void std_optional_int64x2_reset(std::optional<int64x2>& a) {
     a.reset();
