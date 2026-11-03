@@ -8,6 +8,7 @@ env:
   UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1:print_summary=1'
   TYSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1'
   MSAN_OPTIONS: 'abort_on_error=1:poison_in_dtor=1'
+  HWASAN_OPTIONS: 'halt_on_error=1'
   ASAN_OPTIONS: 'abort_on_error=1:alloc_dealloc_mismatch=1:check_initialization_order=1:detect_odr_violation=2:intercept_tls_get_addr=1:quarantine_size_mb=512:malloc_context_size=30:max_free_fill_size=4096:max_malloc_fill_size=4096:strict_string_checks=1:strict_init_order=1'
   # only in debug since in release code gets inlined and -fsanitize-ignorelist doesn't work reliably anymore
   ASAN_DEBUG_OPTIONS: ':detect_invalid_pointer_pairs=2'
@@ -67,6 +68,11 @@ jobs:
               packages+=' libclang-rt-17-dev libclang-rt-17-dev:i386'
             fi
           fi
+          if [[ '${{ matrix.arch }}' == 'arm64' ]]; then
+            # the hwaddress build links with lld (see the hwasan configure step); GNU ld mis-links the
+            # R_AARCH64_MOVW_PREL_G3 relocations of hwasan's tagged globals (https://github.com/google/sanitizers/issues/1241)
+            packages+=' lld-${{ matrix.llvm }}'
+          fi
           sudo apt-get update
           sudo apt-get install -y $packages
 
@@ -89,13 +95,18 @@ jobs:
               ;;
           esac
 
-          sanitizer_flags='-fno-omit-frame-pointer -fno-optimize-sibling-calls'
-          sanitizer_flags+=' -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,pointer-compare,pointer-subtract,vptr'
-          sanitizer_flags+=' -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie'
-          sanitizer_flags+=" -fno-sanitize-recover=all $ignorelist"
+          # UBSan-family checks plus the generic sanitizer options shared by the address and
+          # hwaddress builds (frame pointers, fatal errors, ignorelist, strict flex arrays)
+          ubsan_flags='-fno-omit-frame-pointer -fno-optimize-sibling-calls'
+          ubsan_flags+=' -fsanitize=undefined,float-divide-by-zero,float-cast-overflow,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability,vptr'
+          ubsan_flags+=" -fno-sanitize-recover=all $ignorelist"
           if (( llvm >= 16 )); then
-            sanitizer_flags+=' -fstrict-flex-arrays=3' # only since clang 16
+            ubsan_flags+=' -fstrict-flex-arrays=3' # only since clang 16
           fi
+
+          # AddressSanitizer: `-fsanitize=address` and `-fsanitize=hwaddress` are mutually exclusive,
+          # so this is everything specific to the address runtime
+          asan_flags='-fsanitize=address,pointer-compare,pointer-subtract -fsanitize-address-use-after-scope -fsanitize-address-use-after-return=always -fsanitize-address-use-odr-indicator -fsanitize-address-poison-custom-array-cookie'
 
           tysan_flags="-fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls $ignorelist"
           msan_flags='-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls'
@@ -103,7 +114,8 @@ jobs:
           {
             echo "stdlib_flags=$stdlib_flags"
             echo "hardening_flags=$hardening_flags"
-            echo "sanitizer_flags=$sanitizer_flags"
+            echo "asan_flags=$asan_flags"
+            echo "ubsan_flags=$ubsan_flags"
             echo "tysan_flags=$tysan_flags"
             echo "msan_flags=$msan_flags"
           } >> "$GITHUB_OUTPUT"
@@ -113,7 +125,7 @@ jobs:
           cmake -B build-sanitizers
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }} ${{ steps.flags.outputs.hardening_flags }} ${{ steps.flags.outputs.sanitizer_flags }}"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }} ${{ steps.flags.outputs.hardening_flags }} ${{ steps.flags.outputs.asan_flags }} ${{ steps.flags.outputs.ubsan_flags }}"
 
       - name: Run tests (sanitized)
         run: |
@@ -155,13 +167,32 @@ jobs:
           cmake -B build-x32
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=-m32 ${{ steps.flags.outputs.sanitizer_flags }}"
+          "-DCMAKE_CXX_FLAGS=-m32 ${{ steps.flags.outputs.asan_flags }} ${{ steps.flags.outputs.ubsan_flags }}"
 
       - name: Run tests (x32, sanitized)
         if: *if_x64
         run: |
           ASAN_OPTIONS="$ASAN_OPTIONS$ASAN_DEBUG_OPTIONS" cmake --build build-x32 --config Debug --target run-option-test --parallel
           ASAN_OPTIONS="$ASAN_OPTIONS" cmake --build build-x32 --config Release --target run-option-test --parallel
+
+      # Hardware-assisted AddressSanitizer: arm64 only; on x86-64 clang limits hwasan to heap tagging
+      # via page aliasing, which is unsafe for processes that fork
+      # linked with lld because GNU ld mis-links the R_AARCH64_MOVW_PREL_G3 relocations of hwasan's
+      # tagged globals into SIGILL (https://github.com/google/sanitizers/issues/1241)
+      - name: Configure CMake (Hardware-assisted AddressSanitizer)
+        if: &if_arm64 "matrix.arch == 'arm64'"
+        run: >-
+          cmake -B build-hwasan
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }} ${{ steps.flags.outputs.hardening_flags }} -fsanitize=hwaddress ${{ steps.flags.outputs.ubsan_flags }}"
+          "-DCMAKE_EXE_LINKER_FLAGS=--ld-path=/usr/bin/ld.lld-${{ matrix.llvm }}"
+
+      - name: Run tests (Hardware-assisted AddressSanitizer)
+        if: *if_arm64
+        run: |
+          cmake --build build-hwasan --config Debug --target run-option-test --parallel
+          cmake --build build-hwasan --config Release --target run-option-test --parallel
 
       # MemorySanitizer: x86-64 on all LLVM versions, arm64 since LLVM 20; independent of the
       # stdlib axis (it uses its own instrumented libc++), so it runs once per LLVM version and arch
@@ -275,13 +306,35 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y $packages
 
+      - name: Compute compiler flags
+        id: flags
+        run: |
+          # gcc doesn't support the clang-only checks (implicit-conversion, nullability, pointer-compare, ...),
+          # so this is the reduced UBSan-family check set plus the options shared by the address and
+          # hwaddress builds (frame pointers, fatal errors)
+          ubsan_flags='-fsanitize=undefined,float-divide-by-zero,float-cast-overflow'
+          ubsan_flags+=' -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls'
+
+          hardening_flags='-D_GLIBCXX_ASSERTIONS'
+
+          # `-fsanitize=address` and `-fsanitize=hwaddress` are mutually exclusive
+          asan_flags='-fsanitize=address'
+          hwasan_flags="-fsanitize=hwaddress"
+
+          {
+            echo "hardening_flags=$hardening_flags"
+            echo "asan_flags=$asan_flags"
+            echo "ubsan_flags=$ubsan_flags"
+            echo "hwasan_flags=$hwasan_flags"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Configure CMake (sanitized)
         # gcc doesn't support the clang-only sanitizers (implicit-conversion, nullability, pointer-compare, ...)
         run: >-
           cmake -B build-sanitizers
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=-D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.hardening_flags }} ${{ steps.flags.outputs.asan_flags }} ${{ steps.flags.outputs.ubsan_flags }}"
 
       - name: Run tests (sanitized)
         run: |
@@ -308,10 +361,28 @@ jobs:
           cmake -B build-x32
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=-m32 -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined,float-divide-by-zero,float-cast-overflow -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+          "-DCMAKE_CXX_FLAGS=-m32 ${{ steps.flags.outputs.hardening_flags }} ${{ steps.flags.outputs.asan_flags }} ${{ steps.flags.outputs.ubsan_flags }}"
 
       - name: Run tests (x32, sanitized)
         if: *if_x64
         run: |
           cmake --build build-x32 --config Debug --target run-option-test --parallel
           cmake --build build-x32 --config Release --target run-option-test --parallel
+
+      # HWAsan aarch64 support since GCC 13
+      - name: Configure CMake (HWAsan)
+        if: "matrix.arch == 'arm64' && fromJSON(matrix.gcc) >= 13"
+        run: >-
+          cmake -B build-hwasan
+          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+          -DCMAKE_CXX_EXTENSIONS=FALSE
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.hardening_flags }} ${{ steps.flags.outputs.hwasan_flags }} ${{ steps.flags.outputs.ubsan_flags }}"
+
+      - name: Run tests (HWAsan, Debug)
+        if: "matrix.arch == 'arm64' && fromJSON(matrix.gcc) >= 13"
+        run: cmake --build build-hwasan --config Debug --target run-option-test --parallel
+
+      # the -O3 build is limited to GCC 13/14: GCC 15 and 16 ICE during the GIMPLE sanopt pass (hwasan_expand_mark_ifn) on valid code (compiler bug)
+      - name: Run tests (HWAsan, Release)
+        if: "matrix.arch == 'arm64' && fromJSON(matrix.gcc) >= 13 && fromJSON(matrix.gcc) <= 14"
+        run: cmake --build build-hwasan --config Release --target run-option-test --parallel
