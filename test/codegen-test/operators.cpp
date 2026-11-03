@@ -1282,10 +1282,16 @@ bool std_optional_int64_equal(const std::optional<int64_t>& a, const std::option
 //' cset w1, eq
 //' and w0, w1, w0
 //' ret
-//'@if $arm64 & $clang
+//'@if $arm64 & $clang[21..]
 //' ubfx x8, x0, 32, 1
 //' cmp w1, w0
 //' csel w0, wzr, w8, ne
+//' ret
+//'@if $arm64 & $clang[..21]
+//' lsr x8, x0, 32
+//' cmp w1, w0
+//' cset w9, eq
+//' and w0, w8, w9
 //' ret
 bool option_int32_equal_with_value(opt::option<int32_t> a, int32_t b) {
     return a == b;
@@ -2026,7 +2032,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cset w8, lt
 //' and w0, w8, w1, lsr 16
 //' ret
-//'@if $arm64 & $libcxx & $clang[..23]
+//'@if $arm64 & $libcxx & $clang[21..23]
 //' sxth w8, w1
 //' sxth w9, w0
 //' tst x0, 0x10000
@@ -2034,6 +2040,18 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cset w8, lt
 //' tst w1, 0x10000
 //' csel w0, wzr, w8, eq
+//' ret
+//'@if $arm64 & $libcxx & $clang[..21]
+//' tbz w0, 16, .L0
+//' tbz w1, 16, .L0
+//' sxth w8, w0
+//' cmp w8, w1, sxth
+//' cset w0, lt
+//' ret
+//' .L0:
+//' ubfx x8, x1, 16, 1
+//' tst x0, 0x10000
+//' csel w0, wzr, w8, ne
 //' ret
 //'@if $arm64 & $libstdcxx & $clang
 //' tbz w0, 16, .L0
@@ -2521,12 +2539,23 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' cset w9, lt
 //' and w0, w8, w9
 //' ret
-//'@if $arm64 & $libcxx & $clang[..23]
+//'@if $arm64 & $libcxx & $clang[21..23]
 //' tst x0, 0x100000000
 //' ccmp w0, w1, 8, ne
 //' cset w8, lt
 //' tst x1, 0x100000000
 //' csel w0, wzr, w8, eq
+//' ret
+//'@if $arm64 & $libcxx & $clang[..21]
+//' tbz x0, 32, .L0
+//' tbz x1, 32, .L0
+//' cmp w0, w1
+//' cset w0, lt
+//' ret
+//' .L0:
+//' ubfx x8, x1, 32, 1
+//' tst x0, 0x100000000
+//' csel w0, wzr, w8, ne
 //' ret
 //'@if $arm64 & $libstdcxx & $clang
 //' tbz x0, 32, .L0
