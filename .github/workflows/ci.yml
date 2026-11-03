@@ -84,8 +84,8 @@ jobs:
               ;;
             libc++)
               stdlib_flags='--stdlib=libc++'
-              # available since LLVM 17, older libc++ just ignores the definition
-              hardening_flags='-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE'
+              # available since LLVM 17, older libc++ just ignores the definition (https://libcxx.llvm.org/Hardening.html)
+              hardening_flags='-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG'
               ;;
           esac
 
@@ -98,11 +98,7 @@ jobs:
           fi
 
           tysan_flags="-fsanitize=type -fno-omit-frame-pointer -fno-optimize-sibling-calls $ignorelist"
-
           msan_flags='-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fsanitize-memory-param-retval -fno-omit-frame-pointer -fno-optimize-sibling-calls'
-          if (( llvm >= 17 )); then
-            msan_flags+=' -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE'
-          fi
 
           {
             echo "stdlib_flags=$stdlib_flags"
@@ -215,7 +211,7 @@ jobs:
           cmake -B build-msan
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.msan_flags }} -nostdinc++ -isystem $GITHUB_WORKSPACE/msan-prefix/include/c++/v1"
+          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.msan_flags }} ${{ steps.flags.outputs.hardening_flags }} -nostdinc++ -isystem $GITHUB_WORKSPACE/msan-prefix/include/c++/v1"
           "-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -L$GITHUB_WORKSPACE/msan-prefix/lib -Wl,-rpath,$GITHUB_WORKSPACE/msan-prefix/lib -lc++abi"
 
       - name: Run tests (MemorySanitizer)
