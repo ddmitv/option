@@ -1933,11 +1933,17 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //'@if $arm64 & $libstdcxx & $clang[19..]
 //' and x0, x0, 0x1ffffffff
 //' ret
-//'@if $arm64 & $libstdcxx & $clang[..19]
+//'@if $arm64 & $libstdcxx & $clang[16..19]
 //' tst x0, 0xff00000000
 //' and x9, x0, 0xffffffff
 //' cset w8, ne
 //' orr x0, x9, x8, lsl 32
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..16]
+//' tst x0, 0xff00000000
+//' and x0, x0, 0xffffffff
+//' cset w8, ne
+//' bfi x0, x8, 32, 1
 //' ret
 std::optional<uint32_t> std_optional_int32_to_uint32_ctor(const std::optional<int32_t> a) {
     return a;
