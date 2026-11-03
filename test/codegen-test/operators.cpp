@@ -2129,7 +2129,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' cset w8, eq
 //' and w0, w8, w1, lsr 16
 //' ret
-//'@if $arm64 & $libstdcxx & $clang[..21]
+//'@if $arm64 & $libstdcxx & $clang[20..21]
 //' tbz w0, 16, .L0
 //' tbz w1, 16, .L0
 //' sxth w8, w0
@@ -2140,6 +2140,31 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' ubfx x8, x1, 16, 1
 //' tst x0, 0x10000
 //' csel w0, wzr, w8, ne
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..20]
+//' and x8, x1, 0x10000
+//' tbz w0, 16, .L0
+//' cbz x8, .L0
+//' sxth w8, w0
+//' and w9, w0, 0xffff
+//' cmp w8, w1, sxth
+//' mov w8, 255
+//' csinc x8, x8, xzr, lt
+//' cmp w9, w1, uxth
+//' csel x8, xzr, x8, eq
+//' lsr x0, x8, 7
+//' ret
+//' .L0:
+//' ands x9, x0, 0x10000
+//' ubfx x10, x1, 16, 1
+//' cset w11, eq
+//' orr x8, x8, x9
+//' mov w9, 255
+//' tst w11, w10
+//' csinc x9, x9, xzr, ne
+//' cmp x8, 0
+//' csel x8, x9, xzr, ne
+//' lsr x0, x8, 7
 //' ret
 bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b) {
     return a < b;
@@ -2667,7 +2692,7 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' cset w9, eq
 //' and w0, w8, w9
 //' ret
-//'@if $arm64 & $libstdcxx & $clang[..21]
+//'@if $arm64 & $libstdcxx & $clang[20..21]
 //' tbz x0, 32, .L0
 //' tbz x1, 32, .L0
 //' cmp w0, w1
@@ -2677,6 +2702,28 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' ubfx x8, x1, 32, 1
 //' tst x0, 0x100000000
 //' csel w0, wzr, w8, ne
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..20]
+//' and x8, x1, 0x100000000
+//' tbz x0, 32, .L0
+//' cbz x8, .L0
+//' cmp w0, w1
+//' mov w8, 255
+//' csinc x8, x8, xzr, lt
+//' csel x8, xzr, x8, eq
+//' lsr x0, x8, 7
+//' ret
+//' .L0:
+//' ands x9, x0, 0x100000000
+//' ubfx x10, x1, 32, 1
+//' cset w11, eq
+//' orr x8, x8, x9
+//' mov w9, 255
+//' tst w11, w10
+//' csinc x9, x9, xzr, ne
+//' cmp x8, 0
+//' csel x8, x9, xzr, ne
+//' lsr x0, x8, 7
 //' ret
 bool std_optional_int32_less(std::optional<int32_t> a, std::optional<int32_t> b) {
     return a < b;
