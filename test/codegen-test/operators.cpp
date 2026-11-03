@@ -1966,12 +1966,24 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' mov w0, w1
 //' add sp, sp, 16
 //' ret
-//'@if $arm64 & $clang
+//'@if $arm64 & $libcxx & $clang
 //' sxth w8, w0
 //' sxth w9, w1
 //' tst x0, 0x10000
 //' ccmp w8, w9, 8, ne
 //' cset w8, lt
+//' and w0, w8, w1, lsr 16
+//' ret
+//'@if $arm64 & $libstdcxx & $clang
+//' tbz w0, 16, .L0
+//' tbz w1, 16, .L0
+//' sxth w8, w0
+//' cmp w8, w1, sxth
+//' cset w0, lt
+//' ret
+//' .L0:
+//' tst x0, 0x10000
+//' cset w8, eq
 //' and w0, w8, w1, lsr 16
 //' ret
 bool std_optional_int16_less(std::optional<int16_t> a, std::optional<int16_t> b) {
@@ -2434,11 +2446,23 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' mov w0, w1
 //' add sp, sp, 16
 //' ret
-//'@if $arm64 & $clang
+//'@if $arm64 & $libcxx & $clang
 //' tst x0, 0x100000000
 //' lsr x8, x1, 32
 //' ccmp w0, w1, 8, ne
 //' cset w9, lt
+//' and w0, w8, w9
+//' ret
+//'@if $arm64 & $libstdcxx & $clang
+//' tbz x0, 32, .L0
+//' tbz x1, 32, .L0
+//' cmp w0, w1
+//' cset w0, lt
+//' ret
+//' .L0:
+//' lsr x8, x1, 32
+//' tst x0, 0x100000000
+//' cset w9, eq
 //' and w0, w8, w9
 //' ret
 bool std_optional_int32_less(std::optional<int32_t> a, std::optional<int32_t> b) {
