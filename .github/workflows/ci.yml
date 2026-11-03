@@ -122,26 +122,18 @@ jobs:
 
       - name: Configure CMake (unsanitized)
         run: >-
-          cmake -B build-standard
-          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
-          -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }} ${{ steps.flags.outputs.hardening_flags }}"
-
-      - name: Run tests (unsanitized)
-        run: |
-          cmake --build build-standard --config Debug --target run-option-test --parallel
-          cmake --build build-standard --config Release --target run-option-test --parallel
-
-      - name: Configure CMake (codegen)
-        # no hardening_flags: glibcxx assertion branches change generated assembly and fail codegen expectations
-        run: >-
-          cmake -B build-codegen
+          cmake -B build-unsanitized
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
           "-DCMAKE_CXX_FLAGS=${{ steps.flags.outputs.stdlib_flags }}"
 
+      - name: Run tests (unsanitized)
+        run: |
+          cmake --build build-unsanitized --config Debug --target run-option-test --parallel
+          cmake --build build-unsanitized --config Release --target run-option-test --parallel
+
       - name: Run codegen tests
-        run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
+        run: cmake --build build-unsanitized --config Release --target run-option-codegen-test --parallel
 
       - name: Configure CMake (TypeSanitizer)
         if: &if_tysan "fromJSON(matrix.llvm) >= 20" # TypeSanitizer only since clang 20, on x86-64 and arm64
@@ -298,25 +290,17 @@ jobs:
 
       - name: Configure CMake (unsanitized)
         run: >-
-          cmake -B build-standard
+          cmake -B build-unsanitized
           -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
           -DCMAKE_CXX_EXTENSIONS=FALSE
-          "-DCMAKE_CXX_FLAGS=-D_GLIBCXX_ASSERTIONS"
 
       - name: Run tests (unsanitized)
         run: |
-          cmake --build build-standard --config Debug --target run-option-test --parallel
-          cmake --build build-standard --config Release --target run-option-test --parallel
-
-      - name: Configure CMake (codegen)
-        # no -D_GLIBCXX_ASSERTIONS: assertion branches change generated assembly and fail codegen expectations
-        run: >-
-          cmake -B build-codegen
-          -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
-          -DCMAKE_CXX_EXTENSIONS=FALSE
+          cmake --build build-unsanitized --config Debug --target run-option-test --parallel
+          cmake --build build-unsanitized --config Release --target run-option-test --parallel
 
       - name: Run codegen tests
-        run: cmake --build build-codegen --config Release --target run-option-codegen-test --parallel
+        run: cmake --build build-unsanitized --config Release --target run-option-codegen-test --parallel
 
       - name: Configure CMake (x32, sanitized)
         if: *if_x64 # -m32 (32-bit x86) doesn't exist on arm64
