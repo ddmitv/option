@@ -40,10 +40,15 @@ struct int64x2 {
 //' mov w9, 6
 //' str w9, [x8, 8]
 //' ret
-//'@if $arm64 & $clang[..18]
+//'@if $arm64 & $clang[16..18]
 //' add w8, w2, 2
 //' mov w9, 6
 //' str w9, [x0, w8, sxtw 2]
+//' ret
+//'@if $arm64 & $clang[..16]
+//' mov w8, 6
+//' add x9, x0, w2, sxtw 2
+//' str w8, [x9, 8]
 //' ret
 void third_fn(int* x, int y, int z) {
     x[z + 2] = 6;
@@ -996,7 +1001,7 @@ void option_int64_assign_from_value(opt::option<int64_t>& a) {
 //' mov w8, 10
 //' str x8, [x0]
 //' ret
-//'@if $arm64 & $clang[..19]
+//'@if $arm64 & $clang[16..19]
 //' ldrb w8, [x0, 8]
 //' cbz w8, .L0
 //' mov w8, 10
@@ -1007,6 +1012,16 @@ void option_int64_assign_from_value(opt::option<int64_t>& a) {
 //' strb w8, [x0, 8]
 //' mov w8, 10
 //' str x8, [x0]
+//' ret
+//'@if $arm64 & $clang[..16]
+//' mov w8, 10
+//' ldrb w9, [x0, 8]
+//' str x8, [x0]
+//' cbz w9, .L0
+//' ret
+//' .L0:
+//' mov w8, 1
+//' strb w8, [x0, 8]
 //' ret
 void std_optional_int64_assign_from_value(std::optional<int64_t>& a) {
     a = 10;

@@ -182,7 +182,7 @@
 //' orr w9, w10, w9
 //' and w0, w8, w9
 //' ret
-//'@if $arm64 & $clang[..19]
+//'@if $arm64 & $clang[16..19]
 //' and w8, w0, 0xffff
 //' tst x1, 0xff0000
 //' cset w9, eq
@@ -193,6 +193,19 @@
 //' csinc w8, w8, wzr, ne
 //' eor w9, w10, w9
 //' and w0, w9, w8
+//' ret
+//'@if $arm64 & $clang[..16]
+//' tst x0, 0xff0000
+//' and w8, w0, 0xffff
+//' cset w9, eq
+//' cset w10, ne
+//' tst x1, 0xff0000
+//' cset w11, eq
+//' cmp w8, w1, uxth
+//' cset w8, eq
+//' eor w10, w10, w11
+//' orr w8, w8, w9
+//' and w0, w10, w8
 //' ret
 bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
     return a == b;
@@ -649,7 +662,7 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' orr w9, w10, w9
 //' and w0, w8, w9
 //' ret
-//'@if $arm64 & $clang[..19]
+//'@if $arm64 & $clang[16..19]
 //' tst x1, 0xff00000000
 //' cset w8, eq
 //' cmp w0, w1
@@ -659,6 +672,18 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' csinc w9, w9, wzr, ne
 //' eor w8, w10, w8
 //' and w0, w8, w9
+//' ret
+//'@if $arm64 & $clang[..16]
+//' tst x0, 0xff00000000
+//' cset w8, eq
+//' cset w9, ne
+//' tst x1, 0xff00000000
+//' cset w10, eq
+//' cmp w0, w1
+//' cset w11, eq
+//' eor w9, w9, w10
+//' orr w8, w11, w8
+//' and w0, w9, w8
 //' ret
 bool option_int32_equal(opt::option<int32_t> a, opt::option<int32_t> b) {
     return a == b;
@@ -1070,7 +1095,7 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' cmp w8, w11
 //' csel w0, wzr, w9, ne
 //' ret
-//'@if $arm64 & $clang[..19]
+//'@if $arm64 & $clang[16..19]
 //' ldrb w8, [x1, 8]
 //' ldr x9, [x0]
 //' ldr x10, [x1]
@@ -1084,6 +1109,22 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' csinc w9, w9, wzr, ne
 //' eor w8, w10, w8
 //' and w0, w8, w9
+//' ret
+//'@if $arm64 & $clang[..16]
+//' ldrb w8, [x0, 8]
+//' ldrb w9, [x1, 8]
+//' ldr x10, [x0]
+//' ldr x11, [x1]
+//' cmp w8, 0
+//' cset w8, eq
+//' cset w12, ne
+//' cmp w9, 0
+//' cset w9, eq
+//' cmp x10, x11
+//' cset w10, eq
+//' eor w9, w12, w9
+//' orr w8, w10, w8
+//' and w0, w9, w8
 //' ret
 bool opt_option_int64_equal(const opt::option<int64_t>& a, const opt::option<int64_t>& b) {
     return a == b;
