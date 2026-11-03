@@ -5300,7 +5300,7 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 //' stp x29, x30, [sp, -16]!
 //' mov x29, sp
 //' bl _ZN3opt4impl16throw_bad_optionEv
-//'@if $arm64 & $clang[..19]
+//'@if $arm64 & $clang[17..19]
 //' ldrb w8, [x0, 4]
 //' cbz w8, .L0
 //' ldr w0, [x0]
@@ -5308,6 +5308,16 @@ std::optional<size_t> std_optional_find_index_of_value(const int* array, size_t 
 //' .L0:
 //' stp x29, x30, [sp, -16]!
 //' mov x29, sp
+//' bl _ZN3opt4impl16throw_bad_optionEv
+//'@if $arm64 & $clang[..17]
+//' stp x29, x30, [sp, -16]!
+//' mov x29, sp
+//' ldrb w8, [x0, 4]
+//' cbz w8, .L0
+//' ldr w0, [x0]
+//' ldp x29, x30, [sp], 16
+//' ret
+//' .L0:
 //' bl _ZN3opt4impl16throw_bad_optionEv
 int32_t opt_option_int32_value(opt::option<int32_t>& o) {
     return o.value();
