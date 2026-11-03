@@ -2481,7 +2481,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' strb wzr, [x1, 4]
 //' .L1:
 //' ret
-//'@if $arm64 & $libstdcxx & $clang
+//'@if $arm64 & $libstdcxx & $clang[23..]
 //' ldrb w8, [x0, 4]
 //' ldrb w9, [x1, 4]
 //' cbz w8, .L0
@@ -2503,6 +2503,32 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' .L1:
 //' str w8, [x1]
 //' mov w8, 1
+//' strb w8, [x1, 4]
+//' strb wzr, [x0, 4]
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..23]
+//' ldrb w9, [x0, 4]
+//' ldrb w8, [x1, 4]
+//' cmp w9, 1
+//' b.ne .L0
+//' ldr w9, [x0]
+//' cbz w8, .L1
+//' ldr w8, [x1]
+//' str w8, [x0]
+//' str w9, [x1]
+//' ret
+//' .L0:
+//' cbz w8, .L2
+//' ldr w8, [x1]
+//' mov w9, 1
+//' strb w9, [x0, 4]
+//' str w8, [x0]
+//' strb wzr, [x1, 4]
+//' .L2:
+//' ret
+//' .L1:
+//' mov w8, 1
+//' str w9, [x1]
 //' strb w8, [x1, 4]
 //' strb wzr, [x0, 4]
 //' ret
@@ -2945,7 +2971,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' strb wzr, [x1, 8]
 //' .L1:
 //' ret
-//'@if $arm64 & $libstdcxx & $clang
+//'@if $arm64 & $libstdcxx & $clang[23..]
 //' ldrb w8, [x0, 8]
 //' ldrb w9, [x1, 8]
 //' cbz w8, .L0
@@ -2967,6 +2993,32 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' .L1:
 //' str x8, [x1]
 //' mov w8, 1
+//' strb w8, [x1, 8]
+//' strb wzr, [x0, 8]
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..23]
+//' ldrb w9, [x0, 8]
+//' ldrb w8, [x1, 8]
+//' cmp w9, 1
+//' b.ne .L0
+//' ldr x9, [x0]
+//' cbz w8, .L1
+//' ldr x8, [x1]
+//' str x8, [x0]
+//' str x9, [x1]
+//' ret
+//' .L0:
+//' cbz w8, .L2
+//' ldr x8, [x1]
+//' mov w9, 1
+//' strb w9, [x0, 8]
+//' str x8, [x0]
+//' strb wzr, [x1, 8]
+//' .L2:
+//' ret
+//' .L1:
+//' mov w8, 1
+//' str x9, [x1]
 //' strb w8, [x1, 8]
 //' strb wzr, [x0, 8]
 //' ret
@@ -3683,7 +3735,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' .L1:
 //' add sp, sp, 16
 //' ret
-//'@if $arm64 & $libstdcxx & $clang
+//'@if $arm64 & $libstdcxx & $clang[23..]
 //' ldrb w9, [x0, 16]
 //' ldrb w8, [x1, 16]
 //' cbz w9, .L0
@@ -3708,6 +3760,37 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' strb w8, [x1, 16]
 //' str q0, [x1]
 //' strb wzr, [x0, 16]
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..23]
+//' sub sp, sp, 16
+//' ldrb w9, [x0, 16]
+//' ldrb w8, [x1, 16]
+//' cmp w9, 1
+//' b.ne .L0
+//' cbz w8, .L1
+//' ldr q0, [x1]
+//' ldr q1, [x0]
+//' str q0, [x0]
+//' str q1, [x1]
+//' add sp, sp, 16
+//' ret
+//' .L0:
+//' cbz w8, .L2
+//' ldr q0, [x1]
+//' mov w8, 1
+//' strb w8, [x0, 16]
+//' str q0, [x0]
+//' strb wzr, [x1, 16]
+//' .L2:
+//' add sp, sp, 16
+//' ret
+//' .L1:
+//' ldr q0, [x0]
+//' mov w8, 1
+//' strb w8, [x1, 16]
+//' str q0, [x1]
+//' strb wzr, [x0, 16]
+//' add sp, sp, 16
 //' ret
 void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>& b) {
     a.swap(b);
