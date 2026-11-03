@@ -2287,7 +2287,7 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' tst x0, 0x10000
 //' csel w0, wzr, w8, ne
 //' ret
-//'@if $arm64 & $libstdcxx & $clang[..20]
+//'@if $arm64 & $libstdcxx & $clang[19..20]
 //' and x8, x1, 0x10000
 //' tbz w0, 16, .L0
 //' cbz x8, .L0
@@ -2309,6 +2309,34 @@ bool option_int16_less(opt::option<int16_t> a, opt::option<int16_t> b) {
 //' tst w11, w10
 //' csinc x9, x9, xzr, ne
 //' cmp x8, 0
+//' csel x8, x9, xzr, ne
+//' lsr x0, x8, 7
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..19]
+//' ands x8, x0, 0xff0000
+//' and x9, x1, 0xff0000
+//' b.eq .L0
+//' cbz x9, .L0
+//' sxth w8, w0
+//' and w9, w0, 0xffff
+//' cmp w8, w1, sxth
+//' mov w8, 255
+//' csinc x8, x8, xzr, lt
+//' cmp w9, w1, uxth
+//' csel x8, xzr, x8, eq
+//' lsr x0, x8, 7
+//' ret
+//' .L0:
+//' cmp x9, 0
+//' cset w9, ne
+//' cmp x8, 0
+//' cset w8, ne
+//' cset w10, eq
+//' tst w9, w10
+//' mov w10, 255
+//' eor w8, w8, w9
+//' csinc x9, x10, xzr, ne
+//' cmp w8, 0
 //' csel x8, x9, xzr, ne
 //' lsr x0, x8, 7
 //' ret
@@ -2881,7 +2909,7 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' tst x0, 0x100000000
 //' csel w0, wzr, w8, ne
 //' ret
-//'@if $arm64 & $libstdcxx & $clang[..20]
+//'@if $arm64 & $libstdcxx & $clang[19..20]
 //' and x8, x1, 0x100000000
 //' tbz x0, 32, .L0
 //' cbz x8, .L0
@@ -2900,6 +2928,31 @@ bool option_int32_less(opt::option<int32_t> a, opt::option<int32_t> b) {
 //' tst w11, w10
 //' csinc x9, x9, xzr, ne
 //' cmp x8, 0
+//' csel x8, x9, xzr, ne
+//' lsr x0, x8, 7
+//' ret
+//'@if $arm64 & $libstdcxx & $clang[..19]
+//' ands x8, x0, 0xff00000000
+//' and x9, x1, 0xff00000000
+//' b.eq .L0
+//' cbz x9, .L0
+//' cmp w0, w1
+//' mov w8, 255
+//' csinc x8, x8, xzr, lt
+//' csel x8, xzr, x8, eq
+//' lsr x0, x8, 7
+//' ret
+//' .L0:
+//' cmp x9, 0
+//' cset w9, ne
+//' cmp x8, 0
+//' cset w8, ne
+//' cset w10, eq
+//' tst w9, w10
+//' mov w10, 255
+//' eor w8, w8, w9
+//' csinc x9, x10, xzr, ne
+//' cmp w8, 0
 //' csel x8, x9, xzr, ne
 //' lsr x0, x8, 7
 //' ret
