@@ -36,6 +36,7 @@ int main() {
     run_test_suite(conv_copy_ctor_test_suite);
     run_test_suite(copy_ctor_test_suite);
     run_test_suite(conv_move_ctor_test_suite);
+    run_test_suite(in_place_ctor_test_suite);
 
     std::puts("Tests successfully completed");
 }

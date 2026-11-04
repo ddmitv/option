@@ -27,6 +27,7 @@ add_executable(option-test
     ctors/conv_copy_ctor.cpp
     ctors/copy_ctor.cpp
     ctors/conv_move_ctor.cpp
+    ctors/in_place_ctor.cpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
