@@ -387,7 +387,7 @@ struct standard {};
 // https://eel.is/c++draft/optional
 
 template<class T, class Traits = standard>
-class OPTION_CONSUMABLE(unknown) option final {
+class OPTION_CONSUMABLE(unknown) option {
     // consumed == no value / disengaged
     // unconsumed == has value / engaged
     // unknown == maybe no value or has value / maybe engaged or disengaged
