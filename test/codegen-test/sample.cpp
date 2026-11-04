@@ -30,10 +30,15 @@ struct int64x2 {
 //' movsxd rax, r8d
 //' mov dword ptr [rcx + rax*4 + 8], 6
 //' ret
-//'@if $arm64 & $gcc
+//'@if $arm64 & $gcc[12..]
 //' add x2, x0, w2, sxtw 2
 //' mov w1, 6
 //' str w1, [x2, 8]
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' add x2, x0, w2, sxtw 2
+//' mov w0, 6
+//' str w0, [x2, 8]
 //' ret
 //'@if $arm64 & $clang[18..]
 //' add x8, x0, w2, sxtw 2
@@ -99,12 +104,19 @@ void third_fn(int* x, int y, int z) {
 //' bfi x2, x3, 32, 8
 //' mov x0, x2
 //' ret
-//'@if $arm64 & $gcc[..14]
+//'@if $arm64 & $gcc[12..14]
 //' add w1, w0, w1
 //' mov x0, 0
 //' mov x2, 1
 //' bfi x0, x1, 0, 32
 //' bfi x0, x2, 32, 8
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' add w1, w0, w1
+//' mov x0, 0
+//' bfi x0, x1, 0, 32
+//' mov x1, 1
+//' bfi x0, x1, 32, 8
 //' ret
 //'@if $arm64 & $clang
 //' add w8, w1, w0
@@ -1861,7 +1873,7 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' ldr x0, [sp, 24]
 //' add sp, sp, 32
 //' ret
-//'@if $arm64 & $gcc[..13]
+//'@if $arm64 & $gcc[12..13]
 //' sub sp, sp, 32
 //' mov w1, 0
 //' str x0, [sp, 8]
@@ -1872,6 +1884,20 @@ opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) 
 //' .L0:
 //' str w2, [sp, 24]
 //' strb w1, [sp, 28]
+//' ldr x0, [sp, 24]
+//' add sp, sp, 32
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' sub sp, sp, 32
+//' str x0, [sp, 8]
+//' mov w0, 0
+//' ldrb w1, [sp, 12]
+//' cbz w1, .L0
+//' ldr w2, [sp, 8]
+//' mov w0, 1
+//' .L0:
+//' str w2, [sp, 24]
+//' strb w0, [sp, 28]
 //' ldr x0, [sp, 24]
 //' add sp, sp, 32
 //' ret
@@ -2008,11 +2034,17 @@ void option_int32_assign_from_uint32(opt::option<int32_t>& a, const opt::option<
 //' movzx eax, [rdx + 4]
 //' mov [rcx + 8], al
 //' ret
-//'@if $arm64 & $gcc
+//'@if $arm64 & $gcc[12..]
 //' ldrb w2, [x1, 4]
 //' ldr w1, [x1]
 //' str x1, [x0]
 //' strb w2, [x0, 8]
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' ldr w2, [x1]
+//' ldrb w1, [x1, 4]
+//' str x2, [x0]
+//' strb w1, [x0, 8]
 //' ret
 //'@if $arm64 & $clang
 //' ldr w8, [x1]
@@ -2447,7 +2479,7 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' strb w2, [x1, 4]
 //' strb wzr, [x0, 4]
 //' ret
-//'@if $arm64 & $gcc[..13]
+//'@if $arm64 & $gcc[12..13]
 //' ldrb w3, [x0, 4]
 //' ldrb w2, [x1, 4]
 //' cbz w3, .L0
@@ -2470,6 +2502,31 @@ void option_int32_swap(opt::option<int32_t>& a, opt::option<int32_t>& b) {
 //' mov w2, 1
 //' str w3, [x1]
 //' strb w2, [x1, 4]
+//' strb wzr, [x0, 4]
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' ldrb w2, [x0, 4]
+//' ldrb w3, [x1, 4]
+//' cbnz w2, .L0
+//' cbz w3, .L1
+//' ldr w3, [x1]
+//' mov w2, 1
+//' str w3, [x0]
+//' strb w2, [x0, 4]
+//' strb wzr, [x1, 4]
+//' .L1:
+//' ret
+//' .L0:
+//' ldr w2, [x0]
+//' cbz w3, .L2
+//' ldr w3, [x1]
+//' str w3, [x0]
+//' str w2, [x1]
+//' ret
+//' .L2:
+//' mov w3, 1
+//' str w2, [x1]
+//' strb w3, [x1, 4]
 //' strb wzr, [x0, 4]
 //' ret
 //'@if $arm64 & $libcxx & $clang[23..]
@@ -3057,7 +3114,7 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' strb w2, [x1, 8]
 //' strb wzr, [x0, 8]
 //' ret
-//'@if $arm64 & $gcc[..13]
+//'@if $arm64 & $gcc[12..13]
 //' ldrb w3, [x0, 8]
 //' ldrb w2, [x1, 8]
 //' cbz w3, .L0
@@ -3080,6 +3137,31 @@ void option_int64_swap(opt::option<int64_t>& a, opt::option<int64_t>& b) {
 //' mov w2, 1
 //' str x3, [x1]
 //' strb w2, [x1, 8]
+//' strb wzr, [x0, 8]
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' ldrb w2, [x0, 8]
+//' ldrb w3, [x1, 8]
+//' cbnz w2, .L0
+//' cbz w3, .L1
+//' ldr x3, [x1]
+//' mov w2, 1
+//' str x3, [x0]
+//' strb w2, [x0, 8]
+//' strb wzr, [x1, 8]
+//' .L1:
+//' ret
+//' .L0:
+//' ldr x2, [x0]
+//' cbz w3, .L2
+//' ldr x3, [x1]
+//' str x3, [x0]
+//' str x2, [x1]
+//' ret
+//' .L2:
+//' mov w3, 1
+//' str x2, [x1]
+//' strb w3, [x1, 8]
 //' strb wzr, [x0, 8]
 //' ret
 //'@if $arm64 & $libcxx & $clang[23..]
@@ -3455,7 +3537,7 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' ret
 //' .L0:
 //' bl __stack_chk_fail
-//'@if $arm64 & $gcc[..14]
+//'@if $arm64 & $gcc[12..14]
 //' sub sp, sp, 48
 //' adrp x2, :got:__stack_chk_guard
 //' ldr x2, [x2, :got_lo12:__stack_chk_guard]
@@ -3479,6 +3561,37 @@ void std_optional_int64_swap(std::optional<int64_t>& a, std::optional<int64_t>& 
 //' ldr x2, [sp, 24]
 //' ldr x1, [x0]
 //' subs x2, x2, x1
+//' mov x1, 0
+//' bne .L0
+//' ldp x29, x30, [sp, 32]
+//' add sp, sp, 48
+//' ret
+//' .L0:
+//' bl __stack_chk_fail
+//'@if $arm64 & $gcc[..12]
+//' sub sp, sp, 48
+//' adrp x2, :got:__stack_chk_guard
+//' stp x29, x30, [sp, 32]
+//' add x29, sp, 32
+//' ldr x3, [x2, :got_lo12:__stack_chk_guard]
+//' adrp x2, :got:__stack_chk_guard
+//' ldp x6, x7, [x1]
+//' ldr x4, [x3]
+//' str x4, [sp, 24]
+//' mov x4, 0
+//' ldp x4, x5, [x0]
+//' stp x6, x7, [x0]
+//' ldr x6, [x1, 16]
+//' stp x4, x5, [sp]
+//' ldr x2, [x2, :got_lo12:__stack_chk_guard]
+//' ldr x3, [x0, 16]
+//' str x6, [x0, 16]
+//' stp x4, x5, [x1]
+//' str x3, [x1, 16]
+//' str x3, [sp, 16]
+//' ldr x0, [sp, 24]
+//' ldr x1, [x2]
+//' subs x0, x0, x1
 //' mov x1, 0
 //' bne .L0
 //' ldp x29, x30, [sp, 32]
@@ -3937,7 +4050,7 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' strb w2, [x1, 16]
 //' strb wzr, [x0, 16]
 //' ret
-//'@if $arm64 & $gcc[..13]
+//'@if $arm64 & $gcc[12..13]
 //' ldrb w3, [x0, 16]
 //' ldrb w2, [x1, 16]
 //' cbz w3, .L0
@@ -3957,6 +4070,32 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' strb wzr, [x1, 16]
 //' ret
 //' .L1:
+//' ldp x4, x5, [x0]
+//' mov w2, 1
+//' stp x4, x5, [x1]
+//' strb w2, [x1, 16]
+//' strb wzr, [x0, 16]
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' ldrb w2, [x0, 16]
+//' ldrb w3, [x1, 16]
+//' cbnz w2, .L0
+//' cbz w3, .L1
+//' ldp x4, x5, [x1]
+//' mov w2, 1
+//' stp x4, x5, [x0]
+//' strb w2, [x0, 16]
+//' strb wzr, [x1, 16]
+//' .L1:
+//' ret
+//' .L0:
+//' cbz w3, .L2
+//' ldr q0, [x0]
+//' ldp x2, x3, [x1]
+//' stp x2, x3, [x0]
+//' str q0, [x1]
+//' ret
+//' .L2:
 //' ldp x4, x5, [x0]
 //' mov w2, 1
 //' stp x4, x5, [x1]
@@ -4690,7 +4829,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov x3, 2
 //' fmov d27, x3
 //' b .L8
-//'@if $arm64 & $gcc[..15]
+//'@if $arm64 & $gcc[12..15]
 //' cbz x1, .L0
 //' mov x3, 0
 //' b .L1
@@ -4705,6 +4844,28 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov x5, x3
 //' mov w1, 1
 //' mov x0, x5
+//' and x1, x1, 1
+//' ret
+//' .L0:
+//' mov x0, x5
+//' mov w1, 0
+//' and x1, x1, 1
+//' ret
+//'@if $arm64 & $gcc[..12]
+//' cbz x1, .L0
+//' mov x3, 0
+//' b .L1
+//' .L2:
+//' add x3, x3, 1
+//' cmp x3, x1
+//' beq .L0
+//' .L1:
+//' ldr w4, [x0, x3, lsl 2]
+//' cmp w4, w2
+//' bne .L2
+//' mov x5, x3
+//' mov x0, x5
+//' mov w1, 1
 //' and x1, x1, 1
 //' ret
 //' .L0:
