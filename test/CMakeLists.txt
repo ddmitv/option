@@ -93,10 +93,10 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wcast-align=strict -Wcast-qual -Wstrict-aliasing=3 -Wclass-memaccess
         -Wconversion -Warith-conversion -Wfloat-conversion -Wfloat-equal -Wenum-conversion -Wsign-promo
         -Wconditionally-supported -Wdeprecated-copy-dtor -Wdeprecated-enum-enum-conversion -Wdeprecated-enum-float-conversion
-        -Winit-list-lifetime -Wnoexcept -Wnoexcept-type -Wmissing-template-keyword -Wmissing-requires
+        -Winit-list-lifetime -Wnoexcept -Wnoexcept-type
         -Wstrict-overflow=5 -Wstringop-overflow=4 -Wstringop-overread -Wundef -Wpragmas -Wunknown-pragmas
         -Wint-in-bool-context -Wlogical-op -Wtautological-compare -Wtype-limits -Wduplicated-branches -Wduplicated-cond
-        -Wnull-dereference -Wdangling-pointer=2 -Wuse-after-free=3 -Warray-bounds=2 -Wmaybe-uninitialized -Wuninitialized
+        -Wnull-dereference -Warray-bounds=2 -Wmaybe-uninitialized -Wuninitialized
         -Wmismatched-tags -Wredundant-tags -Wignored-attributes -Wignored-qualifiers
         -Wodr -Wlto-type-mismatch -Wmultistatement-macros -Wunused -Wunused-const-variable=2
         -fanalyzer
@@ -107,6 +107,9 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
         target_compile_options(option-header-test PRIVATE -Wchanges-meaning -Winvalid-constexpr)
+    endif()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
+        target_compile_options(option-header-test PRIVATE -Wmissing-template-keyword -Wmissing-requires -Wdangling-pointer=2 -Wuse-after-free=3)
     endif()
 endif()
 
