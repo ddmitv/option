@@ -290,7 +290,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gcc: ['12', '13', '14', '15', '16']
+        gcc: ['11', '12', '13', '14', '15', '16']
         arch: ['x64', 'arm64']
     steps:
       - *checkout_step
