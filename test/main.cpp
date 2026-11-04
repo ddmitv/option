@@ -33,6 +33,7 @@ int main() {
     run_test_suite(deduction_guides_test_suite);
     run_test_suite(option_iterator_test_suite);
     run_test_suite(observe_methods_test_suite);
+    run_test_suite(conv_copy_ctor_test_suite);
 
     std::puts("Tests successfully completed");
 }

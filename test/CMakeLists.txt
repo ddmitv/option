@@ -24,6 +24,7 @@ add_executable(option-test
     ctors/deduction_guides.cpp
     option_iterator.cpp
     option_observe.cpp
+    ctors/conv_copy_ctor.cpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
