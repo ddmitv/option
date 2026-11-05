@@ -99,7 +99,8 @@
     OPTION_GCC_SUPPRESS_WARNING_PUSH \
     OPTION_GCC_SUPPRESS_WARNING("-Wshadow") \
     /* GCC checks this after inlining and scalar replacement, so for trivially-copyable T it cannot correlate `engaged` with payload initialization and reports guarded reads of an empty option's never-written payload as maybe-uninitialized at -O2+ */ \
-    OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")
+    OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized") \
+    OPTION_GCC_SUPPRESS_WARNING("-Wuninitialized") /* TODO: try to remove -Wmaybe-uninitialized and -Wuninitialized warning suppressions */
 
 #define OPTION_SUPPRESS_COMMON_WARNINGS_POP \
     OPTION_MSVC_SUPPRESS_WARNING_POP \
