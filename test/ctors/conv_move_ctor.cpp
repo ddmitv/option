@@ -7,6 +7,14 @@
 // template<typename U>
 // option(option<U>&&)
 
+// libgcc's unwinder on AArch64 does not propagate HWAsan tags.
+// Throwing from instrumented code trips a spurious stack tag-mismatch inside _Unwind_RaiseException
+#if defined(__SANITIZE_HWADDRESS__) && OPTION_GCC && !OPTION_CLANG
+    #define GCC_HWASAN_UNWINDER_BROKEN 1
+#else
+    #define GCC_HWASAN_UNWINDER_BROKEN 0
+#endif
+
 namespace {
 
 // https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/optional_U.pass.cpp
@@ -117,10 +125,12 @@ void conv_move_ctor_test_suite() {
         opt::option<int> rhs;
         test_implicit<implicit_Z>(std::move(rhs));
     }
+#if !GCC_HWASAN_UNWINDER_BROKEN
     {
         opt::option<int> rhs(3);
         test_implicit<implicit_Z>(std::move(rhs), true);
     }
+#endif
     static_assert(!std::is_constructible_v<opt::option<implicit_X>, opt::option<implicit_Z>>);
 
     // TODO: test_ref
@@ -131,8 +141,10 @@ void conv_move_ctor_test_suite() {
         opt::option<int> rhs;
         test_explicit<explicit_Z>(std::move(rhs));
     }
+#if !GCC_HWASAN_UNWINDER_BROKEN
     {
         opt::option<int> rhs(3);
         test_explicit<explicit_Z>(std::move(rhs), true);
     }
+#endif
 }
