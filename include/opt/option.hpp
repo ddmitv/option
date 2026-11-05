@@ -193,13 +193,16 @@ namespace impl {
         }
         template<typename That>
         constexpr void construct_from_another(That&& other) {
+            using U = decltype(other.value);
             // improves codegen
-            if constexpr (OPTION_IS_INTEGRAL(T) && OPTION_IS_INTEGRAL(decltype(other.value))) {
+            if constexpr (OPTION_IS_INTEGRAL(T) && OPTION_IS_INTEGRAL(U)) {
                 // Integer -> integer conversion is cheap, total and cannot fault, so skip the branch:
                 // convert the (possibly never written) source value unconditionally and copy the flag as is.
                 // Not usable in constant evaluation, where reading an inactive union member is an error.
                 if (!std::is_constant_evaluated()) {
-                    this->value = other.value;
+                    U tmp;
+                    std::memcpy(&tmp, &other.value, sizeof(U));
+                    this->value = tmp; // implicit start lifetime
                     this->engaged = other.has_value();
                     return;
                 }
@@ -212,15 +215,18 @@ namespace impl {
 
         template<typename That>
         constexpr void assign_from_another(That&& other) {
+            using U = decltype(other.value);
             // improves codegen
-            if constexpr (OPTION_IS_INTEGRAL(T) && OPTION_IS_INTEGRAL(decltype(other.value))) {
+            if constexpr (OPTION_IS_INTEGRAL(T) && OPTION_IS_INTEGRAL(U)) {
                 // Integer -> integer conversion is total, side-effect free, and cannot
                 // fault, so we can assign both the (possibly indeterminate) payload
                 // and the state byte unconditionally — no branch, no reset/construct.
                 // Not valid in constant evaluation: reading an unengaged source's
                 // payload is UB there.
                 if (!std::is_constant_evaluated()) {
-                    this->value = other.value;
+                    U tmp;
+                    std::memcpy(&tmp, &other.value, sizeof(U));
+                    this->value = tmp; // implicit start lifetime
                     this->engaged = other.has_value();
                     return;
                 }

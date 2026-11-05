@@ -308,6 +308,21 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #endif
 #endif
 
+// clang <=18 reported that [[assume]] attribute existed but not emitted the @llvm.assume IR, so we firstly check for clang and use __builtin_assume
+#if OPTION_CLANG
+    #define OPTION_ASSUME(expr) __builtin_assume(expr)
+#elif OPTION_GCC && __GNUC__ >= 13
+    #define OPTION_ASSUME(expr) __attribute__((__assume__(expr)))
+#elif OPTION_GCC
+    #define OPTION_ASSUME(expr) if (expr) {} else __builtin_unreachable()
+#elif OPTION_HAS_CPP_ATTRIBUTE(assume)
+    #define OPTION_ASSUME(expr) [[assume(expr)]]
+#elif OPTION_MSVC
+    #define OPTION_ASSUME(expr) __assume(expr)
+#else
+    #define OPTION_ASSUME(expr) // noop
+#endif
+
 #ifndef OPTION_VERIFY
     #ifndef NDEBUG
         #include <cstdio>
@@ -318,18 +333,7 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
                 void(OPTION_DEBUG_BREAK) \
             ))
     #else
-        // clang <=18 reported that [[assume]] attribute existed but not emitted the @llvm.assume IR, so we firstly check for clang and use __builtin_assume
-        #if OPTION_CLANG
-            #define OPTION_VERIFY(expr, msg) __builtin_assume(expr)
-        #elif OPTION_HAS_CPP_ATTRIBUTE(assume)
-            #define OPTION_VERIFY(expr, msg) [[assume(expr)]]
-        #elif OPTION_MSVC
-            #define OPTION_VERIFY(expr, msg) __assume(expr)
-        #elif OPTION_GCC
-            #define OPTION_VERIFY(expr, msg) (expr ? void() : void(__builtin_unreachable()))
-        #else
-            #define OPTION_VERIFY(expr, msg) // noop
-        #endif
+        #define OPTION_VERIFY(expr, msg) OPTION_ASSUME(expr)
     #endif
 #endif
 
