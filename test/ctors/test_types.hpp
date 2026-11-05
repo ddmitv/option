@@ -272,7 +272,10 @@ struct explicit_triv_test_type {
 struct constexpr_test_type {
 private:
     constexpr static int check_value(const int& val) {
+        OPTION_GCC_SUPPRESS_WARNING_PUSH
+        OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")
         check(val != -1);
+        OPTION_GCC_SUPPRESS_WARNING_POP
         check(val != 999);
         return val;
     }

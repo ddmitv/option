@@ -16,7 +16,14 @@ void test(InitArgs&&... args) {
     opt::option<T> lhs = rhs;
     check(lhs.has_value() == rhs.has_value());
     if (rhs.has_value()) {
+        // GCC cannot prove that `engaged == true` implies `storage.value` is
+        // initialized (they are separate SSA names in the union), so it warns
+        // on this deref even when `rhs` was default-constructed and the branch
+        // is dead. The warning is a false positive; suppress it here only.
+        OPTION_GCC_SUPPRESS_WARNING_PUSH
+        OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")
         check(*lhs == *rhs);
+        OPTION_GCC_SUPPRESS_WARNING_POP
     }
 }
 
