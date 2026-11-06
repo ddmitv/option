@@ -248,7 +248,7 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_IS_INTEGRAL(x) ::std::is_integral_v<x>
 #endif
 
-#if OPTION_HAS_BUILTIN(__is_trivially_copyable)
+#if OPTION_HAS_BUILTIN(__is_trivially_copyable) || OPTION_MSVC
     #define OPTION_IS_TRIVIALLY_COPYABLE(x) __is_trivially_copyable(x)
 #else
     #define OPTION_IS_TRIVIALLY_COPYABLE(x) ::std::is_trivially_copyable_v<x>
@@ -264,6 +264,18 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_IS_VOLATILE(x) __is_volatile(x)
 #else
     #define OPTION_IS_VOLATILE(x) ::std::is_volatile_v<x>
+#endif
+
+#if OPTION_HAS_BUILTIN(__is_array)
+    #define OPTION_IS_ARRAY(x) __is_array(x)
+#else
+    #define OPTION_IS_ARRAY(x) ::std::is_array_v<x>
+#endif
+
+#if OPTION_HAS_BUILTIN(__is_destructible) || OPTION_MSVC
+    #define OPTION_IS_DESTRUCTIBLE(x) __is_destructible(x)
+#else
+    #define OPTION_IS_DESTRUCTIBLE(x) ::std::is_destructible_v<x>
 #endif
 
 #ifndef OPTION_CONSUMED_ANNOTATION_CHECKING
