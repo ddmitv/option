@@ -28,6 +28,7 @@ add_executable(option-test
     ctors/copy_ctor.cpp
     ctors/conv_move_ctor.cpp
     ctors/in_place_ctor.cpp
+    ctors/move_ctor.cpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
@@ -90,7 +91,9 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wdouble-promotion # Give a warning when a value of type float is implicitly promoted to double
         -Wold-style-cast # Warn for C style casting
         -Wshadow # Warn whenever a local variable or type declaration shadows another variable
+
         -Wno-self-move
+
     )
     target_compile_options(option-header-test PRIVATE
         -Wall -Wextra -Wpedantic -Werror -Wattributes -Waddress-of-packed-member
