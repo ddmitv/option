@@ -191,6 +191,104 @@ void test_const_T_ctor() {
     }
 }
 
+void test_rvalue_T_ctor() {
+    // https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/rvalue_T.pass.cpp
+    {
+        constexpr opt::option<int> opt(int(5));
+        static_assert(opt.has_value());
+        static_assert(*opt == 5);
+
+        struct test_constexpr_ctor : opt::option<int> {
+            [[maybe_unused]] constexpr test_constexpr_ctor(int&&) {}
+        };
+    }
+    {
+        constexpr opt::option<double> opt(double(3));
+        static_assert(opt.has_value());
+        static_assert(*opt == 3);
+
+        struct test_constexpr_ctor : opt::option<double> {
+            [[maybe_unused]] constexpr test_constexpr_ctor(double&&) {}
+        };
+    }
+    {
+        const int x = 42;
+        opt::option<const int> o(std::move(x));
+        check(*o == 42);
+    }
+    {
+        using T = test_types::test_type;
+        T::reset();
+        opt::option<T> opt = T{3};
+        check(T::alive == 1);
+        check(T::move_constructed == 1);
+        check(opt.has_value());
+        check(opt.get().value == 3);
+    }
+    {
+        using T = test_types::explicit_test_type;
+        static_assert(!std::is_convertible_v<T&&, opt::option<T>>);
+        T::reset();
+        opt::option<T> opt(T{3});
+        check(T::alive == 1);
+        check(T::move_constructed == 1);
+        check(opt.has_value());
+        check(opt.get().value == 3);
+    }
+    {
+        using T = test_types::test_type;
+        T::reset();
+        opt::option<T> opt = {3};
+        check(T::alive == 1);
+        check(T::value_constructed == 1);
+        check(T::copy_constructed == 0);
+        check(T::move_constructed == 0);
+        check(opt.has_value());
+        check(opt.get().value == 3);
+    }
+    {
+        using T = test_types::constexpr_test_type;
+        constexpr opt::option<T> opt = {T(3)};
+        static_assert(opt.has_value());
+        static_assert(opt.get().value == 3);
+
+        struct test_constexpr_ctor : opt::option<T> {
+            [[maybe_unused]] constexpr test_constexpr_ctor(const T&) {}
+        };
+    }
+    {
+        using T = test_types::constexpr_test_type;
+        constexpr opt::option<T> opt = {3};
+        static_assert(opt.has_value());
+        static_assert(opt.get().value == 3);
+
+        struct test_constexpr_ctor : opt::option<T> {
+            [[maybe_unused]] constexpr test_constexpr_ctor(const T&) {}
+        };
+    }
+    {
+        using T = test_types::explicit_constexpr_test_type;
+        static_assert(!std::is_convertible_v<T&&, opt::option<T>>);
+        constexpr opt::option<T> opt(T{3});
+        static_assert(opt.has_value());
+        static_assert(opt.get().value == 3);
+
+        struct test_constexpr_ctor : opt::option<T> {
+            [[maybe_unused]] constexpr test_constexpr_ctor(T&&) {}
+        };
+    }
+#if OPTION_HAS_EXCEPTIONS
+    {
+        struct Z {
+            Z(int) {}
+            [[noreturn]] Z(Z&&) { throw 6; }
+        };
+        Z z(3);
+        check_throw_value([[maybe_unused]] opt::option<Z> o(std::move(z)), int, 6);
+    }
+#endif
+}
+
 // test ref https://github.com/llvm/llvm-project/blob/74d6edc53625fb0b8652cd928ef7bdca95570aa6/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/U.pass.cpp#L175
 
 }
@@ -199,4 +297,5 @@ void from_u_ctor_test_suite() {
     test_implicit();
     test_explicit();
     test_const_T_ctor();
+    test_rvalue_T_ctor();
 }
