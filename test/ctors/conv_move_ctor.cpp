@@ -7,17 +7,11 @@
 // template<typename U>
 // option(option<U>&&)
 
-// libgcc's unwinder on AArch64 does not propagate HWAsan tags.
-// Throwing from instrumented code trips a spurious stack tag-mismatch inside _Unwind_RaiseException
-#if defined(__SANITIZE_HWADDRESS__) && OPTION_GCC && !OPTION_CLANG
-    #define GCC_HWASAN_UNWINDER_BROKEN 1
-#else
-    #define GCC_HWASAN_UNWINDER_BROKEN 0
-#endif
-
 namespace {
 
 // https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/optional_U.pass.cpp
+
+
 template <typename T, typename U>
 constexpr void test_implicit(opt::option<U>&& rhs, bool is_going_to_throw = false) {
     bool rhs_engaged = rhs.has_value();

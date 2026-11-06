@@ -8,6 +8,8 @@
 
 // option(const option<T>&)
 
+OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")
+
 namespace {
 
 template<typename T, typename... InitArgs>
@@ -16,9 +18,7 @@ void test(InitArgs&&... args) {
     opt::option<T> lhs = rhs;
     check(lhs.has_value() == rhs.has_value());
     if (rhs.has_value()) {
-        SUPPRESS_MAYBE_UNINITIALIZED(
         check(*lhs == *rhs);
-        )
     }
 }
 

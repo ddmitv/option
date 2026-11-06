@@ -11,6 +11,8 @@ namespace {
 
 // https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/move.pass.cpp
 
+OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")
+
 template<typename T, typename... InitArgs>
 void test(InitArgs&&... args) {
     const opt::option<T> orig(std::forward<InitArgs>(args)...);
@@ -19,9 +21,9 @@ void test(InitArgs&&... args) {
     opt::option<T> lhs = std::move(rhs);
     check(lhs.has_value() == rhs_engaged);
     if (rhs_engaged) {
-        SUPPRESS_WCONSUMED(SUPPRESS_MAYBE_UNINITIALIZED(
+        SUPPRESS_WCONSUMED(
         check(*lhs == *orig);
-        ))
+        )
     }
 }
 
@@ -39,7 +41,7 @@ constexpr bool constexpr_test(InitArgs&&... args) {
 }
 
 void test_throwing_ctor() {
-#if OPTION_HAS_EXCEPTIONS
+#if OPTION_HAS_EXCEPTIONS && !GCC_HWASAN_UNWINDER_BROKEN
     struct Z {
         Z() : count(0) {}
         Z(Z&& o) : count(o.count + 1) {

@@ -106,3 +106,11 @@ void on_check_failed(const char* message, const char* filename, unsigned int lin
     OPTION_CLANG_SUPPRESS_WARNING("-Wconsumed") \
     __VA_ARGS__ \
     OPTION_CLANG_SUPPRESS_WARNING_POP
+
+// libgcc's unwinder on AArch64 does not propagate HWAsan tags.
+// Throwing from instrumented code trips a spurious stack tag-mismatch inside _Unwind_RaiseException
+#if defined(__SANITIZE_HWADDRESS__) && OPTION_GCC && !OPTION_CLANG
+    #define GCC_HWASAN_UNWINDER_BROKEN 1
+#else
+    #define GCC_HWASAN_UNWINDER_BROKEN 0
+#endif
