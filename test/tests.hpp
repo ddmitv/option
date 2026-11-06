@@ -90,3 +90,19 @@ void on_check_failed(const char* message, const char* filename, unsigned int lin
     #define check_throw(statement, exception_type) do { statement; } while (0)
     #define check_throw_value(statement, exception_type, expected_value) do { statement; } while (0)
 #endif
+
+// GCC (with optimization enabled, -O1 and up) cannot prove that engaged == true implies the union member option_storage::value was initialized - after SRA
+// (scalar replacement of aggregates) the engagement flag and the payload are separate SSA values, and the uninitialized-use analysis cannot correlate the
+// runtime branch on the flag with the payload's initialization, so GCC can report a -Wmaybe-uninitialized false positive on a dereference of an opt::option
+// whose engagement is only known at runtime (see GCC PR 80635, PR 109561, PR 114253).
+#define SUPPRESS_MAYBE_UNINITIALIZED(...) \
+    OPTION_GCC_SUPPRESS_WARNING_PUSH \
+    OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized") \
+    __VA_ARGS__ \
+    OPTION_GCC_SUPPRESS_WARNING_POP
+
+#define SUPPRESS_WCONSUMED(...) \
+    OPTION_CLANG_SUPPRESS_WARNING_PUSH \
+    OPTION_CLANG_SUPPRESS_WARNING("-Wconsumed") \
+    __VA_ARGS__ \
+    OPTION_CLANG_SUPPRESS_WARNING_POP

@@ -7,12 +7,6 @@
 
 // option(option&&)
 
-#define SUPPRESS_WCONSUMED(...) \
-    OPTION_CLANG_SUPPRESS_WARNING_PUSH \
-    OPTION_CLANG_SUPPRESS_WARNING("-Wconsumed") \
-    __VA_ARGS__ \
-    OPTION_CLANG_SUPPRESS_WARNING_POP
-
 namespace {
 
 // https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/move.pass.cpp
@@ -25,9 +19,9 @@ void test(InitArgs&&... args) {
     opt::option<T> lhs = std::move(rhs);
     check(lhs.has_value() == rhs_engaged);
     if (rhs_engaged) {
-        SUPPRESS_WCONSUMED(
-            check(*lhs == *orig);
-        )
+        SUPPRESS_WCONSUMED(SUPPRESS_MAYBE_UNINITIALIZED(
+        check(*lhs == *orig);
+        ))
     }
 }
 
