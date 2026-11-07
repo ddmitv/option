@@ -180,6 +180,12 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_REMOVE_CV(x) ::std::remove_cv_t<x>
 #endif
 
+#if OPTION_HAS_BUILTIN(__remove_cv) && !OPTION_GCC
+    #define OPTION_RETURN_REMOVE_CV(x) __remove_cv(x)
+#else
+    #define OPTION_RETURN_REMOVE_CV(x) ::std::remove_cv_t<x>
+#endif
+
 #if (OPTION_HAS_BUILTIN(__is_constructible) && !OPTION_GCC) || OPTION_MSVC
     #define OPTION_IS_CONSTRUCTIBLE(...) __is_constructible(__VA_ARGS__)
 #else
