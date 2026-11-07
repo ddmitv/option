@@ -29,6 +29,13 @@ add_executable(option-test
     ctors/conv_move_ctor.cpp
     ctors/in_place_ctor.cpp
     ctors/move_ctor.cpp
+    assign/from_u_assign.cpp
+    assign/conv_copy_assign.cpp
+    assign/copy_assign.cpp
+    assign/conv_move_assign.cpp
+    assign/move_assign.cpp
+    assign/none_assign.cpp
+    assign/emplace.cpp
     dtor.cpp
 )
 target_link_libraries(option-test PRIVATE option)

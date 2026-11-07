@@ -18,7 +18,6 @@ namespace impl {
 
 // https://eel.is/c++draft/optional#nullopt
 struct none_t {
-    constexpr none_t() = delete;
     constexpr explicit none_t(impl::none_secret_tag) {}
 };
 inline constexpr none_t none{impl::none_secret_tag{}};

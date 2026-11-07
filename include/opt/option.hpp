@@ -445,8 +445,13 @@ public:
         : storage(std::in_place, static_cast<U&&>(value)) {}
 
     // https://eel.is/c++draft/optional.optional#lib:optional,constructor______
+    // `!OPTION_IS_SAME(U, T)` excludes the same-type case, which is already handled by the
+    // copy constructor. Apart from avoiding a redundant candidate it also keeps GCC from
+    // evaluating `is_constructible_v<T, T>` while substituting this constructor, which is
+    // self-referential for types constructible from `option<T>` (see the assignment operators below).
     template<typename U> requires(
-        OPTION_IS_CONSTRUCTIBLE(T, const U&)
+        !OPTION_IS_SAME(U, T)
+        && OPTION_IS_CONSTRUCTIBLE(T, const U&)
         && !OPTION_IS_SAME(OPTION_REMOVE_CVREF(T), bool) && !(
             OPTION_IS_CONSTRUCTIBLE(T, const option<U>) || OPTION_IS_CONSTRUCTIBLE(T, const option<U>&) ||
             OPTION_IS_CONSTRUCTIBLE(T, option<U>) || OPTION_IS_CONSTRUCTIBLE(T, option<U>&) ||
@@ -461,7 +466,8 @@ public:
 
     // https://eel.is/c++draft/optional.optional#lib:optional,constructor_______
     template<typename U> requires(
-        OPTION_IS_CONSTRUCTIBLE(T, U)
+        !OPTION_IS_SAME(U, T)
+        && OPTION_IS_CONSTRUCTIBLE(T, U)
         && !OPTION_IS_SAME(OPTION_REMOVE_CVREF(T), bool) && !(
             OPTION_IS_CONSTRUCTIBLE(T, const option<U>) || OPTION_IS_CONSTRUCTIBLE(T, const option<U>&) ||
             OPTION_IS_CONSTRUCTIBLE(T, option<U>) || OPTION_IS_CONSTRUCTIBLE(T, option<U>&) ||
@@ -527,8 +533,13 @@ public:
     }
 
     // https://eel.is/c++draft/optional.optional#lib:operator=,optional____
+    // `!OPTION_IS_SAME(U, T)` excludes the same-type case handled by the copy assignment
+    // operator. It must come first: otherwise GCC evaluates `is_constructible_v<T, T>` while
+    // substituting this operator for `option<T> = option<T>`, and for a T constructible from
+    // `option<T>` that query depends on itself.
     template<typename U> requires(
-        OPTION_IS_CONSTRUCTIBLE(T, const U&) && OPTION_IS_ASSIGNABLE(T&, const U&)
+        !OPTION_IS_SAME(U, T)
+        && OPTION_IS_CONSTRUCTIBLE(T, const U&) && OPTION_IS_ASSIGNABLE(T&, const U&)
         && !(
             OPTION_IS_CONSTRUCTIBLE(T, const option<U>) || OPTION_IS_CONSTRUCTIBLE(T, const option<U>&) ||
             OPTION_IS_CONSTRUCTIBLE(T, option<U>) || OPTION_IS_CONSTRUCTIBLE(T, option<U>&) ||
@@ -546,7 +557,8 @@ public:
 
     // https://eel.is/c++draft/optional.optional#lib:operator=,optional_____
     template<typename U> requires(
-        OPTION_IS_CONSTRUCTIBLE(T, U) && OPTION_IS_ASSIGNABLE(T&, U)
+        !OPTION_IS_SAME(U, T)
+        && OPTION_IS_CONSTRUCTIBLE(T, U) && OPTION_IS_ASSIGNABLE(T&, U)
         && !(
             OPTION_IS_CONSTRUCTIBLE(T, const option<U>) || OPTION_IS_CONSTRUCTIBLE(T, const option<U>&) ||
             OPTION_IS_CONSTRUCTIBLE(T, option<U>) || OPTION_IS_CONSTRUCTIBLE(T, option<U>&) ||
