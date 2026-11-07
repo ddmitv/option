@@ -17,7 +17,7 @@ MSVC_DIAG = re.compile(
 )
 
 EXPECTED_ERROR = re.compile(
-    r'// error(?:\[(?P<compilers>[^\]]*)\])?:(?P<pattern>.+)'
+    r'// error(?:\[(?P<compilers>[^\]]*)\])?(?P<dedup>\^)?(?:x(?P<count>\d+))?:(?P<pattern>.+)'
 )
 
 ANSI_SEQUENCE = re.compile(r'\x1b\[[0-9;]*[A-Za-z]')
@@ -131,15 +131,19 @@ def parse_expected_diags(src: Path, compiler_id: CxxCompilerId) -> list[Expected
         if m is None:
             continue
         compilers, pattern = m.group('compilers'), m.group('pattern').strip()
+        merge_with_prev = m.group('dedup') is not None
+        raw_count = m.group('count')
+        count = int(raw_count) if raw_count is not None else 1
 
         if not check_compiler_guard(compilers, compiler_id):
             continue
 
         # for some reason, msvc suppresses repeated diagnostics so we need to also deduplicate them to match with msvc's output
-        if compiler_id == CxxCompilerId.MSVC and len(error_patterns) > 0 and error_patterns[-1].raw == pattern:
+        if compiler_id == CxxCompilerId.MSVC and merge_with_prev and len(error_patterns) > 0 and error_patterns[-1].raw == pattern:
             continue
 
-        error_patterns.append(ExpectedDiag(raw=pattern, pattern=compile_diag_pattern(pattern), line=i))
+        for _ in range(count):
+            error_patterns.append(ExpectedDiag(raw=pattern, pattern=compile_diag_pattern(pattern), line=i))
     return error_patterns
 
 def parse_compiler_output(output: str, compiler_id: CxxCompilerId) -> list[CompilerDiag]:
