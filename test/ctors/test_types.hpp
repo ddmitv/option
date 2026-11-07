@@ -376,6 +376,17 @@ public:
     int value;
 };
 
+// https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional_helper_types.h
+template<typename T>
+struct lvalue_only {
+    T val{};
+
+    constexpr operator T&() & noexcept { return val; }
+    constexpr operator T&() const& = delete;
+    constexpr operator T&() && = delete;
+    constexpr operator T&() const&& = delete;
+};
+
 template<typename T>
 constexpr bool operator==(const T& x, const T& y) noexcept {
     return x.value == y.value;

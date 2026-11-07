@@ -1,5 +1,6 @@
 #include <opt/option.hpp>
 
+#include <ctors/test_types.hpp>
 #include <tests.hpp>
 #include <type_traits>
 #include <vector>
@@ -125,6 +126,9 @@ void conv_move_ctor_test_suite() {
         test_implicit<implicit_Z>(std::move(rhs), true);
     }
 #endif
+    // GH: #194415 https://github.com/llvm/llvm-project/issues/194415
+    static_assert(!std::is_constructible_v<opt::option<int>, opt::option<test_types::lvalue_only<int>>&>);
+
     static_assert(!std::is_constructible_v<opt::option<implicit_X>, opt::option<implicit_Z>>);
 
     // TODO: test_ref
