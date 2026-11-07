@@ -412,6 +412,11 @@ public:
     using iterator = impl::option_iterator<T>;
     using const_iterator = impl::option_iterator<const T>;
 
+    static_assert(OPTION_IS_DESTRUCTIBLE(T), "instantiation of opt::option with a non-destructible type is ill-formed");
+    static_assert(!OPTION_IS_SAME(OPTION_REMOVE_CV(T), std::in_place_t), "instantiation of opt::option with std::in_place_t is ill-formed");
+    static_assert(!OPTION_IS_SAME(OPTION_REMOVE_CV(T), opt::none_t), "instantiation of opt::option with opt::none_t is ill-formed");
+    static_assert(!OPTION_IS_ARRAY(T), "instantiation of opt::option with an array type is ill-formed");
+
     // https://eel.is/c++draft/optional.optional#general-2
 
     // https://eel.is/c++draft/optional.optional#lib:optional,constructor
