@@ -753,6 +753,37 @@ public:
         }
         return static_cast<const T&&>(this->storage.value);
     }
+
+    // https://eel.is/c++draft/optional.optional#lib:value_or,optional
+    template<typename U = OPTION_REMOVE_CV(T)>
+    [[nodiscard]] constexpr OPTION_RETURN_REMOVE_CV(T) value_or(U&& v) const& {
+        using uncv_t = OPTION_REMOVE_CV(T);
+        // is_convertible instead of the is_copy_constructible (LWG 3424)
+        static_assert(OPTION_IS_CONVERTIBLE(const T&, uncv_t), "opt::option::value_or: const T& must be convertible to remove_cv_t<T>");
+        static_assert(OPTION_IS_CONVERTIBLE(U&&, uncv_t), "opt::option::value_or: U must be convertible to remove_cv_t<T>");
+        // if statement instead of ternary (LWG 4281/4406)
+        if (this->storage.has_value()) {
+            return this->storage.value;
+        } else {
+            // no static_cast<uncv_t> (LWG 4406)
+            return static_cast<U&&>(v);
+        }
+    }
+    // https://eel.is/c++draft/optional.optional#lib:value_or,optional_
+    template<typename U = OPTION_REMOVE_CV(T)>
+    [[nodiscard]] constexpr OPTION_RETURN_REMOVE_CV(T) value_or(U&& v) && {
+        using uncv_t = OPTION_REMOVE_CV(T);
+        // is_convertible instead of the is_move_constructible (LWG 3424)
+        static_assert(OPTION_IS_CONVERTIBLE(T, uncv_t), "opt::option::value_or: T must be convertible to remove_cv_t<T>");
+        static_assert(OPTION_IS_CONVERTIBLE(U&&, uncv_t), "opt::option::value_or: U must be convertible to remove_cv_t<T>");
+        // if statement instead of ternary (LWG 4281/4406)
+        if (this->storage.has_value()) {
+            return static_cast<T&&>(this->storage.value);
+        } else {
+            // no static_cast<uncv_t> (LWG 4406)
+            return static_cast<U&&>(v);
+        }
+    }
 };
 
 template<class T>
