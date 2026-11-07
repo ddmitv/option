@@ -38,6 +38,7 @@ add_executable(option-test
     assign/emplace.cpp
     dtor.cpp
     reset.cpp
+    observe/value_or.cpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
@@ -138,6 +139,7 @@ find_package(Python3 COMPONENTS Interpreter)
 if (Python3_FOUND)
     add_library(option-verify-test OBJECT
         ctors/ctors_verify.cpp
+        observe/value_or_verify.cpp
     )
     target_link_libraries(option-verify-test PRIVATE option)
     target_compile_definitions(option-verify-test PRIVATE OPTION_CONSUMED_ANNOTATION_CHECKING=1)

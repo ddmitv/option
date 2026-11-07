@@ -47,6 +47,7 @@ int main() {
     run_test_suite(emplace_test_suite);
     run_test_suite(reset_test_suite);
     run_test_suite(dtor_test_suite);
+    run_test_suite(value_or_test_suite);
 
     std::puts("Tests successfully completed");
 }
