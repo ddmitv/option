@@ -123,3 +123,21 @@ endif()
 add_custom_target(run-option-test VERBATIM
     COMMAND "$<TARGET_FILE:option-test>"
 )
+
+find_package(Python3 COMPONENTS Interpreter)
+
+if (Python3_FOUND)
+    add_library(option-verify-test OBJECT
+        ctors/ctors_verify.cpp
+    )
+    target_link_libraries(option-verify-test PRIVATE option)
+    target_compile_definitions(option-verify-test PRIVATE OPTION_CONSUMED_ANNOTATION_CHECKING=1)
+
+    set_target_properties(option-verify-test PROPERTIES
+        CXX_EXTENSIONS FALSE
+        CXX_COMPILER_LAUNCHER "${Python3_EXECUTABLE};${CMAKE_SOURCE_DIR}/test/verify-test.py;${CMAKE_CXX_COMPILER_ID};${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}"
+    )
+    add_dependencies(run-option-test option-verify-test)
+else()
+    message(WARNING "Target option-verify-test is not available since Python 3 was not found")
+endif()
