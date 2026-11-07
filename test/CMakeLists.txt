@@ -37,6 +37,7 @@ add_executable(option-test
     assign/none_assign.cpp
     assign/emplace.cpp
     dtor.cpp
+    reset.cpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
