@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 import enum
 from dataclasses import dataclass
-
+import os
 
 # clang / gcc: "path/file.cpp:12:34: error: message"  (column sometimes absent)
 CLANG_GCC_DIAG = re.compile(
@@ -36,7 +36,9 @@ def main() -> None:
     sources: list[Path] = extract_sources(compiler_args)
 
     print(f'running compiler with args: {compiler_args!r}', flush=True)
-    compiler_proc = subprocess.run(compiler_args, capture_output=True, text=True)
+
+    compiler_env = os.environ | { 'VSLANG': '1033' } # force msvc to print english messages
+    compiler_proc = subprocess.run(compiler_args, capture_output=True, text=True, env=compiler_env)
     compiler_diag: list[CompilerDiag] = parse_compiler_output(compiler_proc.stdout + compiler_proc.stderr, cxx_compiler_id)
     # print(compiler_proc.stdout + compiler_proc.stderr)
 
