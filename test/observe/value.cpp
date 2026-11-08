@@ -2,7 +2,10 @@
 #include <tests.hpp>
 #include <opt/option.hpp>
 
+// https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/optional.object.observe/value.pass.cpp
+
 namespace {
+
 struct X {
     [[maybe_unused]] X() = default;
     constexpr int test() const& { return 3; }
@@ -54,8 +57,7 @@ void observe_methods_test_suite() {
     static_assert(test());
     test();
 
-    OPTION_CLANG_SUPPRESS_WARNING_PUSH
-    OPTION_CLANG_SUPPRESS_WARNING("-Wconsumed")
+    SUPPRESS_WCONSUMED(
     {
         opt::option<X> o;
         check_throw((void)o.value(), opt::bad_access);
@@ -70,5 +72,5 @@ void observe_methods_test_suite() {
         check_no_throw((void)std::move(o).value());
         check_no_throw((void)std::move(std::as_const(o)).value());
     }
-    OPTION_CLANG_SUPPRESS_WARNING_POP
+    )
 }

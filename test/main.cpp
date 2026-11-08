@@ -48,6 +48,10 @@ int main() {
     run_test_suite(reset_test_suite);
     run_test_suite(dtor_test_suite);
     run_test_suite(value_or_test_suite);
+    run_test_suite(swap_test_suite);
+    run_test_suite(op_arrow_test_suite);
+    run_test_suite(has_value_test_suite);
+    run_test_suite(dereference_test_suite);
 
     std::puts("Tests successfully completed");
 }

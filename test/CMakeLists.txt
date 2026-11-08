@@ -23,7 +23,7 @@ add_executable(option-test
     ctors/from_u_ctor.cpp
     ctors/deduction_guides.cpp
     option_iterator.cpp
-    option_observe.cpp
+    observe/value.cpp
     ctors/conv_copy_ctor.cpp
     ctors/copy_ctor.cpp
     ctors/conv_move_ctor.cpp
@@ -39,6 +39,10 @@ add_executable(option-test
     dtor.cpp
     reset.cpp
     observe/value_or.cpp
+    observe/op_arrow.cpp
+    observe/has_value.cpp
+    observe/dereference.cpp
+    swap.cpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)
