@@ -38,6 +38,9 @@ def main() -> None:
     print(f'running compiler with args: {compiler_args!r}', flush=True)
 
     compiler_env = os.environ | { 'VSLANG': '1033' } # force msvc to print english messages
+    if cxx_compiler_id != CxxCompilerId.MSVC:
+        compiler_args.append(f'-fmax-errors=0') # remove limit on the number of errors (msvc limit is hardcoded on 100)
+
     compiler_proc = subprocess.run(compiler_args, capture_output=True, text=True, env=compiler_env)
     compiler_diag: list[CompilerDiag] = parse_compiler_output(compiler_proc.stdout + compiler_proc.stderr, cxx_compiler_id)
     # print(compiler_proc.stdout + compiler_proc.stderr)
