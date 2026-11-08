@@ -48,6 +48,10 @@ void on_check_failed(const char* message, const char* filename, unsigned int lin
     static_assert(noexcept_op(expr), "noexcept(" #expr ") expected " #noexcept_op); \
     static_assert((expr) == (expected_value), "unexpected value for: " #expr)
 
+#define check_only_meta(expr, expected_type, noexcept_op) \
+    static_assert(::std::is_same_v<decltype(expr), expected_type>, "unexpected type for: " #expr); \
+    static_assert(noexcept_op(expr), "noexcept(" #expr ") expected " #noexcept_op)
+
 #if OPTION_HAS_EXCEPTIONS
     #define check_no_throw(statement) \
         do { \
