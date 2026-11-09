@@ -37,7 +37,10 @@ def main() -> None:
 
     print(f'running compiler with args: {compiler_args!r}', flush=True)
 
-    compiler_env = os.environ | { 'VSLANG': '1033' } # force msvc to print english messages
+    compiler_env = os.environ | {
+        'VSLANG': '1033', # force msvc to print english messages
+        'LC_ALL': 'C', # force gcc to use ASCII ' quotes
+    } 
     if cxx_compiler_id != CxxCompilerId.MSVC:
         compiler_args.append(f'-fmax-errors=0') # remove limit on the number of errors (msvc limit is hardcoded on 100)
 
@@ -127,7 +130,7 @@ def compile_diag_pattern(pattern: str) -> re.Pattern[str]:
     parts = EXPECTED_DIAG_REGEX_BLOCK.split(pattern)
     # re.split with one capturing group yields
     # [literal, raw, literal, raw, ..., literal]
-    return re.compile(''.join(part if i % 2 else re.escape(part) for i, part in enumerate(parts)))
+    return re.compile(''.join(re.escape(part) if i % 2 == 0 else part for i, part in enumerate(parts)))
 
 def parse_expected_diags(src: Path, compiler_id: CxxCompilerId) -> list[ExpectedDiag]:
     error_patterns: list[ExpectedDiag] = []
