@@ -41,8 +41,11 @@ def main() -> None:
         'VSLANG': '1033', # force msvc to print english messages
         'LC_ALL': 'C', # force gcc to use ASCII ' quotes
     } 
-    if cxx_compiler_id != CxxCompilerId.MSVC:
-        compiler_args.append(f'-fmax-errors=0') # remove limit on the number of errors (msvc limit is hardcoded on 100)
+    # remove limit on the number of errors (msvc limit is hardcoded on 100)
+    if cxx_compiler_id == CxxCompilerId.GCC:
+        compiler_args.append(f'-fmax-errors=0')
+    if cxx_compiler_id == CxxCompilerId.CLANG:
+        compiler_args.append(f'-ferror-limit=0')
 
     compiler_proc = subprocess.run(compiler_args, capture_output=True, text=True, env=compiler_env)
     compiler_diag: list[CompilerDiag] = parse_compiler_output(compiler_proc.stdout + compiler_proc.stderr, cxx_compiler_id)
@@ -55,20 +58,24 @@ def main() -> None:
 
     for source in sources:
         expected_diags = parse_expected_diags(source, cxx_compiler_id)
-        for diag_pattern in expected_diags:
+        unmatched: list[ExpectedDiag] = []
+
+        for exp in expected_diags:
             for i, diag in enumerate(compiler_diag):
-                if diag_pattern.pattern.search(diag.msg):
+                if exp.pattern.search(diag.msg):
                     del compiler_diag[i]
                     total_diags += 1
                     break
             else:
-                mismatches.append(f'unmatched error \"{diag_pattern.raw}\" at {source}:{diag_pattern.line}')
-        mismatches.extend(f'uncaught error: \"{msg.msg}\" at {msg.file}:{msg.line}' for msg in compiler_diag)
+                unmatched.append(exp)
 
-        if len(mismatches) > 0:
-            print(f"- FAIL {source}", file=sys.stderr)
-            print("\n".join(f"  - {p}" for p in mismatches), file=sys.stderr)
+        if unmatched or compiler_diag:
             has_errors = True
+            print(f'- FAIL {source}', file=sys.stderr)
+            for exp in unmatched:
+                print(f'  - unmatched error "{exp.raw}" at {source}:{exp.line}', file=sys.stderr)
+            for diag in compiler_diag:
+                print(f'  - uncaught error "{diag.msg}" at {diag.file}:{diag.line}', file=sys.stderr)
         else:
             print(f'- PASS {source}')
 
