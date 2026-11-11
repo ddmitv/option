@@ -89,10 +89,19 @@ void on_check_failed(const char* message, const char* filename, unsigned int lin
                 OPTION_DEBUG_BREAK; \
             } \
         } while (0)
+
+    #define do_throw(...) throw __VA_ARGS__
 #else
     #define check_no_throw(statement) do { statement; } while (0)
     #define check_throw(statement, exception_type) do { statement; } while (0)
     #define check_throw_value(statement, exception_type, expected_value) do { statement; } while (0)
+
+    #if OPTION_HAS_BUILTIN(__builtin_abort)
+        #define do_throw(...) __builtin_abort()
+    #else
+        #include <cstdlib>
+        #define do_throw(...) ::std::abort()
+    #endif
 #endif
 
 // GCC (with optimization enabled, -O1 and up) cannot prove that engaged == true implies the union member option_storage::value was initialized - after SRA
