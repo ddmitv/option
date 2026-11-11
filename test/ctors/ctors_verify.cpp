@@ -38,6 +38,34 @@ struct non_destructible {
         // error[clang]: no matching constructor for initialization of 'opt::option<{{(opt::)?}}none_t>'
         opt::option o2(opt::none);
     }
+    {
+        // error[gcc]: data member 'opt::impl::option_storage<void()>::<unnamed union>::value' invalidly declared function type
+        // error[gcc]: static assertion failed: instantiation of opt::option with a non-destructible type is ill-formed
+        // error[gcc]x2: function returning a function
+        opt::option<void()> o1;
+    }
+    {
+        // error[gcc,clang]: instantiation of opt::option with a non-destructible type is ill-formed
+        // error[gcc]: 'opt::impl::option_storage<T>::<unnamed union>::value' has incomplete type
+        // error[gcc]: invalid use of 'void'
+        // error[gcc]x20: forming reference to void
+        // error[clang]: data member instantiated with function type
+        // error[clang]: field has incomplete type
+        // error[msvc]: 'opt::impl::option_storage<T>::value': a member of a class template cannot acquire a function type
+        // error[msvc]x2: member function not allowed in anonymous union
+        // error[msvc]: 'value': this use of 'void' is not valid
+        // error[msvc]x18: you cannot create a reference to 'void'
+        // error[msvc]: function returns function
+        opt::option<void> o1;
+        // error[clang]x2: instantiation of opt::option with a non-destructible type is ill-formed
+        // error[gcc]: instantiation of opt::option with a non-destructible type is ill-formed
+        // error[gcc]: 'opt::impl::option_storage<T>::<unnamed union>::value' has incomplete type
+        // error[gcc]: invalid use of 'void'
+        // error[gcc]x16: forming reference to void
+        // error[clang]: field has incomplete type
+        // error[msvc]: function returns function
+        opt::option<const void> o2;
+    }
 }
 
 }

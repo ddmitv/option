@@ -1,6 +1,6 @@
 #include <opt/option.hpp>
 
-#include <ctors/test_types.hpp>
+#include <archetypes.hpp>
 #include <tests.hpp>
 #include <initializer_list>
 #include <type_traits>
@@ -282,7 +282,7 @@ constexpr bool test_emplace_init_list_Y() {
 void emplace_test_suite() {
     {
         test_on_test_type<test_types::test_type>();
-        test_on_test_type<test_types::explicit_test_type>();
+        test_on_test_type<explicit_test_types::all_ctors>();
     }
     {
         using T = int;
@@ -292,22 +292,22 @@ void emplace_test_suite() {
         static_assert(test_one_arg<const T>());
     }
     {
-        using T = test_types::constexpr_test_type;
+        using T = constexpr_test_types::all_ctors;
         test_multi_arg<T>();
         static_assert(test_multi_arg<T>());
     }
     {
-        using T = test_types::explicit_constexpr_test_type;
+        using T = explicit_constexpr_test_types::all_ctors;
         test_multi_arg<T>();
         static_assert(test_multi_arg<T>());
     }
     {
-        using T = test_types::triv_test_type;
+        using T = trivial_test_types::all_ctors;
         test_multi_arg<T>();
         static_assert(test_multi_arg<T>());
     }
     {
-        using T = test_types::explicit_triv_test_type;
+        using T = explicit_trivial_test_types::all_ctors;
         test_multi_arg<T>();
         static_assert(test_multi_arg<T>());
     }

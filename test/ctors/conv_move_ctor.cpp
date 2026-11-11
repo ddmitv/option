@@ -1,6 +1,6 @@
 #include <opt/option.hpp>
 
-#include <ctors/test_types.hpp>
+#include <archetypes.hpp>
 #include <tests.hpp>
 #include <type_traits>
 #include <vector>
@@ -11,7 +11,6 @@
 namespace {
 
 // https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/optional_U.pass.cpp
-
 
 template <typename T, typename U>
 constexpr void test_implicit(opt::option<U>&& rhs, bool is_going_to_throw = false) {
@@ -109,6 +108,17 @@ constexpr bool test_all_explicit() {
     return true;
 }
 
+// https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional_helper_types.h
+template<typename T>
+struct lvalue_only {
+    T val{};
+
+    constexpr operator T&() & noexcept { return val; }
+    constexpr operator T&() const& = delete;
+    constexpr operator T&() && = delete;
+    constexpr operator T&() const&& = delete;
+};
+
 }
 
 void conv_move_ctor_test_suite() {
@@ -127,7 +137,7 @@ void conv_move_ctor_test_suite() {
     }
 #endif
     // GH: #194415 https://github.com/llvm/llvm-project/issues/194415
-    static_assert(!std::is_constructible_v<opt::option<int>, opt::option<test_types::lvalue_only<int>>&>);
+    static_assert(!std::is_constructible_v<opt::option<int>, opt::option<lvalue_only<int>>&>);
 
     static_assert(!std::is_constructible_v<opt::option<implicit_X>, opt::option<implicit_Z>>);
 

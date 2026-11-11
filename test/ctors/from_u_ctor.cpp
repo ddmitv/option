@@ -1,7 +1,7 @@
 
 #include <opt/option.hpp>
 
-#include <ctors/test_types.hpp>
+#include <archetypes.hpp>
 #include <tests.hpp>
 #include <type_traits>
 #include <vector>
@@ -77,7 +77,7 @@ void test_implicit() {
         opt::option<void* const> o(&x);
         check(o.get() == &x);
     }
-    static_assert(implicit_conversion<test_types::triv_test_type>(42, 42));
+    static_assert(implicit_conversion<trivial_test_types::all_ctors>(42, 42));
     check(implicit_conversion<test_types::test_type>(3, test_types::test_type(3)));
     {
         opt::option<test_types::test_type> o({3});
@@ -96,12 +96,12 @@ void test_implicit() {
 }
 
 void test_explicit() {
-    static_assert(explicit_conversion<test_types::explicit_triv_test_type>(42, 42));
-    static_assert(explicit_conversion<test_types::explicit_constexpr_test_type>(42, 42));
-    static_assert(!std::is_convertible_v<int, test_types::explicit_constexpr_test_type>);
+    static_assert(explicit_conversion<explicit_trivial_test_types::all_ctors>(42, 42));
+    static_assert(explicit_conversion<explicit_constexpr_test_types::all_ctors>(42, 42));
+    static_assert(!std::is_convertible_v<int, explicit_constexpr_test_types::all_ctors>);
 
     {
-        using T = test_types::explicit_test_type;
+        using T = explicit_test_types::all_ctors;
         T::reset();
         {
             check(explicit_conversion<T>(42, 42));
@@ -155,7 +155,7 @@ void test_const_T_ctor() {
         check(o.get().value == 3);
     }
     {
-        using T = test_types::explicit_test_type;
+        using T = explicit_test_types::all_ctors;
         static_assert(!std::is_convertible_v<const T&, opt::option<T>>);
         T::reset();
 
@@ -167,14 +167,14 @@ void test_const_T_ctor() {
         check(o.get().value == 3);
     }
     {
-        using T = test_types::constexpr_test_type;
+        using T = constexpr_test_types::all_ctors;
         constexpr T x(3);
         constexpr opt::option<T> o = {x};
         static_assert(o.has_value() == true);
         static_assert(o.get().value == 3);
     }
     {
-        using T = test_types::explicit_constexpr_test_type;
+        using T = explicit_constexpr_test_types::all_ctors;
         static_assert(!std::is_convertible_v<const T&, opt::option<T>>);
         constexpr T x(3);
         constexpr opt::option<T> o(x);
@@ -226,7 +226,7 @@ void test_rvalue_T_ctor() {
         check(opt.get().value == 3);
     }
     {
-        using T = test_types::explicit_test_type;
+        using T = explicit_test_types::all_ctors;
         static_assert(!std::is_convertible_v<T&&, opt::option<T>>);
         T::reset();
         opt::option<T> opt(T{3});
@@ -247,7 +247,7 @@ void test_rvalue_T_ctor() {
         check(opt.get().value == 3);
     }
     {
-        using T = test_types::constexpr_test_type;
+        using T = constexpr_test_types::all_ctors;
         constexpr opt::option<T> opt = {T(3)};
         static_assert(opt.has_value());
         static_assert(opt.get().value == 3);
@@ -257,7 +257,7 @@ void test_rvalue_T_ctor() {
         };
     }
     {
-        using T = test_types::constexpr_test_type;
+        using T = constexpr_test_types::all_ctors;
         constexpr opt::option<T> opt = {3};
         static_assert(opt.has_value());
         static_assert(opt.get().value == 3);
@@ -267,7 +267,7 @@ void test_rvalue_T_ctor() {
         };
     }
     {
-        using T = test_types::explicit_constexpr_test_type;
+        using T = explicit_constexpr_test_types::all_ctors;
         static_assert(!std::is_convertible_v<T&&, opt::option<T>>);
         constexpr opt::option<T> opt(T{3});
         static_assert(opt.has_value());

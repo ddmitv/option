@@ -1,6 +1,6 @@
 #include <opt/option.hpp>
 
-#include <ctors/test_types.hpp>
+#include <archetypes.hpp>
 #include <tests.hpp>
 #include <type_traits>
 #include <utility>
@@ -116,7 +116,7 @@ void move_assign_test_suite() {
         check(assign_value(O{42}));
     }
     {
-        using O = opt::option<test_types::triv_test_type>;
+        using O = opt::option<trivial_test_types::all_ctors>;
         static_assert(assign_empty(O{42}));
         static_assert(assign_value(O{42}));
         check(assign_empty(O{42}));

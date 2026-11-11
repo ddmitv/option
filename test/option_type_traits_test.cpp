@@ -4,6 +4,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <opt/option.hpp>
+#include <archetypes.hpp>
 #include <type_traits>
 #include <memory>
 
@@ -322,6 +323,73 @@ static_assert(std::is_move_constructible_v<opt::option<std::unique_ptr<int>>>);
 struct explicit_from_int { explicit explicit_from_int(int) {} };
 static_assert(std::is_constructible_v<opt::option<explicit_from_int>, int>);
 static_assert(!std::is_convertible_v<int, opt::option<explicit_from_int>>);
+
+constexpr bool implies(const bool p, const bool q) {
+    return !p || q;
+}
+
+struct trivial_move_non_trivial_copy {
+    [[maybe_unused]] trivial_move_non_trivial_copy() = default;
+    trivial_move_non_trivial_copy(const trivial_move_non_trivial_copy&) {}
+    trivial_move_non_trivial_copy(trivial_move_non_trivial_copy&&) = default;
+    trivial_move_non_trivial_copy& operator=(const trivial_move_non_trivial_copy&) { return *this; }
+    trivial_move_non_trivial_copy& operator=(trivial_move_non_trivial_copy&&) = default;
+};
+
+struct trivial_copy_non_trivial_move {
+    [[maybe_unused]] trivial_copy_non_trivial_move() = default;
+    trivial_copy_non_trivial_move(const trivial_copy_non_trivial_move&) = default;
+    trivial_copy_non_trivial_move(trivial_copy_non_trivial_move&&) {}
+    trivial_copy_non_trivial_move& operator=(const trivial_copy_non_trivial_move&) = default;
+    trivial_copy_non_trivial_move& operator=(trivial_copy_non_trivial_move&&) { return *this; }
+};
+
+// https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/special_members.pass.cpp
+// https://github.com/llvm/llvm-project/blob/main/libcxx/test/std/utilities/optional/optional.object/triviality.pass.cpp
+template<typename T>
+struct special_member_test {
+    static_assert(std::is_default_constructible_v<opt::option<T>>,
+        "opt::option is always default constructible."
+    );
+    static_assert(std::is_copy_constructible_v<opt::option<T>> == std::is_copy_constructible_v<T>,
+        "opt::option<T> is copy constructible if and only if T is copy constructible."
+    );
+    static_assert(std::is_move_constructible_v<opt::option<T>> == (std::is_copy_constructible_v<T> || std::is_move_constructible_v<T>),
+        "opt::option<T> is move constructible if and only if T is copy or move constructible."
+    );
+    static_assert(std::is_copy_assignable_v<opt::option<T>> == (std::is_copy_constructible_v<T> && std::is_copy_assignable_v<T>),
+        "opt::option<T> is copy assignable if and only if T is both copy constructible and copy assignable."
+    );
+    static_assert(std::is_move_assignable_v<opt::option<T>> == ((std::is_move_constructible_v<T> && std::is_move_assignable_v<T>) || (std::is_copy_constructible_v<T> && std::is_copy_assignable_v<T>)),
+        "opt::option<T> is move assignable if and only if T is both move constructible and move assignable, or both copy constructible and copy assignable."
+    );
+
+    static_assert(implies(std::is_trivially_copy_constructible_v<T>, std::is_trivially_copy_constructible_v<opt::option<T>>),
+        "opt::option<T> is trivially copy constructible if T is trivially copy constructible."
+    );
+    static_assert(implies(std::is_trivially_move_constructible_v<T>, std::is_trivially_move_constructible_v<opt::option<T>>),
+        "opt::option<T> is trivially move constructible if T is trivially move constructible"
+    );
+    static_assert(implies(std::is_trivially_copy_constructible_v<T> && std::is_trivially_copy_assignable_v<T> && std::is_trivially_destructible_v<T>, std::is_trivially_copy_assignable_v<opt::option<T>>),
+        "opt::option<T> is trivially copy assignable if T is trivially copy constructible, trivially copy assignable, and trivially destructible"
+    );
+    static_assert(implies(std::is_trivially_move_constructible_v<T> && std::is_trivially_move_assignable_v<T> && std::is_trivially_destructible_v<T>, std::is_trivially_move_assignable_v<opt::option<T>>),
+        "opt::option<T> is trivially move assignable if T is trivially move constructible, trivially move assignable, and trivially destructible."
+    );
+    // TODO: opt::option<T&>
+};
+
+template<typename... TestTypes>
+using special_member_tests_metafunction = decltype(((void)special_member_test<TestTypes>{}, ...));
+
+static_assert((
+    implicit_types::apply_types<special_member_tests_metafunction>{},
+    explicit_types::apply_types<special_member_tests_metafunction>{},
+    non_literal_types::apply_types<special_member_tests_metafunction>{},
+    non_trivial_types::apply_types<special_member_tests_metafunction>{},
+    (void)special_member_test<trivial_move_non_trivial_copy>{}, (void)special_member_test<trivial_copy_non_trivial_move>{},
+    true
+));
 
 }
 

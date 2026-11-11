@@ -19,7 +19,6 @@ add_executable(option-test
     comp_ops/comparison_helpers.hpp
     comp_ops/relops.cpp
     ctors/default_none_ctor.cpp
-    ctors/test_types.hpp
     ctors/from_u_ctor.cpp
     ctors/deduction_guides.cpp
     option_iterator.cpp
@@ -43,6 +42,8 @@ add_executable(option-test
     observe/has_value.cpp
     observe/dereference.cpp
     swap.cpp
+    archetypes.ipp
+    archetypes.hpp
 )
 target_link_libraries(option-test PRIVATE option)
 set_target_properties(option-test PROPERTIES CXX_EXTENSIONS FALSE)

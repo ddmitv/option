@@ -1,7 +1,7 @@
 
 #include <opt/option.hpp>
 
-#include <ctors/test_types.hpp>
+#include <archetypes.hpp>
 #include <tests.hpp>
 #include <type_traits>
 
@@ -63,10 +63,10 @@ void test_non_triv_dtor() {
 void default_none_ctor_test_suite() {
     test_constexpr<int>();
     test_constexpr<int*>();
-    test_constexpr<test_types::no_ctors>();
-    test_constexpr<test_types::explicit_no_ctors>();
+    test_constexpr<implicit_types::no_ctors>();
+    test_constexpr<explicit_types::no_ctors>();
 
-    test_non_triv_dtor<test_types::non_triv_dtor_no_ctors>();
+    test_non_triv_dtor<non_literal_types::no_ctors>();
 
     // TODO: add tests for opt::option<T&>
 }

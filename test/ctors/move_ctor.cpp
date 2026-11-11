@@ -1,6 +1,6 @@
 #include <opt/option.hpp>
 
-#include <ctors/test_types.hpp>
+#include <archetypes.hpp>
 #include <tests.hpp>
 #include <type_traits>
 #include <utility>
@@ -107,12 +107,12 @@ void move_ctor_test_suite() {
     }
     test_types::test_type::reset();
     {
-        test<test_types::constexpr_test_type>();
-        test<test_types::constexpr_test_type>(42);
+        test<constexpr_test_types::all_ctors>();
+        test<constexpr_test_types::all_ctors>(42);
     }
     {
-        test<test_types::triv_test_type>();
-        test<test_types::triv_test_type>(42);
+        test<trivial_test_types::all_ctors>();
+        test<trivial_test_types::all_ctors>(42);
     }
     {
         test_throwing_ctor();

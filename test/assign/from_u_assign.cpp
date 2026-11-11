@@ -1,6 +1,6 @@
 #include <opt/option.hpp>
 
-#include <ctors/test_types.hpp>
+#include <archetypes.hpp>
 #include <tests.hpp>
 #include <memory>
 #include <type_traits>
@@ -55,7 +55,7 @@ struct FromOptionalType {
 
 void test_sfinae() {
     using I = test_types::test_type;
-    using E = test_types::explicit_test_type;
+    using E = explicit_test_types::all_ctors;
 
     assert_assignable<int>();
     assert_assignable<int, int&>();
@@ -252,8 +252,8 @@ void from_u_assign_test_suite() {
     test_with_type<int, MyEnum>();
     test_with_type<Fn, Fn>();
     // Test types with multi argument constructors
-    test_with_type_multi<test_types::constexpr_test_type>();
-    test_with_type_multi<test_types::triv_test_type>();
+    test_with_type_multi<constexpr_test_types::all_ctors>();
+    test_with_type_multi<trivial_test_types::all_ctors>();
     // Test move only types
     {
         opt::option<std::unique_ptr<int>> opt;
