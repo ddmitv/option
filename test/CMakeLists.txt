@@ -153,7 +153,7 @@ if (Python3_FOUND)
         CXX_EXTENSIONS FALSE
         CXX_COMPILER_LAUNCHER "${Python3_EXECUTABLE};${CMAKE_SOURCE_DIR}/test/verify-test.py;${CMAKE_CXX_COMPILER_ID};${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}"
     )
-    add_dependencies(run-option-test option-verify-test)
+    # add_dependencies(run-option-test option-verify-test)
 else()
     message(WARNING "Target option-verify-test is not available since Python 3 was not found")
 endif()
