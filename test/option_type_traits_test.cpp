@@ -383,10 +383,10 @@ template<typename... TestTypes>
 using special_member_tests_metafunction = decltype(((void)special_member_test<TestTypes>{}, ...));
 
 static_assert((
-    implicit_types::apply_types<special_member_tests_metafunction>{},
-    explicit_types::apply_types<special_member_tests_metafunction>{},
-    non_literal_types::apply_types<special_member_tests_metafunction>{},
-    non_trivial_types::apply_types<special_member_tests_metafunction>{},
+    (void)implicit_types::apply_types<special_member_tests_metafunction>(),
+    (void)explicit_types::apply_types<special_member_tests_metafunction>(),
+    (void)non_literal_types::apply_types<special_member_tests_metafunction>(),
+    (void)non_trivial_types::apply_types<special_member_tests_metafunction>(),
     (void)special_member_test<trivial_move_non_trivial_copy>{}, (void)special_member_test<trivial_copy_non_trivial_move>{},
     true
 ));
