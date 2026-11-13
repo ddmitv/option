@@ -170,9 +170,10 @@ def get_asm_file(obj_file: str, build_dir: Path) -> Path:
         assert False, f"Unexpected C++ compiler ID: {cxx_compiler_id}"
 
 def demangle_msvc(line: str) -> str:
-    assert line[0] == '?'
-    rest = line[1:]
-    return rest[:rest.index('@')]
+    line = line.removeprefix('"')
+    if not line.startswith('?'):
+        return line # extern "C" symbol
+    return line[1:].partition('@')[0]
 
 def demangle_itanium(mangled: str) -> str:
     rest = mangled[2:]
@@ -190,14 +191,18 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
     parsed_functions: dict[str, list[str]] = {}
     current_instructions: list[str] | None = None
     for line in file:
-        if cxx_compiler_id == CxxCompilerId.MSVC and line.startswith('?'):
-            if current_instructions is None: # function beginning (PROC)
+        line = strip_asm_comments(line)
+        if len(line) == 0:
+            continue
+
+        if cxx_compiler_id == CxxCompilerId.MSVC:
+            if line.endswith('PROC'): # function beginning (PROC)
                 current_instructions = []
                 parsed_functions[demangle_msvc(line)] = current_instructions
-            else: # function ending (ENDP)
+                continue # do not add the function label
+            elif line.endswith('ENDP'):
                 current_instructions = None
-            continue
-        if cxx_compiler_id in (CxxCompilerId.CLANG, CxxCompilerId.CLANG_CL, CxxCompilerId.GCC):
+        elif cxx_compiler_id in (CxxCompilerId.CLANG, CxxCompilerId.CLANG_CL, CxxCompilerId.GCC):
             POSSIBLE_FUNCTION_END_DIRECTIVES = (
                 '.section', '.globl', '.def', '.addrsig', '.ident',
                 '.cfi_endproc',   # GCC/Clang: emitted right after the final `ret`
@@ -211,7 +216,7 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
                 if line.startswith('"?'):
                     current_instructions = []
                     # skip "
-                    parsed_functions[demangle_msvc(line[1:])] = current_instructions
+                    parsed_functions[demangle_msvc(line)] = current_instructions
                     continue
             elif cxx_compiler_id == CxxCompilerId.CLANG:
                 if line.startswith('_Z'):
@@ -235,10 +240,7 @@ def parse_asm(file: TextIO) -> dict[str, list[str]]:
     
         if current_instructions is None:
             continue
-            
-        stripped_line = strip_asm_comments(line)
-        if stripped_line:
-            current_instructions.append(stripped_line)
+        current_instructions.append(line)
     return parsed_functions
 
 REMOVE_INSTRUCTIONS: set[str] = {
