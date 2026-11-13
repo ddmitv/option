@@ -55,17 +55,8 @@
 //' and al, dl
 //' ret
 //'@if $x64 & $windows & $clang
-//' mov eax, ecx
-//' shr ecx, 16
-//' mov r8d, edx
-//' shr edx, 16
-//' cmp cl, dl
-//' sete dl
-//' xor cl, 1
-//' cmp ax, r8w
+//' cmp ecx, edx
 //' sete al
-//' or al, cl
-//' and al, dl
 //' ret
 //'@if $x64 & $linux & $gcc[13..]
 //' mov edx, edi
@@ -94,43 +85,16 @@
 //' and eax, esi
 //' ret
 //'@if $x64 & $windows & $gcc
-//' mov eax, ecx
-//' shr ecx, 16
-//' mov r8d, ecx
-//' cmp ax, dx
+//' cmp ecx, edx
 //' sete al
-//' xor r8d, 1
-//' shr edx, 16
-//' or eax, r8d
-//' cmp dl, cl
-//' sete dl
-//' and eax, edx
 //' ret
 //'@if $x64 & $clang-cl
-//' mov r8d, ecx
-//' shr r8d, 16
-//' mov eax, edx
-//' shr eax, 16
-//' cmp r8b, al
-//' sete r9b
-//' xor r8b, 1
-//' cmp cx, dx
+//' cmp ecx, edx
 //' sete al
-//' or al, r8b
-//' and al, r9b
 //' ret
 //'@if $x64 & $msvc
-//' mov r8d, ecx
-//' shr r8d, 16
-//' cmp cx, dx
+//' cmp ecx, edx
 //' sete al
-//' test r8b, r8b
-//' sete cl
-//' shr edx, 16
-//' xor dl, r8b
-//' or al, cl
-//' xor dl, 1
-//' and al, dl
 //' ret
 //'@if $arm64 & $gcc[13..]
 //' sxth w3, w1
@@ -606,17 +570,8 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' and al, dl
 //' ret
 //'@if $x64 & $windows & $clang
-//' mov eax, ecx
-//' shr rcx, 32
-//' mov r8d, edx
-//' shr rdx, 32
-//' cmp cl, dl
-//' sete dl
-//' xor cl, 1
-//' cmp eax, r8d
+//' cmp rcx, rdx
 //' sete al
-//' or al, cl
-//' and al, dl
 //' ret
 //'@if $x64 & $linux & $gcc[13..]
 //' mov rdx, rdi
@@ -645,43 +600,16 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' and eax, esi
 //' ret
 //'@if $x64 & $windows & $gcc
-//' mov rax, rcx
-//' shr rcx, 32
-//' mov r8d, ecx
-//' cmp eax, edx
+//' cmp rcx, rdx
 //' sete al
-//' xor r8d, 1
-//' shr rdx, 32
-//' or eax, r8d
-//' cmp dl, cl
-//' sete dl
-//' and eax, edx
 //' ret
 //'@if $x64 & $clang-cl
-//' mov r8, rcx
-//' shr r8, 32
-//' mov rax, rdx
-//' shr rax, 32
-//' cmp r8b, al
-//' sete r9b
-//' xor r8b, 1
-//' cmp ecx, edx
+//' cmp rcx, rdx
 //' sete al
-//' or al, r8b
-//' and al, r9b
 //' ret
 //'@if $x64 & $msvc
-//' mov r8, rcx
-//' shr r8, 32
-//' cmp ecx, edx
+//' cmp rcx, rdx
 //' sete al
-//' test r8b, r8b
-//' sete cl
-//' shr rdx, 32
-//' xor dl, r8b
-//' or al, cl
-//' xor dl, 1
-//' and al, dl
 //' ret
 //'@if $arm64 & $gcc[13..]
 //' cmp w0, w1
@@ -1106,15 +1034,12 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' and al, dl
 //' ret
 //'@if $x64 & $windows & ($clang | $clang-cl)
-//' movzx r8d, [rcx + 8]
-//' cmp r8b, [rdx + 8]
-//' sete r9b
-//' xor r8b, 1
-//' mov rax, [rcx]
-//' cmp rax, [rdx]
+//' movdqu xmm0, [rcx]
+//' movdqu xmm1, [rdx]
+//' pcmpeqb xmm1, xmm0
+//' pmovmskb eax, xmm1
+//' cmp eax, 65535
 //' sete al
-//' or al, r8b
-//' and al, r9b
 //' ret
 //'@if $x64 & $linux & $gcc[13..]
 //' movzx edx, [rdi + 8]
@@ -1141,30 +1066,22 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' and eax, edx
 //' ret
 //'@if $x64 & $windows & $gcc
-//' mov rax, rcx
+//' mov r8, rcx
 //' mov rcx, rdx
-//' movzx edx, [rax + 8]
-//' mov r9, [rcx]
-//' cmp [rax], r9
-//' mov r8d, edx
+//' mov rax, [r8]
+//' xor rax, [rdx]
+//' mov rdx, [r8 + 8]
+//' xor rdx, [rcx + 8]
+//' or rax, rdx
 //' sete al
-//' xor r8d, 1
-//' or eax, r8d
-//' cmp [rcx + 8], dl
-//' sete dl
-//' and eax, edx
 //' ret
 //'@if $x64 & $msvc
-//' movzx r8d, [rcx + 8]
-//' mov rax, [rdx]
-//' cmp [rcx], rax
+//' mov r8, [rcx + 8]
+//' mov rax, [rcx]
+//' xor rax, [rdx]
+//' xor r8, [rdx + 8]
+//' or r8, rax
 //' sete al
-//' test r8b, r8b
-//' sete cl
-//' xor r8b, [rdx + 8]
-//' xor r8b, 1
-//' or al, cl
-//' and al, r8b
 //' ret
 //'@if $arm64 & $gcc[13..]
 //' ldr x5, [x0]

@@ -11,6 +11,7 @@
 #include <cstring>
 #include <exception>
 #include <compare>
+#include <cstdint>
 
 #include "details/preprocessor.hpp"
 #include "details/asan.hpp"
@@ -73,6 +74,21 @@ namespace impl {
     template<>
     inline constexpr bool is_trivially_swappable_v<std::byte> = true;
 
+    template<typename T>
+    constexpr T my_min(const T a, const T b) {
+        return a < b ? a : b;
+    }
+
+    template<std::size_t N> struct uint_holder {};
+    template <> struct uint_holder<1> { using type = std::uint_least8_t;  };
+    template <> struct uint_holder<2> { using type = std::uint_least16_t; };
+    template <> struct uint_holder<3> { using type = std::uint_least32_t; };
+    template <> struct uint_holder<4> { using type = std::uint_least32_t; };
+    template <> struct uint_holder<5> { using type = std::uint_least64_t; };
+    template <> struct uint_holder<6> { using type = std::uint_least64_t; };
+    template <> struct uint_holder<7> { using type = std::uint_least64_t; };
+    template <> struct uint_holder<8> { using type = std::uint_least64_t; };
+
     template<class T>
     struct option_storage {
         union {
@@ -83,15 +99,15 @@ namespace impl {
             // so it is not initialized at runtime and does not affect codegen.
             char dummy;
         };
-        bool engaged; // uninit
+        bool engaged_tail[alignof(T)]; // uninit
 
         constexpr ~option_storage() requires (!OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)) {
-            if (engaged) {
+            if (engaged_tail[0]) {
                 value.~T();
 
 #if OPTION_DESTRUCTOR_TOMBSTONES
                 // set state to empty to resist use-after-free mistakes
-                engaged = false;
+                engaged_tail[0] = false;
 #endif
             } else {
                 // https://github.com/microsoft/STL/pull/6010
@@ -138,12 +154,12 @@ namespace impl {
             requires(OPTION_IS_CONSTRUCTIBLE(T, const T&) && OPTION_IS_ASSIGNABLE(T&, const T&)
                 && !(OPTION_IS_TRIVIALLY_CONSTRUCTIBLE(T, const T&) && OPTION_IS_TRIVIALLY_ASSIGNABLE(T&, const T&) && OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)))
         {
-            if (this->engaged == other.engaged) {
-                if (this->engaged) {
+            if (this->engaged_tail[0] == other.engaged_tail[0]) {
+                if (this->engaged_tail[0]) {
                     this->value = other.value;
                 }
             } else {
-                if (this->engaged) {
+                if (this->engaged_tail[0]) {
                     this->reset();
                 } else {
                     this->construct(other.value);
@@ -159,12 +175,12 @@ namespace impl {
             requires(OPTION_IS_CONSTRUCTIBLE(T, T&&) && OPTION_IS_ASSIGNABLE(T&, T&&)
                 && !(OPTION_IS_TRIVIALLY_CONSTRUCTIBLE(T, T&&) && OPTION_IS_TRIVIALLY_ASSIGNABLE(T&, T&&) && OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)))
         {
-            if (this->engaged == other.engaged) {
-                if (this->engaged) {
+            if (this->engaged_tail[0] == other.engaged_tail[0]) {
+                if (this->engaged_tail[0]) {
                     this->value = static_cast<T&&>(other.value);
                 }
             } else {
-                if (this->engaged) {
+                if (this->engaged_tail[0]) {
                     this->reset();
                 } else {
                     this->construct(static_cast<T&&>(other.value));
@@ -178,14 +194,35 @@ namespace impl {
         template<class... Args>
         constexpr option_storage(std::in_place_t, Args&&... args)
             // use direct-initialization (not direct-list-initialization)
-            : value(static_cast<Args&&>(args)...),
-              engaged{true} {}
+            : value(static_cast<Args&&>(args)...) {
+
+            if (std::is_constant_evaluated()) {
+                engaged_tail[0] = true;
+                for (std::size_t i = 1; i < sizeof(engaged_tail); ++i) {
+                    engaged_tail[i] = false;
+                }
+            } else {
+#if !OPTION_MSVC || OPTION_CLANG
+                // memcpy so the whole flag array becomes one constant store (improves codegen)
+                const bool flag[alignof(T)]{true};
+                static_assert(sizeof(engaged_tail) == sizeof(flag));
+
+                std::memcpy(&engaged_tail, &flag, sizeof(flag));
+#else
+                // msvc optimizer cannot put array in a register so we need to use a scalar variable
+                // only little endian
+                const typename impl::uint_holder<sizeof(engaged_tail)>::type flag = 1;
+                std::memcpy(&engaged_tail, &flag, sizeof(engaged_tail));
+#endif
+            }
+        }
 
         constexpr void reset() noexcept {
             if constexpr (OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)) {
-                engaged = false;
+                // engaged_tail[1..] is already zeroed from constructor
+                engaged_tail[0] = false;
             } else {
-                if (engaged) {
+                if (engaged_tail[0]) {
                     value.~T();
                     set_unengaged();
                 }
@@ -200,10 +237,25 @@ namespace impl {
                 // convert the (possibly never written) source value unconditionally and copy the flag as is.
                 // Not usable in constant evaluation, where reading an inactive union member is an error.
                 if (!std::is_constant_evaluated()) {
+                    if constexpr (sizeof(*this) == sizeof(other)) {
+                        // special case for identical sizes, improves codegen on some compilers that cannot optimize the code below
+                        std::memcpy(this, &other, sizeof(*this));
+                        return;
+                    }
+#if OPTION_MSVC && !OPTION_CLANG
+                    if constexpr (sizeof(other) <= 8 && sizeof(engaged_tail) <= 8) {
+                        std::uint64_t src = 0;
+                        std::memcpy(&src, &other, sizeof(other));
+                        this->value = other.value;
+                        src >>= sizeof(U) * 8;
+                        std::memcpy(&this->engaged_tail, &src, sizeof(engaged_tail));
+                        return;
+                    }
+#endif
                     U tmp;
                     std::memcpy(&tmp, &other.value, sizeof(U));
                     this->value = tmp; // implicit start lifetime
-                    this->engaged = other.has_value();
+                    std::memcpy(&this->engaged_tail, other.engaged_tail, my_min(sizeof(other.engaged_tail), sizeof(this->engaged_tail))); // remaining bytes are already zeroed
                     return;
                 }
             }
@@ -227,7 +279,7 @@ namespace impl {
                     U tmp;
                     std::memcpy(&tmp, &other.value, sizeof(U));
                     this->value = tmp; // implicit start lifetime
-                    this->engaged = other.has_value();
+                    this->engaged_tail[0] = other.has_value();
                     return;
                 }
             }
@@ -248,8 +300,14 @@ namespace impl {
             if (std::is_constant_evaluated()) {
                 // this is only evaluated for constexpr contexts because it produces poor codegen otherwise
                 dummy = 0;
+                for (bool& b : this->engaged_tail) {
+                    b = false;
+                }
+            } else if constexpr (OPTION_IS_INTEGRAL(T)) {
+                std::memset(static_cast<void*>(this), 0, sizeof(*this));
+            } else {
+                this->engaged_tail[0] = false;
             }
-            this->engaged = false;
 #if OPTION_INSERT_ANNONATION
             if constexpr (!OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)) {
                 // Poison our storage when starting empty, until that changes or the std::optional is destroyed.
@@ -273,11 +331,11 @@ namespace impl {
 #endif
             // if T's ctor throws an exception, the option must be unengaged (this->engaged = true MUST happen after std::construct_at call)
             std::construct_at(OPTION_ADDRESSOF(this->value), static_cast<Args&&>(args)...);
-            this->engaged = true;
+            this->engaged_tail[0] = true;
         }
 
         [[nodiscard]] OPTION_PURE constexpr bool has_value() const noexcept {
-            return engaged;
+            return this->engaged_tail[0];
         }
     };
 
@@ -805,8 +863,29 @@ constexpr bool operator==(const option<T1>& x, const option<T2>& y) requires req
     // branchless fast path; unsafe for volatile T (unelidable read of inactive union member)
     if constexpr (OPTION_IS_INTEGRAL(T1) && OPTION_IS_INTEGRAL(T2) && !OPTION_IS_VOLATILE(T1) && !OPTION_IS_VOLATILE(T2)) {
         if (!std::is_constant_evaluated()) {
-            // improves codegen (requires no_sanitize("bool") attribute)
-            return ((x.has_value() ^ y.has_value()) ^ 1) & (!x.has_value() | (x.get_unchecked() == y.get_unchecked()));
+            if constexpr (sizeof(x) == sizeof(y)) {
+#if !OPTION_MSVC || OPTION_CLANG
+                return std::memcmp(&x, &y, sizeof(x)) == 0;
+#else
+                if constexpr (sizeof(x) <= 8) {
+                    typename impl::uint_holder<sizeof(x)>::type a = 0;
+                    typename impl::uint_holder<sizeof(y)>::type b = 0;
+                    std::memcpy(&a, &x, sizeof(x));
+                    std::memcpy(&b, &y, sizeof(y));
+                    return a == b;
+                } else if constexpr (sizeof(x) <= 16) {
+                    std::uint64_t a0;
+                    typename impl::uint_holder<sizeof(x) - 8>::type a1;
+                    std::uint64_t b0;
+                    typename impl::uint_holder<sizeof(y) - 8>::type b1;
+                    std::memcpy(&a0, &x, 8);
+                    std::memcpy(&a1, reinterpret_cast<const char*>(&x) + 8, sizeof(x) - 8);
+                    std::memcpy(&b0, &y, 8);
+                    std::memcpy(&b1, reinterpret_cast<const char*>(&y) + 8, sizeof(x) - 8);
+                    return ((a0 ^ b0) | (a1 ^ b1)) == 0;
+                }
+#endif
+            }
         }
     }
     if (!x.has_value()) {
