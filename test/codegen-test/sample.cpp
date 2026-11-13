@@ -2178,6 +2178,39 @@ void std_optional_int64_emplace(std::optional<int64_t>& a) {
     a.emplace(100);
 }
 
+//'[option_int32_default_then_emplace]
+//'@if $x64 & $windows & $clang
+//' mov ecx, ecx
+//' mov rax, 4294967296
+//' or rax, rcx
+//' ret
+//'@if $x64 & $windows & $gcc
+//' sub rsp, 24
+//' mov dword ptr [rsp + 12], 0
+//' mov [rsp + 8], ecx
+//' mov byte ptr [rsp + 12], 1
+//' mov rax, [rsp + 8]
+//' add rsp, 24
+//' ret
+//'@if $x64 & $clang-cl
+//' mov rax, rcx
+//' mov rcx, 4294967296
+//' mov [rax], rcx
+//' mov [rax], edx
+//' ret
+//'@if $x64 & $msvc
+//' xor eax, eax
+//' mov [rcx], rax
+//' mov rax, rcx
+//' mov [rcx], edx
+//' mov byte ptr [rcx + 4], 1
+//' ret
+opt::option<int32_t> option_int32_default_then_emplace(int32_t x) {
+    opt::option<int32_t> o;
+    o.emplace(x);
+    return o;
+}
+
 //'[option_int32_swap]
 //'@if $x64 & $linux & $clang
 //' mov rax, [rdi]
