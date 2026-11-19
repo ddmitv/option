@@ -331,7 +331,20 @@ namespace impl {
 #endif
             // if T's ctor throws an exception, the option must be unengaged (this->engaged = true MUST happen after std::construct_at call)
             std::construct_at(OPTION_ADDRESSOF(this->value), static_cast<Args&&>(args)...);
-            this->engaged_tail[0] = true;
+
+            if (std::is_constant_evaluated()) {
+                this->engaged_tail[0] = true;
+            } else if constexpr (sizeof(T) + alignof(T) <= sizeof(void*)) { // sizeof(void*) = max register width
+#if !OPTION_MSVC || OPTION_CLANG
+                const bool flag[alignof(T)]{true};
+                std::memcpy(&this->engaged_tail, &flag, sizeof(flag));
+#else
+                const typename impl::uint_holder<sizeof(engaged_tail)>::type flag = 1;
+                std::memcpy(&this->engaged_tail, &flag, sizeof(engaged_tail));
+#endif
+            } else {
+                this->engaged_tail[0] = true;
+            }
         }
 
         [[nodiscard]] OPTION_PURE constexpr bool has_value() const noexcept {
