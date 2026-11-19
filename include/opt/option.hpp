@@ -243,8 +243,8 @@ namespace impl {
                         return;
                     }
 #if OPTION_MSVC && !OPTION_CLANG
-                    if constexpr (sizeof(other) <= 8 && sizeof(engaged_tail) <= 8) {
-                        std::uint64_t src = 0;
+                    if constexpr (sizeof(other) <= sizeof(void*) && sizeof(engaged_tail) <= sizeof(void*)) {
+                        std::uintptr_t src = 0;
                         std::memcpy(&src, &other, sizeof(other));
                         this->value = other.value;
                         src >>= sizeof(U) * 8;
@@ -332,19 +332,17 @@ namespace impl {
             // if T's ctor throws an exception, the option must be unengaged (this->engaged = true MUST happen after std::construct_at call)
             std::construct_at(OPTION_ADDRESSOF(this->value), static_cast<Args&&>(args)...);
 
-            if (std::is_constant_evaluated()) {
-                this->engaged_tail[0] = true;
-            } else if constexpr (sizeof(T) + alignof(T) <= sizeof(void*)) { // sizeof(void*) = max register width
-#if !OPTION_MSVC || OPTION_CLANG
-                const bool flag[alignof(T)]{true};
-                std::memcpy(&this->engaged_tail, &flag, sizeof(flag));
-#else
-                const typename impl::uint_holder<sizeof(engaged_tail)>::type flag = 1;
-                std::memcpy(&this->engaged_tail, &flag, sizeof(engaged_tail));
-#endif
-            } else {
-                this->engaged_tail[0] = true;
+            if constexpr (OPTION_IS_INTEGRAL(T) && sizeof(T) + alignof(T) <= sizeof(void*)) { // sizeof(void*) = max register width
+                if (!std::is_constant_evaluated()) {
+                    // supports only little endian
+                    std::uintptr_t packed{};
+                    std::memcpy(&packed, &this->value, sizeof(T));
+                    packed |= std::uintptr_t{1} << (sizeof(T) * 8);
+                    std::memcpy(static_cast<void*>(this), &packed, sizeof(*this));
+                    return;
+                }
             }
+            this->engaged_tail[0] = true;
         }
 
         [[nodiscard]] OPTION_PURE constexpr bool has_value() const noexcept {
@@ -880,16 +878,16 @@ constexpr bool operator==(const option<T1>& x, const option<T2>& y) requires req
 #if !OPTION_MSVC || OPTION_CLANG
                 return std::memcmp(&x, &y, sizeof(x)) == 0;
 #else
-                if constexpr (sizeof(x) <= 8) {
+                if constexpr (sizeof(x) <= sizeof(void*)) {
                     typename impl::uint_holder<sizeof(x)>::type a = 0;
                     typename impl::uint_holder<sizeof(y)>::type b = 0;
                     std::memcpy(&a, &x, sizeof(x));
                     std::memcpy(&b, &y, sizeof(y));
                     return a == b;
-                } else if constexpr (sizeof(x) <= 16) {
-                    std::uint64_t a0;
+                } else if constexpr (sizeof(x) <= sizeof(void*) * 2) {
+                    std::uintptr_t a0;
                     typename impl::uint_holder<sizeof(x) - 8>::type a1;
-                    std::uint64_t b0;
+                    std::uintptr_t b0;
                     typename impl::uint_holder<sizeof(y) - 8>::type b1;
                     std::memcpy(&a0, &x, 8);
                     std::memcpy(&a1, reinterpret_cast<const char*>(&x) + 8, sizeof(x) - 8);
