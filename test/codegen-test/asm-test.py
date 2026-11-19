@@ -1,7 +1,8 @@
 import sys
 from pathlib import Path
 import enum
-from typing import TextIO
+from collections.abc import Callable, Iterable
+from typing import TextIO, TypeVar
 import re
 from dataclasses import dataclass
 import itertools
@@ -9,6 +10,8 @@ import itertools
 TARGET_ASM_PREFIX = "//'"
 
 cxx_compiler_id: 'CxxCompilerId | None' = None
+
+T = TypeVar("T")
 
 def main() -> None:
     global cxx_compiler_id, target_arch
@@ -54,7 +57,7 @@ def main() -> None:
         with src_file.open() as f:
             parsed_target_asm: dict[SourceLine, list[SourceLine]] = parse_target_asm(f)
         
-        preprocessed_target_asm: dict[SourceLine, list[SourceLine]] = {}
+        preprocessed_target_asm: dict[SourceLine, PreprocessedAsm] = {}
         has_preprocessor_error = False
         for func_name, insts in parsed_target_asm.items():
             try:
@@ -66,13 +69,13 @@ def main() -> None:
         if has_preprocessor_error:
             continue
 
-        for func_name, expected_lines in preprocessed_target_asm.items():
+        for func_name, preprocessed_asm in preprocessed_target_asm.items():
             actual_lines: list[str] | None = normalized_asm.get(func_name.text)
             if actual_lines is None:
                 print(f'Error: function "{func_name}" expected but not found in generated assembly', file=sys.stderr)
                 has_errors = True
                 continue
-            if not compare_disassembly(func_name, src_file, expected_lines, actual_lines):
+            if not compare_disassembly(func_name, src_file, preprocessed_asm, actual_lines):
                 has_errors = True
             total_functions += 1
 
@@ -113,6 +116,17 @@ class SourceLine:
 
 Version = tuple[int, int, int, int]
 Symbol = Version | bool | None
+
+@dataclass
+class Branch:
+    if_line: SourceLine
+    lines: list[SourceLine]
+    emitted: bool
+
+@dataclass
+class PreprocessedAsm:
+    emitted_branch: Branch | None
+    alternate_branches: list[Branch]
 
 class Lexer:
     def __init__(self, text: str):
@@ -491,33 +505,46 @@ def eval_prefix_op(op: str, operand: bool) -> bool:
         return not operand
     raise EvaluationError(f'Bad prefix operator: "{op}"')
 
+def partition(pred: Callable[[T], bool], iterable: Iterable[T]) -> tuple[list[T], list[T]]:
+    trues: list[T] = []
+    falses: list[T] = []
+    for item in iterable:
+        if pred(item):
+            trues.append(item)
+        else:
+            falses.append(item)
+    return trues, falses
+
 class PreprocessorError(Exception):
     pass
 
-def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -> list[SourceLine]:
-    processed_lines: list[SourceLine] = []
-
+def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -> PreprocessedAsm:
     emit = True
     eval_errors: list[tuple[int, str]] = []
-    matched_if_lines: list[SourceLine] = []
 
-    i = 0
-    while i < len(insts):
-        line = insts[i]
+    branches: list[Branch] = []
+    current_branch: Branch = Branch(if_line=SourceLine(-1, ''), lines=[], emitted=True) # the preamble branch
+
+    for line in insts:
         text = line.text
 
         if text.startswith('@'):
             if text.startswith('@if '):
+                if current_branch.if_line.number == -1:
+                    if len(current_branch.lines) > 0:
+                        raise PreprocessorError(f'Unconditional lines before the first @if are not allowed (lines {current_branch.lines[0].number}-{current_branch.lines[-1].number})')
+                else:
+                    branches.append(current_branch)
+
                 expr_text = text[len('@if '):]
                 try:
                     emit = eval_expr(Lexer(expr_text), symbols)
                 except EvaluationError as e:
                     eval_errors.append((line.number, str(e)))
                     emit = False
-                if emit:
-                    matched_if_lines.append(line)
+                current_branch = Branch(if_line=line, lines=[], emitted=emit) # first @if overwrites the preamble branch
             elif text.startswith('@error'):
-                if emit:
+                if current_branch.emitted:
                     err_msg = text[len('@error '):].strip()
                     if len(err_msg) == 0:
                         raise PreprocessorError(f'Preprocessor error at line {line.number}')
@@ -525,22 +552,24 @@ def preprocess_target_asm(insts: list[SourceLine], symbols: dict[str, Symbol]) -
                         raise PreprocessorError(f'Preprocessor error (line {line.number}): {err_msg}')
             else:
                 raise PreprocessorError(f'Unknown preprocessor directive at line {line.number}: "{text}"')
-            i += 1
             continue
 
-        if emit:
-            processed_lines.append(line)
-        i += 1
+        current_branch.lines.append(line)
+
+    branches.append(current_branch)
 
     if len(eval_errors) > 0:
         desc = '\n'.join(f'    line {ln}: {msg}' for ln, msg in eval_errors)
         raise PreprocessorError(f'@if condition(s) failed to evaluate:\n{desc}')
+    
+    emitted, not_emitted = partition(lambda b: b.emitted, branches)
 
-    if len(matched_if_lines) > 1:
-        matched_desc = '\n'.join(f'    line {l.number}: {l.text}' for l in matched_if_lines)
+    if len(emitted) >= 2:
+        # not preamble branch since it will be overwriten
+        matched_desc = '\n'.join(f'    line {branch.if_line.number}: {branch.if_line.text}' for branch in emitted)
         raise PreprocessorError(f'Multiple @if conditions are true. Only one @if block may be active. Matched @if conditions:\n{matched_desc}')
 
-    return processed_lines
+    return PreprocessedAsm(emitted_branch=emitted[0] if len(emitted) == 1 else None, alternate_branches=not_emitted)
 
 def parse_stdlib_version(stdlib_id: str, raw: str) -> Version:
     if stdlib_id == 'libc++':
@@ -600,19 +629,23 @@ def get_expression_symbols(compiler_version_str: str, stdlib_id: str, raw_stdlib
 
     return symbols
 
-def compare_disassembly(func_name: SourceLine, src_file: Path, expected: list[SourceLine], actual: list[str]) -> bool:
-    expected_texts = [line.text for line in expected]
-
+def compare_disassembly(func_name: SourceLine, src_file: Path, pp_asm: PreprocessedAsm, actual: list[str]) -> bool:
+    expected_texts = [line.text for line in pp_asm.emitted_branch.lines] if pp_asm.emitted_branch is not None else []
     if expected_texts == actual:
         return True
     
-    print(f'{func_name.text}: ({src_file.name}:{func_name.number})')
+    start_line = pp_asm.emitted_branch.if_line.number if pp_asm.emitted_branch is not None else func_name.number
+    print(f'{func_name.text}: ({src_file.name}:{start_line})')
     
     for line in actual:
         print(f'+ {line}')
     print()
     for line in expected_texts:
         print(f'- {line}')
+
+    for branch in pp_asm.alternate_branches:
+        if [line.text for line in branch.lines] == actual:
+            print(f'Hint: the actual assembly matches an alternate branch at {src_file.name}:{branch.if_line.number}: "{branch.if_line.text}"')
 
     if len(expected_texts) > 0:
         print()
