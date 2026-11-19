@@ -371,6 +371,7 @@ opt::option<int32_t> option_int32_empty() {
 //' mov x1, 0
 //' ret
 //'@if $arm64 & $clang
+//' mov x0, xzr
 //' mov x1, xzr
 //' ret
 opt::option<int64_t> option_int64_empty() {
@@ -656,6 +657,7 @@ std::optional<int32_t> std_optional_int32_default() {
 //' mov x1, 0
 //' ret
 //'@if $arm64 & $clang
+//' mov x0, xzr
 //' mov x1, xzr
 //' ret
 opt::option<int64_t> option_int64_default() {
@@ -1777,7 +1779,6 @@ std::optional<std::array<uint8_t, 64>> std_optional_uint8x64_default() {
 //' bfi x0, x1, 32, 8
 //' ret
 //'@if $arm64 & $clang
-//' and x0, x0, 0xffffffffff
 //' ret
 opt::option<uint32_t> option_int32_to_uint32_ctor(const opt::option<int32_t> a) {
     return a;
@@ -2007,9 +2008,8 @@ std::optional<uint32_t> std_optional_int32_to_uint32_ctor(const std::optional<in
 //' ubfx x1, x1, 32, 8
 //' ret
 //'@if $arm64 & $clang
-//' sxtw x8, w0
-//' ubfx x1, x0, 32, 8
-//' mov x0, x8
+//' lsr x1, x0, 32
+//' sxtw x0, w0
 //' ret
 opt::option<uint64_t> option_int32_to_uint64_ctor(const opt::option<int32_t> a) {
     return a;
@@ -2095,10 +2095,9 @@ void option_int64_assign_from_uint32(opt::option<int64_t>& a, const opt::option<
 //' strb w1, [x0, 4]
 //' ret
 //'@if $arm64 & $clang
-//' mov w8, 100
-//' mov w9, 1
-//' str w8, [x0]
-//' strb w9, [x0, 4]
+//' mov x8, 100
+//' movk x8, 1, lsl 32
+//' str x8, [x0]
 //' ret
 void option_int32_emplace(opt::option<int32_t>& a) {
     a.emplace(100);
@@ -2184,6 +2183,10 @@ void std_optional_int64_emplace(std::optional<int64_t>& a) {
 //' mov ecx, edi
 //' mov rax, 4294967296
 //' or rax, rcx
+//' ret
+//'@if $arm64 & $linux & $clang
+//' mov w8, w0
+//' orr x0, x8, 0x100000000
 //' ret
 //'@if $x64 & $windows & $clang
 //' mov ecx, ecx
@@ -4951,11 +4954,9 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' cmp x8, x0
 //' b.ne .L1
 //' mov x1, xzr
-//' mov x0, x8
-//' .L2:
-//' ret
 //' .L0:
 //' mov x0, xzr
+//' .L2:
 //' ret
 opt::option<size_t> option_find_index_of_value(const int* array, size_t size, int value) {
     for (size_t i = 0; i < size; ++i) {

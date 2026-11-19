@@ -124,17 +124,8 @@
 //' and w0, w0, w1
 //' ret
 //'@if $arm64 & $clang[20..]
-//' ubfx x8, x0, 16, 8
-//' lsr w9, w1, 16
-//' and w10, w0, 0xffff
-//' lsr x11, x0, 16
-//' cmp w8, w9, uxtb
-//' cset w8, eq
-//' cmp w10, w1, uxth
-//' eor w9, w11, 0x1
-//' cset w10, eq
-//' orr w9, w10, w9
-//' and w0, w8, w9
+//' cmp w0, w1
+//' cset w0, eq
 //' ret
 //'@if $arm64 & $clang[19..20]
 //' ubfx x8, x0, 16, 8
@@ -627,16 +618,8 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' and w0, w0, w1
 //' ret
 //'@if $arm64 & $clang[19..]
-//' ubfx x8, x0, 32, 8
-//' lsr x9, x1, 32
-//' lsr x10, x0, 32
-//' cmp w8, w9, uxtb
-//' eor w9, w10, 0x1
-//' cset w8, eq
-//' cmp w0, w1
-//' cset w10, eq
-//' orr w9, w10, w9
-//' and w0, w8, w9
+//' cmp x0, x1
+//' cset w0, eq
 //' ret
 //'@if $arm64 & $clang[16..19]
 //' tst x1, 0xff00000000
@@ -1102,15 +1085,11 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' and w0, w0, w1
 //' ret
 //'@if $arm64 & $clang[19..]
-//' ldrb w8, [x0, 8]
-//' ldr x9, [x0]
-//' ldr x10, [x1]
-//' ldrb w11, [x1, 8]
-//' eor w12, w8, 0x1
-//' cmp x9, x10
-//' csinc w9, w12, wzr, ne
-//' cmp w8, w11
-//' csel w0, wzr, w9, ne
+//' ldp x8, x11, [x1]
+//' ldp x9, x10, [x0]
+//' cmp x9, x8
+//' ccmp x10, x11, 0, eq
+//' cset w0, eq
 //' ret
 //'@if $arm64 & $clang[16..19]
 //' ldrb w8, [x1, 8]
