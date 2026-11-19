@@ -85,47 +85,9 @@
 //' orr w0, w2, w0
 //' and w0, w0, w1
 //' ret
-//'@if $arm64 & $clang[20..]
+//'@if $arm64 & $clang
 //' cmp w0, w1
 //' cset w0, eq
-//' ret
-//'@if $arm64 & $clang[19..20]
-//' ubfx x8, x0, 16, 8
-//' ubfx x9, x1, 16, 16
-//' and w10, w0, 0xffff
-//' lsr x11, x0, 16
-//' cmp w8, w9, uxtb
-//' cset w8, eq
-//' cmp w10, w1, uxth
-//' eor w9, w11, 0x1
-//' cset w10, eq
-//' orr w9, w10, w9
-//' and w0, w8, w9
-//' ret
-//'@if $arm64 & $clang[16..19]
-//' and w8, w0, 0xffff
-//' tst x1, 0xff0000
-//' cset w9, eq
-//' cmp w8, w1, uxth
-//' cset w8, eq
-//' tst x0, 0xff0000
-//' cset w10, ne
-//' csinc w8, w8, wzr, ne
-//' eor w9, w10, w9
-//' and w0, w9, w8
-//' ret
-//'@if $arm64 & $clang[..16]
-//' tst x0, 0xff0000
-//' and w8, w0, 0xffff
-//' cset w9, eq
-//' cset w10, ne
-//' tst x1, 0xff0000
-//' cset w11, eq
-//' cmp w8, w1, uxth
-//' cset w8, eq
-//' eor w10, w10, w11
-//' orr w8, w8, w9
-//' and w0, w10, w8
 //' ret
 bool option_int16_equal(opt::option<int16_t> a, opt::option<int16_t> b) {
     return a == b;
