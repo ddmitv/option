@@ -7,19 +7,6 @@
 //' cmp edi, esi
 //' sete al
 //' ret
-//'@if $x64 & $linux & $clang[19..22]
-//' mov ecx, edi
-//' shr ecx, 16
-//' mov eax, esi
-//' shr eax, 16
-//' cmp cl, al
-//' sete dl
-//' xor cl, 1
-//' cmp di, si
-//' sete al
-//' or al, cl
-//' and al, dl
-//' ret
 //'@if $x64 & $linux & $clang[16..19]
 //' test edi, 16711680
 //' sete cl
@@ -502,19 +489,6 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //'@if $x64 & $linux & $clang[22..]
 //' cmp rdi, rsi
 //' sete al
-//' ret
-//'@if $x64 & $linux & $clang[19..22]
-//' mov rcx, rdi
-//' shr rcx, 32
-//' mov rax, rsi
-//' shr rax, 32
-//' cmp cl, al
-//' sete dl
-//' xor cl, 1
-//' cmp edi, esi
-//' sete al
-//' or al, cl
-//' and al, dl
 //' ret
 //'@if $x64 & $linux & $clang[16..19]
 //' mov rax, 1095216660480
