@@ -135,7 +135,7 @@ opt::option<int32_t> option_make_from_int32_sum(int32_t x, int32_t y) {
 //' ret
 //'@if $x64 & $linux & $clang[16..]
 //' lea rax, [rdi + rsi]
-//' mov dl, 1
+//' mov edx, 1
 //' ret
 //'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
@@ -341,6 +341,7 @@ opt::option<int32_t> option_int32_empty() {
 //' movups [rcx], xmm0
 //' ret
 //'@if $x64 & $linux & $clang[16..]
+//' xor eax, eax
 //' xor edx, edx
 //' ret
 //'@if $x64 & $linux & $clang[..16]
@@ -625,6 +626,7 @@ std::optional<int32_t> std_optional_int32_default() {
 //' movups [rcx], xmm0
 //' ret
 //'@if $x64 & $linux & $clang[16..]
+//' xor eax, eax
 //' xor edx, edx
 //' ret
 //'@if $x64 & $linux & $clang[..16]
@@ -1220,7 +1222,7 @@ void std_optional_int64x2_assign_from_other(std::optional<int64x2>& a, const std
 //'[option_int64_copy]
 //'@if $x64 & $linux & $clang[16..]
 //' mov rax, [rdi]
-//' movzx edx, [rdi + 8]
+//' mov rdx, [rdi + 8]
 //' ret
 //'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
@@ -1740,8 +1742,7 @@ std::optional<std::array<uint8_t, 64>> std_optional_uint8x64_default() {
 
 //'[option_int32_to_uint32_ctor]
 //'@if $x64 & $linux & ($clang[16..] | $gcc)
-//' mov rax, 1099511627775
-//' and rax, rdi
+//' mov rax, rdi
 //' ret
 //'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi
@@ -2081,11 +2082,11 @@ void option_int64_assign_from_uint32(opt::option<int64_t>& a, const opt::option<
 //'[option_int32_emplace]
 //'@if $x64 & $linux & ($clang | $gcc)
 //' mov rax, 4294967396
-//' mov [rcx], rax
+//' mov [rdi], rax
 //' ret
 //'@if $x64 & $windows & ($clang | $gcc | $msvc | $clang-cl)
-//' mov dword ptr [rcx], 100
-//' mov byte ptr [rcx + 4], 1
+//' mov rax, 4294967396
+//' mov [rcx], rax
 //' ret
 //'@if $arm64 & $gcc
 //' mov w2, 100
@@ -2179,6 +2180,11 @@ void std_optional_int64_emplace(std::optional<int64_t>& a) {
 }
 
 //'[option_int32_default_then_emplace]
+//'@if $x64 & $linux & $clang
+//' mov ecx, edi
+//' mov rax, 4294967296
+//' or rax, rcx
+//' ret
 //'@if $x64 & $windows & $clang
 //' mov ecx, ecx
 //' mov rax, 4294967296
@@ -4426,23 +4432,25 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 
 //'[option_find_index_of_value]
 //'@if $x64 & $linux & $clang[16..]
-//' xor eax, eax
 //' test rsi, rsi
 //' je .L0
+//' mov ecx, edx
+//' xor edx, edx
+//' xor eax, eax
 //' .L1:
-//' cmp [rdi + rax*4], edx
+//' cmp [rdi + rax*4], ecx
 //' je .L2
 //' inc rax
 //' cmp rsi, rax
 //' jne .L1
-//' xor edx, edx
-//' mov rax, rsi
+//' xor eax, eax
 //' ret
 //' .L0:
 //' xor edx, edx
+//' xor eax, eax
 //' ret
 //' .L2:
-//' mov dl, 1
+//' mov edx, 1
 //' ret
 //'@if $x64 & $linux & $clang[..16]
 //' mov rax, rdi

@@ -4,17 +4,8 @@
 
 //'[option_int16_equal]
 //'@if $x64 & $linux & $clang[22..]
-//' mov eax, edi
-//' shr edi, 16
-//' mov ecx, esi
-//' shr esi, 16
-//' cmp dil, sil
-//' sete dl
-//' xor dil, 1
-//' cmp ax, cx
+//' cmp edi, esi
 //' sete al
-//' or al, dil
-//' and al, dl
 //' ret
 //'@if $x64 & $linux & $clang[19..22]
 //' mov ecx, edi
@@ -518,17 +509,8 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 
 //'[option_int32_equal]
 //'@if $x64 & $linux & $clang[22..]
-//' mov eax, edi
-//' shr rdi, 32
-//' mov ecx, esi
-//' shr rsi, 32
-//' cmp dil, sil
-//' sete dl
-//' xor dil, 1
-//' cmp eax, ecx
+//' cmp rdi, rsi
 //' sete al
-//' or al, dil
-//' and al, dl
 //' ret
 //'@if $x64 & $linux & $clang[19..22]
 //' mov rcx, rdi
@@ -1010,15 +992,12 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 
 //'[opt_option_int64_equal]
 //'@if $x64 & $linux & $clang[19..]
-//' movzx ecx, [rdi + 8]
-//' cmp cl, [rsi + 8]
-//' sete dl
-//' xor cl, 1
-//' mov rax, [rdi]
-//' cmp rax, [rsi]
+//' movdqu xmm0, [rdi]
+//' movdqu xmm1, [rsi]
+//' pcmpeqb xmm1, xmm0
+//' pmovmskb eax, xmm1
+//' cmp eax, 65535
 //' sete al
-//' or al, cl
-//' and al, dl
 //' ret
 //'@if $x64 & $linux & $clang[..19]
 //' cmp byte ptr [rdi + 8], 0
