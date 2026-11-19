@@ -3,34 +3,9 @@
 #include <optional>
 
 //'[option_int16_equal]
-//'@if $x64 & $linux & $clang[22..]
+//'@if $x64 & $linux & $clang
 //' cmp edi, esi
 //' sete al
-//' ret
-//'@if $x64 & $linux & $clang[16..19]
-//' test edi, 16711680
-//' sete cl
-//' setne al
-//' test esi, 16711680
-//' sete dl
-//' xor dl, al
-//' cmp di, si
-//' sete al
-//' or al, cl
-//' and al, dl
-//' ret
-//'@if $x64 & $linux & $clang[..16]
-//' cmp byte ptr [rsp + 10], 0
-//' sete cl
-//' setne al
-//' cmp byte ptr [rsp + 18], 0
-//' sete dl
-//' xor dl, al
-//' movzx eax, [rsp + 8]
-//' cmp ax, [rsp + 16]
-//' sete al
-//' or al, cl
-//' and al, dl
 //' ret
 //'@if $x64 & $windows & $clang
 //' cmp ecx, edx
@@ -486,35 +461,9 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 }
 
 //'[option_int32_equal]
-//'@if $x64 & $linux & $clang[22..]
+//'@if $x64 & $linux & $clang
 //' cmp rdi, rsi
 //' sete al
-//' ret
-//'@if $x64 & $linux & $clang[16..19]
-//' mov rax, 1095216660480
-//' test rdi, rax
-//' sete cl
-//' setne dl
-//' test rsi, rax
-//' sete r8b
-//' xor r8b, dl
-//' cmp edi, esi
-//' sete al
-//' or al, cl
-//' and al, r8b
-//' ret
-//'@if $x64 & $linux & $clang[..16]
-//' cmp byte ptr [rsp + 12], 0
-//' sete cl
-//' setne al
-//' cmp byte ptr [rsp + 20], 0
-//' sete dl
-//' xor dl, al
-//' mov eax, [rsp + 8]
-//' cmp eax, [rsp + 16]
-//' sete al
-//' or al, cl
-//' and al, dl
 //' ret
 //'@if $x64 & $windows & $clang
 //' cmp rcx, rdx
