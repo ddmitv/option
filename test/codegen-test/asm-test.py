@@ -639,7 +639,10 @@ def compare_disassembly(func_name: SourceLine, src_file: Path, pp_asm: Preproces
     
     for line in actual:
         print(f'+ {line}')
-    print()
+
+    if len(expected_texts) > 0:
+        print()
+        
     for line in expected_texts:
         print(f'- {line}')
 
