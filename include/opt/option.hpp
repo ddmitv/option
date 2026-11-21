@@ -253,25 +253,44 @@ namespace impl {
                     }
 #endif
 #if OPTION_GCC // codegen workaround
-                    if constexpr (sizeof(other) == sizeof(std::uintptr_t) && sizeof(U) < sizeof(std::uintptr_t) && sizeof(this->engaged_tail) <= sizeof(std::uintptr_t)) {
-                        // Load the whole source with a single word load, then split it: the payload
-                        // occupies the low sizeof(U) bytes and the flag bytes follow it. Computing the
-                        // flags as a shift of that word makes GCC emit a single shift (e.g.
-                        // `lsr x1, x0, 32` on aarch64) instead of zeroing a register and inserting
-                        // bitfields when the flags are copied through a zero-initialized std::uintptr_t.
-                        std::uintptr_t src;
-                        std::memcpy(&src, &other, sizeof(src));
+                    if constexpr (sizeof(other) <= sizeof(std::uintptr_t)
+                        && sizeof(U) < sizeof(std::uintptr_t)
+                        && sizeof(this->engaged_tail) == sizeof(std::uintptr_t)) {
+                        // Load the whole source with a single word load of the source width, then split
+                        // it: the payload occupies the low sizeof(U) bytes and the flag bytes follow it.
+                        // Deriving the flags as a shift of that word makes GCC emit a single shift
+                        // (`lsr x1, x0, 32` on aarch64, `shr rdi, 32` on x86-64) instead of zeroing a
+                        // register and inserting the flag bytes one at a time. The source word is
+                        // widened to std::uintptr_t so the destination tail is stored in one go.
+                        typename impl::uint_holder<sizeof(other)>::type src{};
+                        std::memcpy(&src, &other, sizeof(other));
                         const std::uintptr_t flags = src >> (sizeof(U) * 8);
                         std::memcpy(&this->engaged_tail, &flags, sizeof(this->engaged_tail));
                         this->value = static_cast<U>(src);
                         return;
                     }
-#endif
+                    U tmp;
+                    std::memcpy(&tmp, &other.value, sizeof(U));
+                    this->value = tmp;
+
+                    if constexpr (sizeof(this->engaged_tail) <= sizeof(std::uintptr_t)) {
+                        // Copy the flags through a zero-initialized word: GCC then knows the tail bytes
+                        // past the source's flag bytes are zero and can assemble the whole result in
+                        // registers, instead of spilling it to the stack to preserve them.
+                        std::uintptr_t flags = 0;
+                        std::memcpy(&flags, &other.engaged_tail, my_min(sizeof(other.engaged_tail), sizeof(this->engaged_tail)));
+                        std::memcpy(&this->engaged_tail, &flags, sizeof(this->engaged_tail));
+                    } else {
+                        std::memcpy(&this->engaged_tail, other.engaged_tail, my_min(sizeof(other.engaged_tail), sizeof(this->engaged_tail)));
+                    }
+                    return;
+#else
                     U tmp;
                     std::memcpy(&tmp, &other.value, sizeof(U));
                     this->value = tmp; // implicit start lifetime
                     std::memcpy(&this->engaged_tail, other.engaged_tail, my_min(sizeof(other.engaged_tail), sizeof(this->engaged_tail))); // remaining bytes are already zeroed
                     return;
+#endif
                 }
             }
 
