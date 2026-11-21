@@ -3,39 +3,13 @@
 #include <optional>
 
 //'[option_int16_equal]
-//'@if $x64 & $linux & $clang
+//'@if $x64 & $linux & ($clang | $gcc)
 //' cmp edi, esi
 //' sete al
 //' ret
 //'@if $x64 & $windows & $clang
 //' cmp ecx, edx
 //' sete al
-//' ret
-//'@if $x64 & $linux & $gcc[13..]
-//' mov edx, edi
-//' shr edx, 16
-//' cmp di, si
-//' mov ecx, edx
-//' sete al
-//' shr esi, 16
-//' xor ecx, 1
-//' or eax, ecx
-//' cmp sil, dl
-//' sete dl
-//' and eax, edx
-//' ret
-//'@if $x64 & $linux & $gcc[..13]
-//' mov edx, edi
-//' shr edx, 16
-//' cmp di, si
-//' sete al
-//' mov ecx, edx
-//' shr esi, 16
-//' xor ecx, 1
-//' xor esi, edx
-//' or eax, ecx
-//' xor esi, 1
-//' and eax, esi
 //' ret
 //'@if $x64 & $windows & $gcc
 //' cmp ecx, edx
@@ -423,39 +397,13 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 }
 
 //'[option_int32_equal]
-//'@if $x64 & $linux & $clang
+//'@if $x64 & $linux & ($clang | $gcc)
 //' cmp rdi, rsi
 //' sete al
 //' ret
 //'@if $x64 & $windows & $clang
 //' cmp rcx, rdx
 //' sete al
-//' ret
-//'@if $x64 & $linux & $gcc[13..]
-//' mov rdx, rdi
-//' shr rdx, 32
-//' cmp edi, esi
-//' mov ecx, edx
-//' sete al
-//' shr rsi, 32
-//' xor ecx, 1
-//' or eax, ecx
-//' cmp sil, dl
-//' sete dl
-//' and eax, edx
-//' ret
-//'@if $x64 & $linux & $gcc[..13]
-//' mov rdx, rdi
-//' shr rdx, 32
-//' cmp edi, esi
-//' sete al
-//' mov ecx, edx
-//' shr rsi, 32
-//' xor ecx, 1
-//' xor esi, edx
-//' or eax, ecx
-//' xor esi, 1
-//' and eax, esi
 //' ret
 //'@if $x64 & $windows & $gcc
 //' cmp rcx, rdx
@@ -878,16 +826,10 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' sete al
 //' ret
 //'@if $x64 & $linux & $gcc[13..]
-//' movzx edx, [rdi + 8]
-//' mov rax, [rsi]
-//' cmp [rdi], rax
-//' mov ecx, edx
+//' vmovdqu xmm0, [rdi]
+//' vpxor xmm0, xmm0, xmmword ptr [rsi]
+//' vptest xmm0, xmm0
 //' sete al
-//' xor ecx, 1
-//' or eax, ecx
-//' cmp [rsi + 8], dl
-//' sete dl
-//' and eax, edx
 //' ret
 //'@if $x64 & $linux & $gcc[..13]
 //' movzx edx, [rdi + 8]

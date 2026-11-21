@@ -133,7 +133,7 @@ opt::option<int32_t> option_make_from_int32_sum(int32_t x, int32_t y) {
 //' mov [rcx], rax
 //' mov rax, rcx
 //' ret
-//'@if $x64 & $linux & $clang[16..]
+//'@if $x64 & $linux & ($clang[16..] | $gcc)
 //' lea rax, [rdi + rsi]
 //' mov edx, 1
 //' ret
@@ -142,15 +142,6 @@ opt::option<int32_t> option_make_from_int32_sum(int32_t x, int32_t y) {
 //' add rsi, rdx
 //' mov [rdi], rsi
 //' mov byte ptr [rdi + 8], 1
-//' ret
-//'@if $x64 & $linux & $gcc[14..]
-//' xor edx, edx
-//' lea rax, [rdi + rsi]
-//' mov dl, 1
-//' ret
-//'@if $x64 & $linux & $gcc[..14]
-//' lea rax, [rdi + rsi]
-//' mov edx, 1
 //' ret
 //'@if $x64 & $windows & $gcc
 //' mov rax, rcx
@@ -2184,6 +2175,10 @@ void std_optional_int64_emplace(std::optional<int64_t>& a) {
 //' mov rax, 4294967296
 //' or rax, rcx
 //' ret
+//'@if $x64 & $linux & $gcc
+//' mov eax, edi
+//' bts rax, 32
+//' ret
 //'@if $arm64 & $linux & $clang
 //' mov w8, w0
 //' orr x0, x8, 0x100000000
@@ -2194,12 +2189,8 @@ void std_optional_int64_emplace(std::optional<int64_t>& a) {
 //' or rax, rcx
 //' ret
 //'@if $x64 & $windows & $gcc
-//' sub rsp, 24
-//' mov dword ptr [rsp + 12], 0
-//' mov [rsp + 8], ecx
-//' mov byte ptr [rsp + 12], 1
-//' mov rax, [rsp + 8]
-//' add rsp, 24
+//' mov eax, ecx
+//' bts rax, 32
 //' ret
 //'@if $x64 & $clang-cl
 //' mov rax, rcx
@@ -2827,10 +2818,10 @@ void std_optional_int32_swap(std::optional<int32_t>& a, std::optional<int32_t>& 
 //' add rsp, 24
 //' ret
 //'@if $x64 & $linux & $gcc
-//' movdqu xmm0, [rdi]
-//' movdqu xmm1, [rsi]
-//' movups [rdi], xmm1
-//' movups [rsi], xmm0
+//' vmovdqu xmm0, [rdi]
+//' vmovdqu xmm1, [rsi]
+//' vmovdqu [rdi], xmm1
+//' vmovdqu [rsi], xmm0
 //' ret
 //'@if $x64 & $windows & $gcc
 //' movdqu xmm0, [rcx]
