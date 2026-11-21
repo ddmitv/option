@@ -17,7 +17,7 @@ jobs:
   # Library tests: clang x {libstdc++, libc++} x {x86-64, arm64}, sanitized and unsanitized.
   clang:
     name: 'clang ${{ matrix.llvm }} / ${{ matrix.stdlib }} / ${{ matrix.arch }}'
-    runs-on: ${{ matrix.os || (matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest') }}
+    runs-on: ${{ matrix.os || (matrix.arch == 'arm64' && 'ubuntu-26.04-arm' || 'ubuntu-26.04') }}
     env:
       CXX: clang++-${{ matrix.llvm }}
       CC: clang-${{ matrix.llvm }}
@@ -28,19 +28,19 @@ jobs:
         stdlib: ['libstdc++', 'libc++']
         arch: ['x64', 'arm64']
         include:
-          # LLVM 15/16 are no longer published for ubuntu-latest (24.04) on apt.llvm.org
+          # Ubuntu 26.04 archives start at LLVM 17; use 24.04 for LLVM 15/16.
           - llvm: '15'
             arch: 'x64'
-            os: 'ubuntu-22.04'
+            os: 'ubuntu-24.04'
           - llvm: '15'
             arch: 'arm64'
-            os: 'ubuntu-22.04-arm'
+            os: 'ubuntu-24.04-arm'
           - llvm: '16'
             arch: 'x64'
-            os: 'ubuntu-22.04'
+            os: 'ubuntu-24.04'
           - llvm: '16'
             arch: 'arm64'
-            os: 'ubuntu-22.04-arm'
+            os: 'ubuntu-24.04-arm'
     steps:
       - &checkout_step
         name: Checkout
@@ -49,6 +49,7 @@ jobs:
           persist-credentials: false
 
       - name: Install LLVM ${{ matrix.llvm }}
+        if: matrix.llvm == '23'
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x ./llvm.sh
@@ -56,7 +57,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          packages='g++'
+          packages='g++ clang-${{ matrix.llvm }} libclang-rt-${{ matrix.llvm }}-dev'
           if [[ '${{ matrix.stdlib }}' == 'libc++' ]]; then
             packages+=' libc++-${{ matrix.llvm }}-dev libc++abi-${{ matrix.llvm }}-dev libunwind-${{ matrix.llvm }}-dev'
           fi
