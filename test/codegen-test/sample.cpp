@@ -4473,7 +4473,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov [rax], rcx
 //' mov qword ptr [rax + 8], 1
 //' ret
-//'@if $x64 & $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[16..]
 //' test rsi, rsi
 //' je .L0
 //' mov rax, rdi
@@ -4671,6 +4671,303 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' .L12:
 //' mov r10d, 6
 //' jmp .L14
+//'@if $x64 & $linux & $gcc[15..16]
+//' test rsi, rsi
+//' je .L0
+//' mov ecx, edx
+//' mov rdx, rdi
+//' lea r10, [rsi - 1]
+//' mov r9d, 11
+//' shr rdx, 2
+//' neg rdx
+//' mov rax, rdx
+//' and eax, 7
+//' lea r8, [rax + 8]
+//' cmp r8, r9
+//' cmovb r8, r9
+//' cmp r10, r8
+//' jb .L1
+//' push rbp
+//' mov rbp, rsp
+//' and rsp, -32
+//' test rax, rax
+//' je .L2
+//' cmp ecx, [rdi]
+//' je .L3
+//' test dl, 6
+//' je .L4
+//' cmp ecx, [rdi + 4]
+//' je .L5
+//' cmp rax, 2
+//' jbe .L6
+//' cmp ecx, [rdi + 8]
+//' je .L7
+//' and edx, 4
+//' je .L8
+//' cmp ecx, [rdi + 12]
+//' je .L9
+//' cmp rax, 4
+//' jbe .L10
+//' cmp ecx, [rdi + 16]
+//' je .L11
+//' cmp rax, 5
+//' je .L12
+//' cmp ecx, [rdi + 20]
+//' je .L13
+//' cmp rax, 7
+//' jne .L14
+//' cmp ecx, [rdi + 24]
+//' je .L15
+//' mov qword ptr [rsp - 8], 7
+//' .L16:
+//' mov r10, rsi
+//' vmovd xmm3, ecx
+//' vpbroadcastq ymm1, [rsp - 8]
+//' lea r8, [rdi + rax*4]
+//' sub r10, rax
+//' vpaddq ymm1, ymm1, ymmword ptr .L17[rip + 1]
+//' vpbroadcastd ymm3, xmm3
+//' xor eax, eax
+//' vpbroadcastq ymm2, qword ptr .L17[rip + 3]
+//' mov r9, r10
+//' shr r9, 3
+//' jmp .L18
+//' .L19:
+//' add rax, 1
+//' vpaddq ymm1, ymm1, ymm2
+//' cmp r9, rax
+//' je .L20
+//' .L18:
+//' mov rdx, rax
+//' sal rdx, 5
+//' vpcmpeqd ymm0, ymm3, ymmword ptr [r8 + rdx]
+//' vptest ymm0, ymm0
+//' je .L19
+//' vmovq rax, xmm1
+//' vzeroupper
+//' .L21:
+//' lea rdx, [0 + rax*4 + 0]
+//' cmp ecx, [rdi + rax*4]
+//' je .L22
+//' lea r8, [rax + 1]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 4]
+//' je .L24
+//' lea r8, [rax + 2]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 8]
+//' je .L24
+//' lea r8, [rax + 3]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 12]
+//' je .L24
+//' lea r8, [rax + 4]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 16]
+//' je .L24
+//' lea r8, [rax + 5]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 20]
+//' je .L24
+//' lea r8, [rax + 6]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 24]
+//' je .L24
+//' lea r8, [rax + 7]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 28]
+//' je .L24
+//' lea r8, [rax + 8]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 32]
+//' je .L24
+//' lea r8, [rax + 9]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 36]
+//' je .L24
+//' lea r8, [rax + 10]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 40]
+//' je .L24
+//' lea r8, [rax + 11]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 44]
+//' je .L24
+//' lea r8, [rax + 12]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 48]
+//' je .L24
+//' lea r8, [rax + 13]
+//' cmp r8, rsi
+//' jnb .L23
+//' cmp ecx, [rdi + rdx + 52]
+//' je .L24
+//' add rax, 14
+//' cmp rax, rsi
+//' jnb .L23
+//' cmp [rdi + rdx + 56], ecx
+//' je .L22
+//' .L23:
+//' xor eax, eax
+//' xor edx, edx
+//' leave
+//' ret
+//' .L24:
+//' mov rax, r8
+//' .L22:
+//' mov edx, 1
+//' leave
+//' ret
+//' .L20:
+//' test r10b, 7
+//' je .L25
+//' mov rax, [rsp - 8]
+//' and r10, -8
+//' add rax, r10
+//' vzeroupper
+//' jmp .L21
+//' .L2:
+//' mov qword ptr [rsp - 8], 0
+//' jmp .L16
+//' .L1:
+//' xor eax, eax
+//' lea rdx, [0 + rax*4 + 0]
+//' cmp ecx, [rdi + rax*4]
+//' je .L26
+//' lea r8, [rax + 1]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 4]
+//' je .L27
+//' lea r8, [rax + 2]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 8]
+//' je .L27
+//' lea r8, [rax + 3]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 12]
+//' je .L27
+//' lea r8, [rax + 4]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 16]
+//' je .L27
+//' lea r8, [rax + 5]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 20]
+//' je .L27
+//' lea r8, [rax + 6]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 24]
+//' je .L27
+//' lea r8, [rax + 7]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 28]
+//' je .L27
+//' lea r8, [rax + 8]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 32]
+//' je .L27
+//' lea r8, [rax + 9]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 36]
+//' je .L27
+//' lea r8, [rax + 10]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 40]
+//' je .L27
+//' lea r8, [rax + 11]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 44]
+//' je .L27
+//' lea r8, [rax + 12]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 48]
+//' je .L27
+//' lea r8, [rax + 13]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 52]
+//' je .L27
+//' add rax, 14
+//' cmp rax, rsi
+//' jnb .L0
+//' cmp [rdi + rdx + 56], ecx
+//' jne .L0
+//' .L26:
+//' mov edx, 1
+//' ret
+//' .L0:
+//' xor eax, eax
+//' xor edx, edx
+//' ret
+//' .L25:
+//' vzeroupper
+//' jmp .L23
+//' .L10:
+//' mov qword ptr [rsp - 8], 4
+//' jmp .L16
+//' .L3:
+//' xor eax, eax
+//' jmp .L22
+//' .L4:
+//' mov qword ptr [rsp - 8], 1
+//' jmp .L16
+//' .L5:
+//' mov eax, 1
+//' jmp .L22
+//' .L6:
+//' mov qword ptr [rsp - 8], 2
+//' jmp .L16
+//' .L7:
+//' mov eax, 2
+//' jmp .L22
+//' .L8:
+//' mov qword ptr [rsp - 8], 3
+//' jmp .L16
+//' .L27:
+//' mov rax, r8
+//' jmp .L26
+//' .L9:
+//' mov eax, 3
+//' jmp .L22
+//' .L11:
+//' mov eax, 4
+//' jmp .L22
+//' .L12:
+//' mov qword ptr [rsp - 8], 5
+//' jmp .L16
+//' .L13:
+//' mov eax, 5
+//' jmp .L22
+//' .L14:
+//' mov qword ptr [rsp - 8], 6
+//' jmp .L16
+//' .L15:
+//' mov eax, 6
+//' jmp .L22
 //'@if $x64 & $linux & $gcc[14..15]
 //' test rsi, rsi
 //' je .L0
@@ -5003,23 +5300,18 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' cmp w2, w0
 //' beq .L15
 //' .L0:
-//' mov w3, 0
-//' .L17:
-//' mov x0, x8
-//' and x1, x3, 1
+//' mov x0, 0
+//' mov x1, 0
 //' ret
 //' .L16:
 //' mov x3, x4
 //' .L15:
-//' mov x8, x3
-//' mov w3, 1
-//' mov x0, x8
-//' and x1, x3, 1
+//' mov x0, x3
+//' mov x1, 1
 //' ret
 //' .L13:
-//' mov w3, 0
 //' tst x7, 3
-//' beq .L17
+//' beq .L0
 //' fmov x3, d27
 //' and x7, x7, -4
 //' add x3, x7, x3
@@ -5196,7 +5488,7 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov cl, 1
 //' mov [rax + 8], cl
 //' ret
-//'@if $x64 & $linux & $gcc[15..]
+//'@if $x64 & $linux & $gcc[16..]
 //' push rbp
 //' mov rbp, rsp
 //' and rsp, -32
@@ -5401,6 +5693,226 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' .L12:
 //' mov r10d, 6
 //' jmp .L14
+//'@if $x64 & $linux & $gcc[15..16]
+//' push rbp
+//' mov rbp, rsp
+//' and rsp, -32
+//' test rsi, rsi
+//' je .L0
+//' mov ecx, edx
+//' mov rdx, rdi
+//' lea r10, [rsi - 1]
+//' mov r9d, 11
+//' shr rdx, 2
+//' neg rdx
+//' mov rax, rdx
+//' and eax, 7
+//' lea r8, [rax + 8]
+//' cmp r8, r9
+//' cmovb r8, r9
+//' cmp r10, r8
+//' jb .L1
+//' test rax, rax
+//' je .L2
+//' cmp ecx, [rdi]
+//' je .L3
+//' test dl, 6
+//' je .L4
+//' cmp ecx, [rdi + 4]
+//' je .L5
+//' cmp rax, 2
+//' jbe .L6
+//' cmp ecx, [rdi + 8]
+//' je .L7
+//' and edx, 4
+//' je .L8
+//' cmp ecx, [rdi + 12]
+//' je .L9
+//' cmp rax, 4
+//' jbe .L10
+//' cmp ecx, [rdi + 16]
+//' je .L11
+//' cmp rax, 5
+//' je .L12
+//' cmp ecx, [rdi + 20]
+//' je .L13
+//' cmp rax, 7
+//' jne .L14
+//' cmp ecx, [rdi + 24]
+//' je .L15
+//' mov qword ptr [rsp - 72], 7
+//' .L16:
+//' mov r10, rsi
+//' vmovd xmm3, ecx
+//' vpbroadcastq ymm1, [rsp - 72]
+//' lea r8, [rdi + rax*4]
+//' sub r10, rax
+//' vpaddq ymm1, ymm1, ymmword ptr .L17[rip + 1]
+//' vpbroadcastd ymm3, xmm3
+//' xor eax, eax
+//' vpbroadcastq ymm2, qword ptr .L17[rip + 3]
+//' mov r9, r10
+//' shr r9, 3
+//' jmp .L18
+//' .L19:
+//' add rax, 1
+//' vpaddq ymm1, ymm1, ymm2
+//' cmp r9, rax
+//' je .L20
+//' .L18:
+//' mov rdx, rax
+//' sal rdx, 5
+//' vpcmpeqd ymm0, ymm3, ymmword ptr [r8 + rdx]
+//' vptest ymm0, ymm0
+//' je .L19
+//' vmovq rax, xmm1
+//' vzeroupper
+//' .L21:
+//' lea rdx, [0 + rax*4 + 0]
+//' cmp ecx, [rdi + rax*4]
+//' je .L22
+//' lea r8, [rax + 1]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 4]
+//' je .L23
+//' lea r8, [rax + 2]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 8]
+//' je .L23
+//' lea r8, [rax + 3]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 12]
+//' je .L23
+//' lea r8, [rax + 4]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 16]
+//' je .L23
+//' lea r8, [rax + 5]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 20]
+//' je .L23
+//' lea r8, [rax + 6]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 24]
+//' je .L23
+//' lea r8, [rax + 7]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 28]
+//' je .L23
+//' lea r8, [rax + 8]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 32]
+//' je .L23
+//' lea r8, [rax + 9]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 36]
+//' je .L23
+//' lea r8, [rax + 10]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 40]
+//' je .L23
+//' lea r8, [rax + 11]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 44]
+//' je .L23
+//' lea r8, [rax + 12]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 48]
+//' je .L23
+//' lea r8, [rax + 13]
+//' cmp r8, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 52]
+//' je .L23
+//' add rax, 14
+//' cmp rax, rsi
+//' jnb .L0
+//' cmp ecx, [rdi + rdx + 56]
+//' je .L22
+//' .L0:
+//' vpxor xmm0, xmm0, xmm0
+//' vmovdqa [rsp - 16], xmm0
+//' mov rax, [rsp - 16]
+//' mov rdx, [rsp - 8]
+//' leave
+//' ret
+//' .L23:
+//' mov rax, r8
+//' .L22:
+//' mov [rsp - 16], rax
+//' mov rax, [rsp - 16]
+//' mov byte ptr [rsp - 8], 1
+//' mov rdx, [rsp - 8]
+//' leave
+//' ret
+//' .L20:
+//' test r10b, 7
+//' je .L24
+//' mov rax, [rsp - 72]
+//' and r10, -8
+//' add rax, r10
+//' vzeroupper
+//' jmp .L21
+//' .L2:
+//' mov qword ptr [rsp - 72], 0
+//' jmp .L16
+//' .L1:
+//' xor eax, eax
+//' jmp .L21
+//' .L24:
+//' vzeroupper
+//' jmp .L0
+//' .L10:
+//' mov qword ptr [rsp - 72], 4
+//' jmp .L16
+//' .L3:
+//' xor eax, eax
+//' jmp .L22
+//' .L4:
+//' mov qword ptr [rsp - 72], 1
+//' jmp .L16
+//' .L5:
+//' mov eax, 1
+//' jmp .L22
+//' .L6:
+//' mov qword ptr [rsp - 72], 2
+//' jmp .L16
+//' .L7:
+//' mov eax, 2
+//' jmp .L22
+//' .L8:
+//' mov qword ptr [rsp - 72], 3
+//' jmp .L16
+//' .L9:
+//' mov eax, 3
+//' jmp .L22
+//' .L11:
+//' mov eax, 4
+//' jmp .L22
+//' .L12:
+//' mov qword ptr [rsp - 72], 5
+//' jmp .L16
+//' .L13:
+//' mov eax, 5
+//' jmp .L22
+//' .L14:
+//' mov qword ptr [rsp - 72], 6
+//' jmp .L16
+//' .L15:
+//' mov eax, 6
+//' jmp .L22
 //'@if $x64 & $linux & $gcc[..15]
 //' test rsi, rsi
 //' je .L0
