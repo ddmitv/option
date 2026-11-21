@@ -266,7 +266,7 @@ void swap_test_suite() {
         check(o2.has_value());
         check(*o2 == 1);
     }
-#if OPTION_HAS_EXCEPTIONS
+#if OPTION_HAS_EXCEPTIONS && !GCC_HWASAN_UNWINDER_BROKEN
     {
         opt::option<Z> o1;
         opt::option<Z> o2;
@@ -492,7 +492,7 @@ void swap_test_suite() {
         check(opt1.has_value() == false);
         check(opt2.has_value() == false);
     }
-#if OPTION_HAS_EXCEPTIONS
+#if OPTION_HAS_EXCEPTIONS && !GCC_HWASAN_UNWINDER_BROKEN
     {
         opt::option<Z> opt1;
         opt1.emplace(1);

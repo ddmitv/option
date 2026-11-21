@@ -184,7 +184,7 @@ void test_const_T_ctor() {
     {
         struct Z {
             Z(int) {}
-            [[noreturn]] Z(const Z&) { throw 6; }
+            [[noreturn]] Z(const Z&) { do_throw(6); }
         };
         const Z x(3);
         check_throw_value([[maybe_unused]] opt::option<Z> o(x), int, 6);
@@ -277,16 +277,14 @@ void test_rvalue_T_ctor() {
             [[maybe_unused]] constexpr test_constexpr_ctor(T&&) {}
         };
     }
-#if OPTION_HAS_EXCEPTIONS
     {
         struct Z {
             Z(int) {}
-            [[noreturn]] Z(Z&&) { throw 6; }
+            [[noreturn]] Z(Z&&) { do_throw(6); }
         };
         Z z(3);
         check_throw_value([[maybe_unused]] opt::option<Z> o(std::move(z)), int, 6);
     }
-#endif
 }
 
 // test ref https://github.com/llvm/llvm-project/blob/74d6edc53625fb0b8652cd928ef7bdca95570aa6/libcxx/test/std/utilities/optional/optional.object/optional.object.ctor/U.pass.cpp#L175

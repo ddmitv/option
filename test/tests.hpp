@@ -3,6 +3,14 @@
 #include <opt/details/preprocessor.hpp>
 #include <type_traits>
 
+// libgcc's unwinder on AArch64 does not propagate HWAsan tags.
+// Throwing from instrumented code trips a spurious stack tag-mismatch inside _Unwind_RaiseException
+#if defined(__SANITIZE_HWADDRESS__) && OPTION_GCC && !OPTION_CLANG
+    #define GCC_HWASAN_UNWINDER_BROKEN 1
+#else
+    #define GCC_HWASAN_UNWINDER_BROKEN 0
+#endif
+
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
     #define CURRENT_FUNCTION __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
@@ -52,7 +60,7 @@ void on_check_failed(const char* message, const char* filename, unsigned int lin
     static_assert(::std::is_same_v<decltype(expr), expected_type>, "unexpected type for: " #expr); \
     static_assert(noexcept_op(expr), "noexcept(" #expr ") expected " #noexcept_op)
 
-#if OPTION_HAS_EXCEPTIONS
+#if OPTION_HAS_EXCEPTIONS && !GCC_HWASAN_UNWINDER_BROKEN
     #define check_no_throw(statement) \
         do { \
             bool _thrown = false; \
@@ -93,8 +101,8 @@ void on_check_failed(const char* message, const char* filename, unsigned int lin
     #define do_throw(...) throw __VA_ARGS__
 #else
     #define check_no_throw(statement) do { statement; } while (0)
-    #define check_throw(statement, exception_type) do { statement; } while (0)
-    #define check_throw_value(statement, exception_type, expected_value) do { statement; } while (0)
+    #define check_throw(statement, exception_type) (void)0
+    #define check_throw_value(statement, exception_type, expected_value) (void)0
 
     #if OPTION_HAS_BUILTIN(__builtin_abort)
         #define do_throw(...) __builtin_abort()
@@ -119,11 +127,3 @@ void on_check_failed(const char* message, const char* filename, unsigned int lin
     OPTION_CLANG_SUPPRESS_WARNING("-Wconsumed") \
     __VA_ARGS__ \
     OPTION_CLANG_SUPPRESS_WARNING_POP
-
-// libgcc's unwinder on AArch64 does not propagate HWAsan tags.
-// Throwing from instrumented code trips a spurious stack tag-mismatch inside _Unwind_RaiseException
-#if defined(__SANITIZE_HWADDRESS__) && OPTION_GCC && !OPTION_CLANG
-    #define GCC_HWASAN_UNWINDER_BROKEN 1
-#else
-    #define GCC_HWASAN_UNWINDER_BROKEN 0
-#endif
