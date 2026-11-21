@@ -630,8 +630,8 @@ def get_expression_symbols(compiler_version_str: str, stdlib_id: str, raw_stdlib
     return symbols
 
 def compare_disassembly(func_name: SourceLine, src_file: Path, pp_asm: PreprocessedAsm, actual: list[str]) -> bool:
-    expected_texts = [line.text for line in pp_asm.emitted_branch.lines] if pp_asm.emitted_branch is not None else []
-    if expected_texts == actual:
+    expected_text = [line.text for line in pp_asm.emitted_branch.lines] if pp_asm.emitted_branch is not None else []
+    if expected_text == actual:
         return True
     
     start_line = pp_asm.emitted_branch.if_line.number if pp_asm.emitted_branch is not None else func_name.number
@@ -639,19 +639,21 @@ def compare_disassembly(func_name: SourceLine, src_file: Path, pp_asm: Preproces
     
     for line in actual:
         print(f'+ {line}')
+    print(f'({len(actual)} lines)')
 
-    if len(expected_texts) > 0:
+    if len(expected_text) > 0:
         print()
         
-    for line in expected_texts:
+    for line in expected_text:
         print(f'- {line}')
+    if len(expected_text) > 0:
+        print(f'({len(expected_text)} lines)')
 
     for branch in pp_asm.alternate_branches:
         if [line.text for line in branch.lines] == actual:
             print(f'Hint: the actual assembly matches an alternate branch at {src_file.name}:{branch.if_line.number}: "{branch.if_line.text}"')
 
-    if len(expected_texts) > 0:
-        print()
+    print()
 
     return False
 
