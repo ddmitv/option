@@ -635,6 +635,9 @@ def compare_disassembly(func_name: SourceLine, src_file: Path, pp_asm: Preproces
         return True
     
     start_line = pp_asm.emitted_branch.if_line.number if pp_asm.emitted_branch is not None else func_name.number
+
+    if pp_asm.emitted_branch is not None:
+        print(f'{pp_asm.emitted_branch.if_line.text}')
     print(f'{func_name.text}: ({src_file.name}:{start_line})')
     
     for line in actual:
