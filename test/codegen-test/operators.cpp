@@ -796,26 +796,13 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 }
 
 //'[opt_option_int64_equal]
-//'@if $x64 & $linux & $clang[19..]
+//'@if $x64 & $linux & $clang
 //' movdqu xmm0, [rdi]
 //' movdqu xmm1, [rsi]
 //' pcmpeqb xmm1, xmm0
 //' pmovmskb eax, xmm1
 //' cmp eax, 65535
 //' sete al
-//' ret
-//'@if $x64 & $linux & $clang[..19]
-//' cmp byte ptr [rdi + 8], 0
-//' sete cl
-//' setne al
-//' cmp byte ptr [rsi + 8], 0
-//' sete dl
-//' xor dl, al
-//' mov rax, [rdi]
-//' cmp rax, [rsi]
-//' sete al
-//' or al, cl
-//' and al, dl
 //' ret
 //'@if $x64 & $windows & ($clang | $clang-cl)
 //' movdqu xmm0, [rcx]
