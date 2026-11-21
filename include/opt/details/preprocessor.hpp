@@ -36,6 +36,17 @@
     #define OPTION_ICC 0
 #endif
 
+#if defined(__aarch64__) || defined(__arm64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
+    #define OPTION_ARM64 1
+    #define OPTION_X64 0
+#elif defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
+    #define OPTION_ARM64 0
+    #define OPTION_X64 1
+#else
+    #define OPTION_ARM64 0
+    #define OPTION_X64 0
+#endif
+
 #if OPTION_CLANG && !OPTION_ICC
     #define OPTION_PRAGMA_TO_STR(x) _Pragma(#x)
     #define OPTION_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
