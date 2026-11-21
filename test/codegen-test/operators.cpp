@@ -28,43 +28,7 @@
 //' cmp ecx, edx
 //' sete al
 //' ret
-//'@if $arm64 & $gcc[13..]
-//' sxth w3, w1
-//' ubfx x2, x0, 16, 8
-//' cmp w3, w0, sxth
-//' ubfx x1, x1, 16, 8
-//' cset w0, eq
-//' eor w3, w2, 1
-//' cmp w1, w2
-//' orr w0, w0, w3
-//' cset w1, eq
-//' and w0, w1, w0
-//' ret
-//'@if $arm64 & $gcc[12..13]
-//' sxth w3, w1
-//' ubfx x2, x0, 16, 8
-//' cmp w3, w0, sxth
-//' ubfx x1, x1, 16, 8
-//' eor w1, w2, w1
-//' cset w0, eq
-//' eor w2, w2, 1
-//' eor w1, w1, 1
-//' orr w0, w0, w2
-//' and w0, w0, w1
-//' ret
-//'@if $arm64 & $gcc[..12]
-//' sxth w2, w1
-//' cmp w2, w0, sxth
-//' ubfx x1, x1, 16, 8
-//' ubfx x0, x0, 16, 8
-//' eor w1, w0, w1
-//' cset w2, eq
-//' eor w0, w0, 1
-//' eor w1, w1, 1
-//' orr w0, w2, w0
-//' and w0, w0, w1
-//' ret
-//'@if $arm64 & $clang
+//'@if $arm64 & ($clang | $gcc)
 //' cmp w0, w1
 //' cset w0, eq
 //' ret
@@ -427,40 +391,7 @@ bool std_optional_int16_equal(std::optional<int16_t> a, std::optional<int16_t> b
 //' cmp rcx, rdx
 //' sete al
 //' ret
-//'@if $arm64 & $gcc[13..]
-//' cmp w0, w1
-//' ubfx x0, x0, 32, 8
-//' ubfx x1, x1, 32, 8
-//' cset w2, eq
-//' eor w3, w0, 1
-//' cmp w1, w0
-//' cset w1, eq
-//' orr w0, w2, w3
-//' and w0, w1, w0
-//' ret
-//'@if $arm64 & $gcc[12..13]
-//' cmp w0, w1
-//' ubfx x0, x0, 32, 8
-//' ubfx x1, x1, 32, 8
-//' cset w2, eq
-//' eor w1, w0, w1
-//' eor w0, w0, 1
-//' eor w1, w1, 1
-//' orr w0, w2, w0
-//' and w0, w0, w1
-//' ret
-//'@if $arm64 & $gcc[..12]
-//' cmp w0, w1
-//' ubfx x0, x0, 32, 8
-//' ubfx x1, x1, 32, 8
-//' eor w1, w0, w1
-//' cset w2, eq
-//' eor w0, w0, 1
-//' eor w1, w1, 1
-//' orr w0, w2, w0
-//' and w0, w0, w1
-//' ret
-//'@if $arm64 & $clang
+//'@if $arm64 & ($clang | $gcc)
 //' cmp x0, x1
 //' cset w0, eq
 //' ret
@@ -847,17 +778,13 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' sete al
 //' ret
 //'@if $arm64 & $gcc[13..]
-//' ldr x5, [x0]
-//' ldr x4, [x1]
-//' ldrb w2, [x0, 8]
-//' ldrb w3, [x1, 8]
-//' cmp x5, x4
-//' eor w1, w2, 1
+//' ldr q31, [x0]
+//' ldr q30, [x1]
+//' eor v30.16b, v31.16b, v30.16b
+//' umaxp v30.4s, v30.4s, v30.4s
+//' fmov x0, d30
+//' cmp x0, 0
 //' cset w0, eq
-//' cmp w3, w2
-//' orr w0, w0, w1
-//' cset w1, eq
-//' and w0, w1, w0
 //' ret
 //'@if $arm64 & $gcc[12..13]
 //' ldr x4, [x0]
