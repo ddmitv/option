@@ -332,7 +332,7 @@ namespace impl {
             // if T's ctor throws an exception, the option must be unengaged (this->engaged = true MUST happen after std::construct_at call)
             std::construct_at(OPTION_ADDRESSOF(this->value), static_cast<Args&&>(args)...);
 
-            if constexpr (OPTION_IS_INTEGRAL(T) && sizeof(T) + alignof(T) <= sizeof(void*)) { // sizeof(void*) = max register width
+            if constexpr (OPTION_IS_INTEGRAL(T) && sizeof(*this) <= sizeof(void*)) { // sizeof(void*) = max register width
                 if (!std::is_constant_evaluated()) {
                     // supports only little endian
                     std::uintptr_t packed{};
