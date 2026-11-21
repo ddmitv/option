@@ -242,7 +242,7 @@ namespace impl {
                         std::memcpy(this, &other, sizeof(*this));
                         return;
                     }
-#if OPTION_MSVC && !OPTION_CLANG
+#if OPTION_MSVC && !OPTION_CLANG // codegen workaround
                     if constexpr (sizeof(other) <= sizeof(void*) && sizeof(engaged_tail) <= sizeof(void*)) {
                         std::uintptr_t src = 0;
                         std::memcpy(&src, &other, sizeof(other));
@@ -252,11 +252,27 @@ namespace impl {
                         return;
                     }
 #endif
+#if OPTION_GCC // codegen workaround
+                    U tmp;
+                    std::memcpy(&tmp, &other.value, sizeof(U));
+                    this->value = tmp;
+
+                    if constexpr (sizeof(this->engaged_tail) <= sizeof(void*)) {
+                        std::uintptr_t flags = 0;
+
+                        std::memcpy(&flags, &other.engaged_tail, my_min(sizeof(other.engaged_tail), sizeof(this->engaged_tail)));
+                        std::memcpy(&this->engaged_tail, &flags, sizeof(this->engaged_tail));
+                    } else {
+                        std::memcpy(&this->engaged_tail, other.engaged_tail, my_min(sizeof(other.engaged_tail), sizeof(this->engaged_tail)));
+                    }
+                    return;
+#else
                     U tmp;
                     std::memcpy(&tmp, &other.value, sizeof(U));
                     this->value = tmp; // implicit start lifetime
                     std::memcpy(&this->engaged_tail, other.engaged_tail, my_min(sizeof(other.engaged_tail), sizeof(this->engaged_tail))); // remaining bytes are already zeroed
                     return;
+#endif
                 }
             }
 
