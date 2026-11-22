@@ -99,6 +99,9 @@ namespace impl {
             // so it is not initialized at runtime and does not affect codegen.
             char dummy;
         };
+        // engaged_tail[0] represents engaged / unengaged state (has_value())
+        // engaged_tail[1..] must be filled with 0 (false)
+        // opt::option must have canonical byte representation for operator== and other functionality to work
         bool engaged_tail[alignof(T)]; // uninit
 
         constexpr ~option_storage() requires (!OPTION_IS_TRIVIALLY_DESTRUCTIBLE(T)) {
