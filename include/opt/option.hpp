@@ -341,7 +341,19 @@ namespace impl {
                     b = false;
                 }
             } else if constexpr (OPTION_IS_INTEGRAL(T)) {
+#if OPTION_GCC // codegen workaround
+                // Zero the payload and the flags with plain stores instead of memset.
+                // A memset (or a loop, which GCC turns into one) takes the address of the
+                // storage, so GCC <= 14 keeps the whole object in memory instead of folding
+                // it into the return registers, and -fstack-protector then adds a canary.
+                // Explicit stores let it emit e.g. `mov x0, 0; mov x1, 0; ret`.
+                this->value = T{};
+                [&]<std::size_t... I>(std::index_sequence<I...>) {
+                    ((this->engaged_tail[I] = false), ...);
+                }(std::make_index_sequence<sizeof(this->engaged_tail)>{});
+#else
                 std::memset(static_cast<void*>(this), 0, sizeof(*this));
+#endif
             } else {
                 this->engaged_tail[0] = false;
             }
