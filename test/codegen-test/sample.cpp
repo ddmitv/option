@@ -4817,7 +4817,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' add rax, 14
 //' cmp rax, rsi
 //' jnb .L23
-//' cmp [rdi + rdx + 56], ecx
+//' cmp ecx, [rdi + rdx + 56]
 //' je .L22
 //' .L23:
 //' xor eax, eax
@@ -4914,7 +4914,7 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' add rax, 14
 //' cmp rax, rsi
 //' jnb .L0
-//' cmp [rdi + rdx + 56], ecx
+//' cmp ecx, [rdi + rdx + 56]
 //' jne .L0
 //' .L26:
 //' mov edx, 1
@@ -4968,31 +4968,6 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' .L15:
 //' mov eax, 6
 //' jmp .L22
-//'@if $x64 & $linux & $gcc[14..15]
-//' test rsi, rsi
-//' je .L0
-//' xor ecx, ecx
-//' jmp .L1
-//' .L2:
-//' add rcx, 1
-//' cmp rcx, rsi
-//' je .L0
-//' .L1:
-//' cmp [rdi + rcx*4], edx
-//' jne .L2
-//' xor r9d, r9d
-//' mov eax, 1
-//' mov r8, rcx
-//' mov r9b, al
-//' mov rax, r8
-//' mov rdx, r9
-//' ret
-//' .L0:
-//' xor eax, eax
-//' mov r9b, al
-//' mov rax, r8
-//' mov rdx, r9
-//' ret
 //'@if $x64 & $linux & $gcc[12..14]
 //' test rsi, rsi
 //' je .L0
@@ -5339,7 +5314,27 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' mov x3, 2
 //' fmov d27, x3
 //' b .L8
-//'@if $arm64 & $gcc[12..15]
+//'@if $arm64 & $gcc[14..15]
+//' cbz x1, .L0
+//' mov x3, 0
+//' b .L1
+//' .L2:
+//' add x3, x3, 1
+//' cmp x3, x1
+//' beq .L0
+//' .L1:
+//' ldr w4, [x0, x3, lsl 2]
+//' cmp w4, w2
+//' bne .L2
+//' mov x0, x3
+//' mov x1, 1
+//' ret
+//' .L0:
+//' movi v31.2s, 0
+//' mov x0, 0
+//' umov x1, v31.d[0]
+//' ret
+//'@if $arm64 & $gcc[12..14]
 //' cbz x1, .L0
 //' mov x3, 0
 //' b .L1

@@ -777,12 +777,30 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' or r8, rax
 //' sete al
 //' ret
-//'@if $arm64 & $gcc[13..]
+//'@if $arm64 & $gcc[15..]
 //' ldr q31, [x0]
 //' ldr q30, [x1]
 //' eor v30.16b, v31.16b, v30.16b
 //' umaxp v30.4s, v30.4s, v30.4s
 //' fmov x0, d30
+//' cmp x0, 0
+//' cset w0, eq
+//' ret
+//'@if $arm64 & $gcc[14..15]
+//' ldr q31, [x0]
+//' ldr q30, [x1]
+//' eor v31.16b, v31.16b, v30.16b
+//' umaxp v31.4s, v31.4s, v31.4s
+//' fmov x0, d31
+//' cmp x0, 0
+//' cset w0, eq
+//' ret
+//'@if $arm64 & $gcc[13..14]
+//' ldr q31, [x0]
+//' ldr q30, [x1]
+//' eor v31.16b, v31.16b, v30.16b
+//' umaxp v31.4s, v31.4s, v31.4s
+//' fmov x0, d31
 //' cmp x0, 0
 //' cset w0, eq
 //' ret
