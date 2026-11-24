@@ -17,7 +17,10 @@ jobs:
   # Library tests: clang x {libstdc++, libc++} x {x86-64, arm64}, sanitized and unsanitized.
   clang:
     name: 'clang ${{ matrix.llvm }} / ${{ matrix.stdlib }} / ${{ matrix.arch }}'
-    runs-on: ${{ matrix.os || (matrix.arch == 'arm64' && 'ubuntu-26.04-arm' || 'ubuntu-26.04') }}
+    # clang <= 17 stays on ubuntu-24.04: their MSan runtimes lack the re-exec-with-ASLR-off workaround for high-entropy kernels
+    # (vm.mmap_rnd_bits=32, the default on the 26.04 image, can load PIE binaries outside MSan's application range; llvm/llvm-project#78354, fixed by #85142,
+    # which was only backported to release/18.x). The 26.04 archives start at LLVM 17 anyway, so LLVM 15/16 must pin to 24.04 regardless.
+    runs-on: ${{ format('ubuntu-{0}{1}', fromJSON(matrix.llvm) <= 17 && '24.04' || '26.04', matrix.arch == 'arm64' && '-arm' || '') }}
     env:
       CXX: clang++-${{ matrix.llvm }}
       CC: clang-${{ matrix.llvm }}
@@ -27,20 +30,6 @@ jobs:
         llvm: ['15', '16', '17', '18', '19', '20', '21', '22', '23']
         stdlib: ['libstdc++', 'libc++']
         arch: ['x64', 'arm64']
-        include:
-          # Ubuntu 26.04 archives start at LLVM 17; use 24.04 for LLVM 15/16.
-          - llvm: '15'
-            arch: 'x64'
-            os: 'ubuntu-24.04'
-          - llvm: '15'
-            arch: 'arm64'
-            os: 'ubuntu-24.04-arm'
-          - llvm: '16'
-            arch: 'x64'
-            os: 'ubuntu-24.04'
-          - llvm: '16'
-            arch: 'arm64'
-            os: 'ubuntu-24.04-arm'
     steps:
       - &checkout_step
         name: Checkout
