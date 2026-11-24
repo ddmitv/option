@@ -799,7 +799,7 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' cmp x0, 0
 //' cset w0, eq
 //' ret
-//'@if $arm64 & $gcc[13..14]
+//'@if $arm64 & $gcc[..14]
 //' ldr x3, [x0]
 //' ldr x2, [x1]
 //' cmp x3, x2
@@ -815,36 +815,6 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' bne .L1
 //' mov w0, 0
 //' eor w0, w0, 1
-//' ret
-//'@if $arm64 & $gcc[12..13]
-//' ldr x3, [x0]
-//' ldr x2, [x1]
-//' cmp x3, x2
-//' beq .L0
-//' .L1:
-//' mov w0, 1
-//' eor w0, w0, 1
-//' ret
-//' .L0:
-//' ldr x2, [x0, 8]
-//' ldr x0, [x1, 8]
-//' cmp x2, x0
-//' bne .L1
-//' mov w0, 0
-//' eor w0, w0, 1
-//' ret
-//'@if $arm64 & $gcc[..12]
-//' ldr x2, [x1]
-//' ldr x3, [x0]
-//' ldrb w1, [x1, 8]
-//' ldrb w0, [x0, 8]
-//' cmp x3, x2
-//' eor w1, w0, w1
-//' cset w2, eq
-//' eor w0, w0, 1
-//' eor w1, w1, 1
-//' orr w0, w2, w0
-//' and w0, w0, w1
 //' ret
 //'@if $arm64 & $clang[18..]
 //' ldp x8, x11, [x1]
