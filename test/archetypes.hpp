@@ -134,11 +134,18 @@ namespace archetype_bases {
         }
         int value;
     protected:
+#if OPTION_GCC && __GNUC__ == 12
+        OPTION_GCC_SUPPRESS_WARNING_PUSH
+        OPTION_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")
+#endif
         constexpr static int check_value(const int& val) {
             check(val != -1);
             check(val != 999);
             return val;
         }
+#if OPTION_GCC && __GNUC__ == 12
+        OPTION_GCC_SUPPRESS_WARNING_POP
+#endif
         constexpr static int check_value(int& val, int val_cp = 0) {
             check(val != -1);
             check(val != 999);
