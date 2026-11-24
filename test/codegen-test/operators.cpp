@@ -741,10 +741,18 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' cmp eax, 65535
 //' sete al
 //' ret
-//'@if $x64 & $linux & $gcc[13..]
+//'@if $x64 & $linux & $gcc[14..]
 //' vmovdqu xmm0, [rdi]
 //' vpxor xmm0, xmm0, xmmword ptr [rsi]
 //' vptest xmm0, xmm0
+//' sete al
+//' ret
+//'@if $x64 & $linux & $gcc[13..14]
+//' mov rax, [rdi]
+//' mov rdx, [rdi + 8]
+//' xor rax, [rsi]
+//' xor rdx, [rsi + 8]
+//' or rax, rdx
 //' sete al
 //' ret
 //'@if $x64 & $linux & $gcc[..13]
@@ -796,13 +804,21 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' cset w0, eq
 //' ret
 //'@if $arm64 & $gcc[13..14]
-//' ldr q31, [x0]
-//' ldr q30, [x1]
-//' eor v31.16b, v31.16b, v30.16b
-//' umaxp v31.4s, v31.4s, v31.4s
-//' fmov x0, d31
-//' cmp x0, 0
-//' cset w0, eq
+//' ldr x3, [x0]
+//' ldr x2, [x1]
+//' cmp x3, x2
+//' beq .L0
+//' .L1:
+//' mov w0, 1
+//' eor w0, w0, 1
+//' ret
+//' .L0:
+//' ldr x2, [x0, 8]
+//' ldr x0, [x1, 8]
+//' cmp x2, x0
+//' bne .L1
+//' mov w0, 0
+//' eor w0, w0, 1
 //' ret
 //'@if $arm64 & $gcc[12..13]
 //' ldr x4, [x0]
