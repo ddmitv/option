@@ -14,8 +14,12 @@ struct int64x2 {
 //' movsxd rax, edx
 //' mov dword ptr [rdi + rax*4 + 8], 6
 //' ret
-//'@if $x64 & $linux & $gcc
+//'@if $x64 & $linux & $gcc[13..]
 //' movsxd rdx, edx
+//' mov dword ptr [rdi + rdx*4 + 8], 6
+//' ret
+//'@if $x64 & $linux & $gcc[..13]
+//' movsx rdx, edx
 //' mov dword ptr [rdi + rdx*4 + 8], 6
 //' ret
 //'@if $x64 & $windows & $gcc
@@ -1980,9 +1984,14 @@ std::optional<uint32_t> std_optional_int32_to_uint32_ctor(const std::optional<in
 //' shr rax, 32
 //' xchg rdx, rax
 //' ret
-//'@if $x64 & $linux & $gcc[12..14]
+//'@if $x64 & $linux & $gcc[13..14]
 //' mov rdx, rdi
 //' movsxd rax, edi
+//' shr rdx, 32
+//' ret
+//'@if $x64 & $linux & $gcc[12..13]
+//' mov rdx, rdi
+//' movsx rax, edi
 //' shr rdx, 32
 //' ret
 //'@if $x64 & $linux & $gcc[..12]

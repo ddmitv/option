@@ -756,16 +756,12 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' sete al
 //' ret
 //'@if $x64 & $linux & $gcc[..13]
-//' movzx edx, [rdi + 8]
-//' mov rax, [rsi]
-//' cmp [rdi], rax
-//' mov ecx, edx
+//' mov rdx, [rdi]
+//' mov rax, [rdi + 8]
+//' xor rdx, [rsi]
+//' xor rax, [rsi + 8]
+//' or rax, rdx
 //' sete al
-//' xor dl, [rsi + 8]
-//' xor ecx, 1
-//' xor edx, 1
-//' or eax, ecx
-//' and eax, edx
 //' ret
 //'@if $x64 & $windows & $gcc
 //' mov r8, rcx
@@ -821,17 +817,21 @@ bool std_optional_int32_equal(std::optional<int32_t> a, std::optional<int32_t> b
 //' eor w0, w0, 1
 //' ret
 //'@if $arm64 & $gcc[12..13]
-//' ldr x4, [x0]
-//' ldr x3, [x1]
-//' ldrb w2, [x0, 8]
-//' ldrb w1, [x1, 8]
-//' cmp x4, x3
-//' cset w0, eq
-//' eor w1, w2, w1
-//' eor w2, w2, 1
-//' eor w1, w1, 1
-//' orr w0, w0, w2
-//' and w0, w0, w1
+//' ldr x3, [x0]
+//' ldr x2, [x1]
+//' cmp x3, x2
+//' beq .L0
+//' .L1:
+//' mov w0, 1
+//' eor w0, w0, 1
+//' ret
+//' .L0:
+//' ldr x2, [x0, 8]
+//' ldr x0, [x1, 8]
+//' cmp x2, x0
+//' bne .L1
+//' mov w0, 0
+//' eor w0, w0, 1
 //' ret
 //'@if $arm64 & $gcc[..12]
 //' ldr x2, [x1]
