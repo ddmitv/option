@@ -331,7 +331,7 @@ opt::option<int32_t> option_int32_empty() {
 //' mov rax, rcx
 //' movups [rcx], xmm0
 //' ret
-//'@if $x64 & $linux & $clang[16..]
+//'@if $x64 & $linux & ($clang[16..] | $gcc)
 //' xor eax, eax
 //' xor edx, edx
 //' ret
@@ -339,14 +339,6 @@ opt::option<int32_t> option_int32_empty() {
 //' mov rax, rdi
 //' xorps xmm0, xmm0
 //' movups [rdi], xmm0
-//' ret
-//'@if $x64 & $linux & $gcc[15..]
-//' xor eax, eax
-//' xor edx, edx
-//' ret
-//'@if $x64 & $linux & $gcc[..15]
-//' xor edx, edx
-//' xor eax, eax
 //' ret
 //'@if $x64 & $windows & ($clang-cl | $clang)
 //' mov rax, rcx
@@ -452,9 +444,13 @@ std::optional<int32_t> std_optional_int32_empty() {
 //' xor edx, edx
 //' ret
 //'@if $x64 & $linux & $gcc[..15]
-//' mov byte ptr [rsp - 16], 0
-//' mov rax, [rsp - 24]
-//' mov rdx, [rsp - 16]
+//' push rbp
+//' mov rbp, rsp
+//' and rsp, -32
+//' mov byte ptr [rsp - 8], 0
+//' mov rax, [rsp - 16]
+//' mov rdx, [rsp - 8]
+//' leave
 //' ret
 //'@if $x64 & $windows & $gcc
 //' pxor xmm0, xmm0
@@ -618,7 +614,7 @@ std::optional<int32_t> std_optional_int32_default() {
 //' mov rax, rcx
 //' movups [rcx], xmm0
 //' ret
-//'@if $x64 & $linux & $clang[16..]
+//'@if $x64 & $linux & ($clang[16..] | $gcc)
 //' xor eax, eax
 //' xor edx, edx
 //' ret
@@ -626,14 +622,6 @@ std::optional<int32_t> std_optional_int32_default() {
 //' mov rax, rdi
 //' xorps xmm0, xmm0
 //' movups [rdi], xmm0
-//' ret
-//'@if $x64 & $linux & $gcc[15..]
-//' xor eax, eax
-//' xor edx, edx
-//' ret
-//'@if $x64 & $linux & $gcc[..15]
-//' xor edx, edx
-//' xor eax, eax
 //' ret
 //'@if $x64 & $windows & ($clang | $clang-cl)
 //' mov rax, rcx
@@ -679,9 +667,13 @@ opt::option<int64_t> option_int64_default() {
 //' mov byte ptr [rcx + 8], 0
 //' ret
 //'@if $x64 & $linux & $gcc[..15]
-//' mov byte ptr [rsp - 16], 0
-//' mov rax, [rsp - 24]
-//' mov rdx, [rsp - 16]
+//' push rbp
+//' mov rbp, rsp
+//' and rsp, -32
+//' mov byte ptr [rsp - 8], 0
+//' mov rax, [rsp - 16]
+//' mov rdx, [rsp - 8]
+//' leave
 //' ret
 //'@if $x64 & $windows & $gcc
 //' pxor xmm0, xmm0
@@ -1931,10 +1923,16 @@ std::optional<uint32_t> std_optional_int32_to_uint32_ctor(const std::optional<in
 //' mov ecx, [rsp + 12]
 //' mov [rdi + 8], ecx
 //' ret
-//'@if $x64 & $linux & $gcc[14..]
+//'@if $x64 & $linux & $gcc[15..]
 //' movsxd rax, edi
 //' shr rdi, 32
 //' mov rdx, rdi
+//' ret
+//'@if $x64 & $linux & $gcc[14..15]
+//' mov rax, rdi
+//' movsxd rdx, edi
+//' shr rax, 32
+//' xchg rdx, rax
 //' ret
 //'@if $x64 & $linux & $gcc[12..14]
 //' mov rcx, rdi
@@ -3908,24 +3906,24 @@ void option_int64x2_swap(opt::option<int64x2>& a, opt::option<int64x2>& b) {
 //' je .L0
 //' test al, al
 //' je .L1
-//' movdqu xmm0, [rdi]
-//' movdqu xmm1, [rsi]
-//' movups [rdi], xmm1
-//' movups [rsi], xmm0
+//' vmovdqu xmm0, [rdi]
+//' vmovdqu xmm1, [rsi]
+//' vmovdqu [rdi], xmm1
+//' vmovdqu [rsi], xmm0
 //' ret
 //' .L0:
 //' test al, al
 //' je .L2
-//' movdqu xmm0, [rsi]
+//' vmovdqu xmm0, [rsi]
 //' mov byte ptr [rdi + 16], 1
-//' movups [rdi], xmm0
+//' vmovdqu [rdi], xmm0
 //' mov byte ptr [rsi + 16], 0
 //' .L2:
 //' ret
 //' .L1:
-//' movdqu xmm0, [rdi]
+//' vmovdqu xmm0, [rdi]
 //' mov byte ptr [rsi + 16], 1
-//' movups [rsi], xmm0
+//' vmovdqu [rsi], xmm0
 //' mov byte ptr [rdi + 16], 0
 //' ret
 //'@if $x64 & $linux & $gcc[12..14]
@@ -4968,6 +4966,24 @@ void std_optional_int64x2_swap(std::optional<int64x2>& a, std::optional<int64x2>
 //' .L15:
 //' mov eax, 6
 //' jmp .L22
+//'@if $x64 & $linux & $gcc[14..15]
+//' test rsi, rsi
+//' je .L0
+//' xor eax, eax
+//' jmp .L1
+//' .L2:
+//' add rax, 1
+//' cmp rax, rsi
+//' je .L0
+//' .L1:
+//' cmp [rdi + rax*4], edx
+//' jne .L2
+//' mov edx, 1
+//' ret
+//' .L0:
+//' xor eax, eax
+//' xor edx, edx
+//' ret
 //'@if $x64 & $linux & $gcc[12..14]
 //' test rsi, rsi
 //' je .L0
@@ -5909,6 +5925,9 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' mov eax, 6
 //' jmp .L22
 //'@if $x64 & $linux & $gcc[..15]
+//' push rbp
+//' mov rbp, rsp
+//' and rsp, -32
 //' test rsi, rsi
 //' je .L0
 //' xor eax, eax
@@ -5920,17 +5939,19 @@ opt::option<size_t> option_find_index_of_value(const int* array, size_t size, in
 //' .L1:
 //' cmp [rdi + rax*4], edx
 //' jne .L2
-//' mov [rsp - 24], rax
+//' mov [rsp - 16], rax
 //' mov eax, 1
-//' mov [rsp - 16], al
-//' mov rax, [rsp - 24]
-//' mov rdx, [rsp - 16]
+//' mov [rsp - 8], al
+//' mov rax, [rsp - 16]
+//' mov rdx, [rsp - 8]
+//' leave
 //' ret
 //' .L0:
 //' xor eax, eax
-//' mov [rsp - 16], al
-//' mov rax, [rsp - 24]
-//' mov rdx, [rsp - 16]
+//' mov [rsp - 8], al
+//' mov rax, [rsp - 16]
+//' mov rdx, [rsp - 8]
+//' leave
 //' ret
 //'@if $x64 & $windows & $gcc
 //' mov rax, rcx
