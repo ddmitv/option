@@ -12,6 +12,7 @@
     #define OPTION_ICC 1
 #elif defined(_MSC_VER)
     #ifdef __clang__
+        // clang with msvc frontend
         #define OPTION_CLANG 1
     #else
         #define OPTION_CLANG 0
@@ -168,11 +169,14 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 #if OPTION_HAS_CPP_ATTRIBUTE(msvc::lifetimebound)
     #define OPTION_LIFETIMEBOUND [[msvc::lifetimebound]]
 #elif OPTION_HAS_CPP_ATTRIBUTE(clang::lifetimebound)
+    // https://clang.llvm.org/docs/LifetimeSafety.html#lifetimebound
+    // https://clang.llvm.org/docs/AttributeReference.html#lifetimebound
     #define OPTION_LIFETIMEBOUND [[clang::lifetimebound]]
 #else
     #define OPTION_LIFETIMEBOUND
 #endif
 
+// Some GCC's builtins are explicitly disallowed to be used outside of standard library code so we had to use the <type_traits> equivalent instead
 #if (OPTION_HAS_BUILTIN(__is_trivially_destructible) && !OPTION_GCC) || OPTION_MSVC
     #define OPTION_IS_TRIVIALLY_DESTRUCTIBLE(x) __is_trivially_destructible(x)
 #else
@@ -185,12 +189,14 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_IS_TRIVIALLY_CONSTRUCTIBLE(...) ::std::is_trivially_constructible_v<__VA_ARGS__>
 #endif
 
+// Do not use the macro for function return type (gcc will produce an error due to name mangling), use OPTION_RETURN_REMOVE_CV instead
 #if OPTION_HAS_BUILTIN(__remove_cv)
     #define OPTION_REMOVE_CV(x) __remove_cv(x)
 #else
     #define OPTION_REMOVE_CV(x) ::std::remove_cv_t<x>
 #endif
 
+// Use the macro for function return types
 #if OPTION_HAS_BUILTIN(__remove_cv) && !OPTION_GCC
     #define OPTION_RETURN_REMOVE_CV(x) __remove_cv(x)
 #else
@@ -299,6 +305,7 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_CONSUMED_ANNOTATION_CHECKING 0
 #endif
 
+// https://clang.llvm.org/docs/AttributeReference.html#consumed-annotation-checking
 #if OPTION_CONSUMED_ANNOTATION_CHECKING \
     && OPTION_HAS_CPP_ATTRIBUTE(clang::consumable) && OPTION_HAS_CPP_ATTRIBUTE(clang::callable_when) \
     && OPTION_HAS_CPP_ATTRIBUTE(clang::param_typestate) && OPTION_HAS_CPP_ATTRIBUTE(clang::return_typestate) \
@@ -321,10 +328,13 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 
 #ifndef OPTION_DEBUG_BREAK
     #if OPTION_HAS_BUILTIN(__builtin_debugtrap) || OPTION_CLANG
+        // https://clang.llvm.org/docs/LanguageExtensions.html#builtin-debugtrap
         #define OPTION_DEBUG_BREAK __builtin_debugtrap()
     #elif OPTION_MSVC
+        // https://learn.microsoft.com/cpp/intrinsics/debugbreak
         #define OPTION_DEBUG_BREAK __debugbreak()
     #elif OPTION_HAS_BUILTIN(__builtin_trap) || OPTION_GCC
+        // https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#index-_005f_005fbuiltin_005ftrap
         #define OPTION_DEBUG_BREAK __builtin_trap()
     #else
         #include <csignal>
@@ -339,14 +349,19 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 
 // clang <=18 reported that [[assume]] attribute existed but not emitted the @llvm.assume IR, so we firstly check for clang and use __builtin_assume
 #if OPTION_CLANG
+    // https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume
     #define OPTION_ASSUME(expr) __builtin_assume(expr)
 #elif OPTION_GCC && __GNUC__ >= 13
+    // https://gcc.gnu.org/onlinedocs/gcc-15.1.0/gcc/Statement-Attributes.html#index-assume-statement-attribute
     #define OPTION_ASSUME(expr) __attribute__((__assume__(expr)))
 #elif OPTION_GCC
+    // https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#index-_005f_005fbuiltin_005funreachable
     #define OPTION_ASSUME(expr) if (expr) {} else __builtin_unreachable()
 #elif OPTION_HAS_CPP_ATTRIBUTE(assume)
+    // https://en.cppreference.com/cpp/language/attributes/assume
     #define OPTION_ASSUME(expr) [[assume(expr)]]
 #elif OPTION_MSVC
+    // https://learn.microsoft.com/cpp/intrinsics/assume
     #define OPTION_ASSUME(expr) __assume(expr)
 #else
     #define OPTION_ASSUME(expr) // noop
@@ -367,12 +382,15 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 #endif
 
 #if OPTION_HAS_CPP_ATTRIBUTE(gnu::pure)
+    // https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-pure
     #define OPTION_PURE [[gnu::pure]]
 #else
+    // no alternative for msvc
     #define OPTION_PURE
 #endif
 
 #if OPTION_HAS_CPP_ATTRIBUTE(gnu::no_sanitize)
+    // https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-no_005fsanitize-function-attribute
     #define OPTION_NO_SANITIZE(...) [[gnu::no_sanitize(__VA_ARGS__)]]
 #elif OPTION_HAS_ATTRIBUTE(no_sanitize)
     #define OPTION_NO_SANITIZE(...) __attribute__((no_sanitize(__VA_ARGS__)))
@@ -380,6 +398,7 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
     #define OPTION_NO_SANITIZE(...)
 #endif
 
+// https://clang.llvm.org/docs/TypeSanitizer.html
 #if OPTION_HAS_FEATURE(type_sanitizer)
     #define OPTION_NO_SANITIZE_TYPE OPTION_NO_SANITIZE("type")
 #else
@@ -390,6 +409,7 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 #define OPTION_DESTRUCTOR_TOMBSTONES 1
 
 #if OPTION_MSVC
+    // search for _CPPUNWIND at https://learn.microsoft.com/cpp/preprocessor/predefined-macros
     #ifdef _CPPUNWIND
         #define OPTION_HAS_EXCEPTIONS 1
     #else
@@ -404,14 +424,18 @@ OPTION_SUPPRESS_COMMON_WARNINGS_PUSH
 #endif
 
 #if OPTION_HAS_CPP_ATTRIBUTE(gnu::cold) && OPTION_HAS_CPP_ATTRIBUTE(gnu::noinline)
+    // https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-cold
+    // https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-noinline
     #define OPTION_COLD [[gnu::cold, gnu::noinline]]
 #elif OPTION_MSVC
+    // https://learn.microsoft.com/cpp/cpp/noinline
     #define OPTION_COLD __declspec(noinline)
 #else
     #define OPTION_COLD
 #endif
 
 #if OPTION_HAS_CPP_ATTRIBUTE(gsl::Pointer)
+    // https://clang.llvm.org/docs/AttributeReference.html#pointer
     #define OPTION_GSL_POINTER [[gsl::Pointer]]
 #else
     #define OPTION_GSL_POINTER
