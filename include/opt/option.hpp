@@ -342,15 +342,16 @@ namespace impl {
                 }
             } else if constexpr (OPTION_IS_INTEGRAL(T)) {
 #if OPTION_GCC // codegen workaround
-                // Zero the payload and the flags with plain stores instead of memset.
                 // A memset (or a loop, which GCC turns into one) takes the address of the
                 // storage, so GCC <= 14 keeps the whole object in memory instead of folding
-                // it into the return registers, and -fstack-protector then adds a canary.
-                // Explicit stores let it emit e.g. `mov x0, 0; mov x1, 0; ret`.
+                // it into the return registers, and -fstack-protector then adds a stack canary.
+                // Explicit stores with loop unrolling let GCC optimize the object into the return registers.
                 this->value = T{};
-                [&]<std::size_t... I>(std::index_sequence<I...>) {
-                    ((this->engaged_tail[I] = false), ...);
-                }(std::make_index_sequence<sizeof(this->engaged_tail)>{});
+
+                #pragma GCC unroll 16
+                for (bool& b : this->engaged_tail) {
+                    b = false;
+                }
 #else
                 std::memset(static_cast<void*>(this), 0, sizeof(*this));
 #endif
